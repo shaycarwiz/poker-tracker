@@ -1,0 +1,83 @@
+# Cursor Rules for Poker Tracker Project
+
+## Commit Message Pattern
+
+When making commits, follow this structured pattern:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Commit Types
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **chore**: Changes to the build process or auxiliary tools and libraries
+- **ci**: Changes to CI configuration files and scripts
+- **build**: Changes that affect the build system or external dependencies
+
+### Scope (optional)
+
+- **poker**: Poker game logic and rules
+- **tracker**: Tracking and statistics functionality
+- **ui**: User interface components
+- **api**: API endpoints and data handling
+- **db**: Database related changes
+- **config**: Configuration files
+- **deps**: Dependencies and package management
+
+### Description
+
+- Use imperative mood ("add feature" not "added feature")
+- Start with lowercase letter
+- No period at the end
+- Keep it concise but descriptive
+
+### Examples
+
+```
+feat(poker): add hand ranking system
+fix(tracker): resolve incorrect win rate calculation
+docs(api): update endpoint documentation
+refactor(ui): simplify component structure
+perf(db): optimize query performance
+chore(deps): update dependencies to latest versions
+```
+
+### Breaking Changes
+
+If the commit introduces a breaking change, add `BREAKING CHANGE:` in the footer:
+
+```
+feat(api): change user authentication method
+
+BREAKING CHANGE: The login endpoint now requires JWT tokens instead of session cookies
+```
+
+### Multiple Issues
+
+If the commit addresses multiple issues, reference them in the footer:
+
+```
+fix(tracker): resolve calculation errors
+
+Fixes #123, #456
+```
+
+## Code Quality Rules
+
+- Write clear, self-documenting code
+- Use meaningful variable and function names
+- Add comments for complex business logic
+- Follow TypeScript best practices
+- Ensure all functions have proper type annotations
+- Write unit tests for new features and bug fixes
