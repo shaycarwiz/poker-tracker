@@ -39,8 +39,6 @@ export interface Transaction {
   notes?: string;
 }
 
-// Removed Game interface since we're focusing on session-level tracking
-
 // Simplified to focus on cash games only
 export enum GameType {
   CASH = "cash",
