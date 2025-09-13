@@ -20,3 +20,6 @@ export * from "./events";
 
 // Types and Interfaces
 export * from "./types";
+
+// Repository Interfaces
+export * from "./repositories";

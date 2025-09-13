@@ -1,0 +1,34 @@
+// Player data mapper - converts between domain objects and database rows
+
+import { Player, PlayerId } from "@/model/entities";
+import { Money } from "@/model/value-objects";
+
+export class PlayerMapper {
+  static toDomain(row: any): Player {
+    // Create a new Player instance using the private constructor approach
+    const player = Object.create(Player.prototype);
+    Object.assign(player, {
+      id: new PlayerId(row.id),
+      _name: row.name,
+      _email: row.email,
+      _currentBankroll: new Money(row.current_bankroll, row.currency),
+      _totalSessions: row.total_sessions,
+      _createdAt: new Date(row.created_at),
+      _updatedAt: new Date(row.updated_at),
+    });
+    return player;
+  }
+
+  static toPersistence(player: Player): any {
+    return {
+      id: player.id.value,
+      name: player.name,
+      email: player.email,
+      current_bankroll: player.currentBankroll.amount,
+      currency: player.currentBankroll.currency,
+      total_sessions: player.totalSessions,
+      created_at: player.createdAt,
+      updated_at: player.updatedAt,
+    };
+  }
+}
