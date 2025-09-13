@@ -48,9 +48,9 @@ export class Stakes {
 
   get formatted(): string {
     if (this.ante) {
-      return `${this.smallBlind.amount}/${this.bigBlind.amount}/${this.ante.amount}`;
+      return `$${this.smallBlind.amount}/$${this.bigBlind.amount} ($${this.ante.amount} ante)`;
     }
-    return `${this.smallBlind.amount}/${this.bigBlind.amount}`;
+    return `$${this.smallBlind.amount}/$${this.bigBlind.amount}`;
   }
 
   equals(other: Stakes): boolean {
@@ -63,19 +63,26 @@ export class Stakes {
 }
 
 export class Duration {
-  constructor(public readonly minutes: number) {
-    if (minutes < 0) throw new Error("Duration cannot be negative");
+  constructor(public readonly hours: number) {
+    if (hours < 0) throw new Error("Duration cannot be negative");
   }
 
-  get hours(): number {
-    return this.minutes / 60;
+  get minutes(): number {
+    return this.hours * 60;
   }
 
   add(other: Duration): Duration {
-    return new Duration(this.minutes + other.minutes);
+    return new Duration(this.hours + other.hours);
+  }
+
+  get formatted(): string {
+    const totalMinutes = Math.round(this.hours * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
   }
 
   equals(other: Duration): boolean {
-    return this.minutes === other.minutes;
+    return this.hours === other.hours;
   }
 }

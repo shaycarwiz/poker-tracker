@@ -213,10 +213,9 @@ export class Session {
 
   get duration(): Duration | undefined {
     if (!this._endTime) return undefined;
-    const minutes = Math.floor(
-      (this._endTime.getTime() - this._startTime.getTime()) / (1000 * 60)
-    );
-    return new Duration(minutes);
+    const hours =
+      (this._endTime.getTime() - this._startTime.getTime()) / (1000 * 60 * 60);
+    return new Duration(hours);
   }
 
   get hourlyRate(): Money | undefined {
