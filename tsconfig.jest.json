@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"],
+      "@/model/*": ["model/*"],
+      "@/api/*": ["api/*"],
+      "@/application/*": ["application/*"],
+      "@/infrastructure/*": ["infrastructure/*"],
+      "@/shared/*": ["shared/*"]
+    },
+    "types": ["jest", "node", "supertest"]
+  },
+  "include": [
+    "src/shared/types/env.d.ts",
+    "src/**/*",
+    "tests/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

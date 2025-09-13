@@ -2,9 +2,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Import environment types for better type safety
-import "@/shared/types/env";
-
 export const config = {
   // Server configuration
   port: parseInt(process.env.PORT || "3000", 10),
