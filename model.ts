@@ -15,7 +15,6 @@ export interface Session {
   id: string;
   playerId: string;
   location: string;
-  gameType: GameType;
   stakes: Stakes;
   startTime: Date;
   endTime?: Date;
@@ -23,6 +22,7 @@ export interface Session {
   totalCashOut: number;
   netResult: number;
   status: SessionStatus;
+  duration: number; // in minutes
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -39,25 +39,11 @@ export interface Transaction {
   notes?: string;
 }
 
-export interface Game {
-  id: string;
-  sessionId: string;
-  gameNumber: number;
-  startTime: Date;
-  endTime?: Date;
-  smallBlind: number;
-  bigBlind: number;
-  players: number;
-  position: number;
-  result: number; // positive for win, negative for loss
-  notes?: string;
-}
+// Removed Game interface since we're focusing on session-level tracking
 
+// Simplified to focus on cash games only
 export enum GameType {
   CASH = "cash",
-  TOURNAMENT = "tournament",
-  SIT_N_GO = "sit_n_go",
-  MTT = "mtt", // Multi-table tournament
 }
 
 export enum SessionStatus {
@@ -87,19 +73,21 @@ export interface Stakes {
 export interface SessionSummary {
   sessionId: string;
   playerId: string;
+  playerName: string;
   duration: number; // in minutes
   totalBuyIn: number;
   totalCashOut: number;
   netResult: number;
   hourlyRate: number;
-  handsPlayed: number;
-  vpip: number; // Voluntarily Put $ In Pot
-  pfr: number; // Pre-Flop Raise
-  bbPer100: number; // Big blinds per 100 hands
+  bigBlindsWon: number; // net result in big blinds
+  location: string;
+  stakes: string; // formatted as "1/2" or "2/5"
+  date: string; // formatted date
 }
 
 export interface PlayerStats {
   playerId: string;
+  playerName: string;
   totalSessions: number;
   totalHours: number;
   totalBuyIn: number;
@@ -113,17 +101,20 @@ export interface PlayerStats {
   bestStreak: number;
   worstStreak: number;
   currentStreak: number;
+  currentBankroll: number;
+  lastSessionDate?: Date;
 }
 
 // Utility types for filtering and searching
 export interface SessionFilters {
   playerId?: string;
-  gameType?: GameType;
   dateFrom?: Date;
   dateTo?: Date;
   minBuyIn?: number;
   maxBuyIn?: number;
   status?: SessionStatus;
+  location?: string;
+  stakes?: string; // filter by stakes like "1/2", "2/5"
 }
 
 export interface TransactionFilters {
@@ -151,4 +142,82 @@ export interface PaginatedResponse<T> {
   limit: number;
   hasNext: boolean;
   hasPrev: boolean;
+}
+
+// Helper types for common operations
+export interface CreateSessionRequest {
+  playerId: string;
+  location: string;
+  stakes: Stakes;
+  startTime: Date;
+  initialBuyIn: number;
+  notes?: string;
+}
+
+export interface EndSessionRequest {
+  sessionId: string;
+  endTime: Date;
+  finalCashOut: number;
+  notes?: string;
+}
+
+export interface AddTransactionRequest {
+  sessionId: string;
+  playerId: string;
+  type: TransactionType;
+  amount: number;
+  description?: string;
+  notes?: string;
+}
+
+// Utility functions for common calculations
+export class PokerTrackerUtils {
+  static calculateHourlyRate(
+    netResult: number,
+    durationMinutes: number
+  ): number {
+    if (durationMinutes <= 0) return 0;
+    const hours = durationMinutes / 60;
+    return netResult / hours;
+  }
+
+  static calculateBigBlindsWon(netResult: number, bigBlind: number): number {
+    if (bigBlind <= 0) return 0;
+    return netResult / bigBlind;
+  }
+
+  static formatStakes(stakes: Stakes): string {
+    if (stakes.ante && stakes.ante > 0) {
+      return `${stakes.smallBlind}/${stakes.bigBlind}/${stakes.ante}`;
+    }
+    return `${stakes.smallBlind}/${stakes.bigBlind}`;
+  }
+
+  static calculateWinRate(sessions: Session[]): number {
+    if (sessions.length === 0) return 0;
+    const winningSessions = sessions.filter((s) => s.netResult > 0).length;
+    return (winningSessions / sessions.length) * 100;
+  }
+
+  static calculateStreak(sessions: Session[]): number {
+    if (sessions.length === 0) return 0;
+
+    let currentStreak = 0;
+    const lastSession = sessions[sessions.length - 1];
+    const isWinning = lastSession.netResult > 0;
+
+    for (let i = sessions.length - 1; i >= 0; i--) {
+      const session = sessions[i];
+      if (
+        (isWinning && session.netResult > 0) ||
+        (!isWinning && session.netResult <= 0)
+      ) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+
+    return isWinning ? currentStreak : -currentStreak;
+  }
 }
