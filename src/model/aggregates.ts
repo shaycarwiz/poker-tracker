@@ -101,7 +101,7 @@ export class PlayerStats {
       worstStreak: number;
       currentStreak: number;
       currentBankroll: Money;
-      lastSessionDate: Date;
+      lastSessionDate: Date | undefined;
     }>
   ): PlayerStats {
     return new PlayerStats(

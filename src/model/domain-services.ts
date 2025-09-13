@@ -81,8 +81,6 @@ export class PlayerStatsService {
     if (sessions.length === 0) return { best: 0, worst: 0, current: 0 };
 
     let currentStreak = 0;
-    let bestStreak = 0;
-    let worstStreak = 0;
     let maxStreak = 0;
     let minStreak = 0;
 
