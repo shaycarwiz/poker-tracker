@@ -2,10 +2,14 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.jest.json",
-    },
+  setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
+  transform: {
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.jest.json",
+      },
+    ],
   },
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
@@ -15,4 +19,7 @@ module.exports = {
     "^@/infrastructure/(.*)$": "<rootDir>/src/infrastructure/$1",
     "^@/shared/(.*)$": "<rootDir>/src/shared/$1",
   },
+  testTimeout: 10000,
+  forceExit: true,
+  detectOpenHandles: true,
 };

@@ -60,28 +60,32 @@ app.get("/health", (_, res) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Start server
-const server = app.listen(PORT, () => {
-  logger.info(`🚀 Poker Tracker server running on port ${PORT}`);
-  logger.info(`📊 Environment: ${config.nodeEnv}`);
-  logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
-});
+// Only start server if not in test environment
+let server: any = null;
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM received, shutting down gracefully");
-  server.close(() => {
-    logger.info("Process terminated");
-    process.exit(0);
+if (process.env.NODE_ENV !== "test") {
+  server = app.listen(PORT, () => {
+    logger.info(`🚀 Poker Tracker server running on port ${PORT}`);
+    logger.info(`📊 Environment: ${config.nodeEnv}`);
+    logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
   });
-});
 
-process.on("SIGINT", () => {
-  logger.info("SIGINT received, shutting down gracefully");
-  server.close(() => {
-    logger.info("Process terminated");
-    process.exit(0);
+  // Graceful shutdown
+  process.on("SIGTERM", () => {
+    logger.info("SIGTERM received, shutting down gracefully");
+    server.close(() => {
+      logger.info("Process terminated");
+      process.exit(0);
+    });
   });
-});
+
+  process.on("SIGINT", () => {
+    logger.info("SIGINT received, shutting down gracefully");
+    server.close(() => {
+      logger.info("Process terminated");
+      process.exit(0);
+    });
+  });
+}
 
 export default app;
