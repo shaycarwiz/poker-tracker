@@ -1,31 +1,31 @@
 // Database migrations index - Central export point for all migrations
 
+export { MigrationRunner } from "./migration-runner";
+export { MigrationRunner as MigrationRunnerClass } from "./migration-runner";
+
+// Legacy migration list for backward compatibility
 export const migrations = [
+  "000_create_migrations_table.sql",
   "001_create_players_table.sql",
   "002_create_sessions_table.sql",
   "003_create_transactions_table.sql",
   "004_create_indexes_and_views.sql",
 ];
 
+// Legacy runMigrations function for backward compatibility
 export const runMigrations = async (): Promise<void> => {
-  const { DatabaseConnection } = await import("../connection");
-  const db = DatabaseConnection.getInstance();
+  const { MigrationRunner } = await import("./migration-runner");
+  const runner = new MigrationRunner();
 
   try {
-    // Run each migration in order
-    for (const migration of migrations) {
-      const fs = await import("fs");
-      const path = await import("path");
-      const migrationPath = path.join(__dirname, migration);
-      const migrationSQL = fs.readFileSync(migrationPath, "utf8");
+    const result = await runner.runMigrations();
 
-      await db.query(migrationSQL);
-      console.log(`✅ Migration ${migration} completed`);
+    if (!result.success) {
+      throw new Error(`Migration failed: ${result.errors.join(", ")}`);
     }
 
     console.log("🎉 All migrations completed successfully");
-  } catch (error) {
-    console.error("❌ Migration failed:", error);
-    throw error;
+  } finally {
+    await runner.close();
   }
 };

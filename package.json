@@ -12,7 +12,13 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "migrate": "ts-node -r tsconfig-paths/register src/infrastructure/database/migrations/cli.ts",
+    "migrate:run": "npm run migrate run",
+    "migrate:status": "npm run migrate status",
+    "migrate:rollback": "npm run migrate rollback",
+    "migrate:history": "npm run migrate history",
+    "migrate:build": "tsc -p tsconfig.build.json && node dist/infrastructure/database/migrations/cli.js"
   },
   "keywords": [
     "poker",
@@ -53,6 +59,7 @@
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   },
   "engines": {

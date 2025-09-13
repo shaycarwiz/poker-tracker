@@ -63,7 +63,7 @@ app.use(errorHandler);
 // Only start server if not in test environment
 let server: any = null;
 
-if (process.env.NODE_ENV !== "test") {
+if (process.env["NODE_ENV"] !== "test") {
   server = app.listen(PORT, () => {
     logger.info(`🚀 Poker Tracker server running on port ${PORT}`);
     logger.info(`📊 Environment: ${config.nodeEnv}`);
