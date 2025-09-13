@@ -57,7 +57,7 @@ export class PostgresTransactionRepository implements TransactionRepository {
         [playerId.value]
       );
 
-      return result.rows.map((row) => TransactionMapper.toDomain(row));
+      return result.rows.map((row: any) => TransactionMapper.toDomain(row));
     } catch (error) {
       logger.error("Error finding transactions by player ID", {
         playerId: playerId.value,
@@ -119,7 +119,7 @@ export class PostgresTransactionRepository implements TransactionRepository {
 
       const result = await this.db.query(query, params);
 
-      return result.rows.map((row) => TransactionMapper.toDomain(row));
+      return result.rows.map((row: any) => TransactionMapper.toDomain(row));
     } catch (error) {
       logger.error("Error finding transactions by filters", { filters, error });
       throw new Error("Failed to find transactions by filters");
