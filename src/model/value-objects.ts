@@ -48,7 +48,9 @@ export class Stakes {
 
   get formatted(): string {
     if (this.ante) {
-      return `$${this.smallBlind.amount}/$${this.bigBlind.amount} ($${this.ante.amount} ante)`;
+      return `$${this.smallBlind.amount}/$${
+        this.bigBlind.amount
+      } ($${this.ante.amount.toFixed(2)} ante)`;
     }
     return `$${this.smallBlind.amount}/$${this.bigBlind.amount}`;
   }
