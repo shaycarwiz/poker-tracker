@@ -16,24 +16,24 @@ export type EventHandler<T extends DomainEvent> = (
   event: T
 ) => void | Promise<void>;
 
-// Domain events collection - entities collect events instead of publishing directly
-export class DomainEvents {
-  private static events: DomainEvent[] = [];
+// Base class for aggregate roots that can collect domain events
+export abstract class AggregateRoot {
+  private _domainEvents: DomainEvent[] = [];
 
-  static add(event: DomainEvent): void {
-    this.events.push(event);
+  protected addDomainEvent(event: DomainEvent): void {
+    this._domainEvents.push(event);
   }
 
-  static getEvents(): DomainEvent[] {
-    return [...this.events];
+  get domainEvents(): DomainEvent[] {
+    return [...this._domainEvents];
   }
 
-  static clear(): void {
-    this.events = [];
+  clearDomainEvents(): void {
+    this._domainEvents = [];
   }
 
-  static hasEvents(): boolean {
-    return this.events.length > 0;
+  hasDomainEvents(): boolean {
+    return this._domainEvents.length > 0;
   }
 }
 

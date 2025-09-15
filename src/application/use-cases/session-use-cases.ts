@@ -5,7 +5,7 @@ import { UnitOfWork } from "@/model/repositories";
 import { Money, Stakes } from "@/model/value-objects";
 import { TransactionType, SessionStatus } from "@/model/enums";
 import { logger } from "@/shared/utils/logger";
-import { DomainEvents, DomainEventDispatcher } from "@/model/events";
+import { DomainEventDispatcher } from "@/model/events";
 import {
   StartSessionRequest,
   StartSessionResponse,
@@ -56,10 +56,9 @@ export class StartSessionUseCase {
       await this.unitOfWork.commit();
 
       // Publish collected domain events after successful commit
-      const events = DomainEvents.getEvents();
-      if (events.length > 0) {
-        await DomainEventDispatcher.publishAll(events);
-        DomainEvents.clear();
+      if (session.hasDomainEvents()) {
+        await DomainEventDispatcher.publishAll(session.domainEvents);
+        session.clearDomainEvents();
       }
 
       logger.info("Session started successfully", {
@@ -122,10 +121,9 @@ export class EndSessionUseCase {
       await this.unitOfWork.commit();
 
       // Publish collected domain events after successful commit
-      const events = DomainEvents.getEvents();
-      if (events.length > 0) {
-        await DomainEventDispatcher.publishAll(events);
-        DomainEvents.clear();
+      if (session.hasDomainEvents()) {
+        await DomainEventDispatcher.publishAll(session.domainEvents);
+        session.clearDomainEvents();
       }
 
       const duration = session.endTime
@@ -193,10 +191,9 @@ export class AddTransactionUseCase {
       await this.unitOfWork.commit();
 
       // Publish collected domain events after successful commit
-      const events = DomainEvents.getEvents();
-      if (events.length > 0) {
-        await DomainEventDispatcher.publishAll(events);
-        DomainEvents.clear();
+      if (session.hasDomainEvents()) {
+        await DomainEventDispatcher.publishAll(session.domainEvents);
+        session.clearDomainEvents();
       }
 
       logger.info("Transaction added successfully", {

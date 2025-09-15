@@ -2,7 +2,8 @@
 
 import {
   DomainEventDispatcher,
-  DomainEvents,
+  AggregateRoot,
+  DomainEvent,
   SessionStartedEvent,
   SessionEndedEvent,
   TransactionAddedEvent,
@@ -14,11 +15,17 @@ import { TransactionType } from "@/model/enums";
 describe("Domain Events", () => {
   beforeEach(() => {
     DomainEventDispatcher.clearHandlers();
-    DomainEvents.clear();
   });
 
-  describe("DomainEvents", () => {
+  describe("AggregateRoot", () => {
+    class TestAggregate extends AggregateRoot {
+      public addTestEvent(event: DomainEvent): void {
+        this.addDomainEvent(event);
+      }
+    }
+
     it("should collect events", () => {
+      const aggregate = new TestAggregate();
       const sessionId = new SessionId("test-session-id");
       const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
@@ -29,16 +36,17 @@ describe("Domain Events", () => {
         stakes
       );
 
-      expect(DomainEvents.hasEvents()).toBe(false);
+      expect(aggregate.hasDomainEvents()).toBe(false);
 
-      DomainEvents.add(event);
+      aggregate.addTestEvent(event);
 
-      expect(DomainEvents.hasEvents()).toBe(true);
-      expect(DomainEvents.getEvents()).toHaveLength(1);
-      expect(DomainEvents.getEvents()[0]).toBe(event);
+      expect(aggregate.hasDomainEvents()).toBe(true);
+      expect(aggregate.domainEvents).toHaveLength(1);
+      expect(aggregate.domainEvents[0]).toBe(event);
     });
 
     it("should clear events", () => {
+      const aggregate = new TestAggregate();
       const sessionId = new SessionId("test-session-id");
       const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
@@ -49,12 +57,12 @@ describe("Domain Events", () => {
         stakes
       );
 
-      DomainEvents.add(event);
-      expect(DomainEvents.hasEvents()).toBe(true);
+      aggregate.addTestEvent(event);
+      expect(aggregate.hasDomainEvents()).toBe(true);
 
-      DomainEvents.clear();
-      expect(DomainEvents.hasEvents()).toBe(false);
-      expect(DomainEvents.getEvents()).toHaveLength(0);
+      aggregate.clearDomainEvents();
+      expect(aggregate.hasDomainEvents()).toBe(false);
+      expect(aggregate.domainEvents).toHaveLength(0);
     });
   });
 

@@ -3,7 +3,7 @@
 import { Money, Stakes, Duration } from "./value-objects";
 import { SessionStatus, TransactionType } from "./enums";
 import {
-  DomainEvents,
+  AggregateRoot,
   SessionStartedEvent,
   SessionEndedEvent,
   TransactionAddedEvent,
@@ -53,7 +53,7 @@ export class TransactionId {
 }
 
 // Main Entities
-export class Player {
+export class Player extends AggregateRoot {
   private constructor(
     public readonly id: PlayerId,
     private _name: string,
@@ -62,7 +62,9 @@ export class Player {
     private _totalSessions: number = 0,
     private _createdAt: Date = new Date(),
     private _updatedAt: Date = new Date()
-  ) {}
+  ) {
+    super();
+  }
 
   static create(name: string, email?: string, initialBankroll?: Money): Player {
     const id = PlayerId.generate();
@@ -123,7 +125,7 @@ export class Player {
   }
 }
 
-export class Session {
+export class Session extends AggregateRoot {
   private constructor(
     public readonly id: SessionId,
     public readonly playerId: PlayerId,
@@ -136,7 +138,9 @@ export class Session {
     private _notes?: string,
     private _createdAt: Date = new Date(),
     private _updatedAt: Date = new Date()
-  ) {}
+  ) {
+    super();
+  }
 
   static start(
     playerId: PlayerId,
@@ -159,8 +163,8 @@ export class Session {
       session._notes = notes;
     }
 
-    // Collect session started event
-    DomainEvents.add(
+    // Add domain event to the session
+    session.addDomainEvent(
       new SessionStartedEvent(
         session.id,
         session.playerId,
@@ -272,8 +276,8 @@ export class Session {
     this._transactions.push(transaction);
     this._updatedAt = new Date();
 
-    // Collect transaction added event
-    DomainEvents.add(
+    // Add domain event to the session
+    this.addDomainEvent(
       new TransactionAddedEvent(
         transaction.id,
         this.id,
@@ -307,8 +311,8 @@ export class Session {
 
     this._updatedAt = new Date();
 
-    // Collect session ended event
-    DomainEvents.add(
+    // Add domain event to the session
+    this.addDomainEvent(
       new SessionEndedEvent(
         this.id,
         this.playerId,
