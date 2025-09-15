@@ -5,6 +5,7 @@ import { PlayerStatsService } from "@/model/domain-services";
 import { Money } from "@/model/value-objects";
 import { SessionStatus } from "@/model/enums";
 import { logger } from "@/shared/utils/logger";
+import { config } from "@/infrastructure/config";
 import {
   CreatePlayerRequest,
   CreatePlayerResponse,
@@ -36,7 +37,7 @@ export class CreatePlayerUseCase extends BaseUseCase {
               request.initialBankroll.amount,
               request.initialBankroll.currency
             )
-          : new Money(0, "USD");
+          : new Money(0, config.poker.defaultCurrency);
 
         const player = Player.create(
           request.name,

@@ -16,6 +16,7 @@ import {
   GetSessionUseCase,
   ListSessionsUseCase,
 } from "@/application/use-cases/session-use-cases";
+import { config } from "@/infrastructure";
 
 // Mock dependencies
 jest.mock("@/shared/utils/logger", () => ({
@@ -281,7 +282,7 @@ describe("Player Use Cases", () => {
       const playerId = "player-123";
       const request = {
         amount: 500,
-        currency: "USD",
+        currency: config.poker.defaultCurrency,
       };
 
       const mockPlayer = Player.create("John Doe", "john@example.com");
@@ -399,7 +400,7 @@ describe("Session Use Cases", () => {
     it("should end session successfully", async () => {
       const request = {
         sessionId: "session-123",
-        finalCashOut: { amount: 150, currency: "USD" },
+        finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
         notes: "Ended session",
       };
 
@@ -407,8 +408,11 @@ describe("Session Use Cases", () => {
       const mockSession = Session.start(
         mockPlayer.id,
         "Casino Royale",
-        new Stakes(new Money(1, "USD"), new Money(2, "USD")),
-        new Money(100, "USD"),
+        new Stakes(
+          new Money(1, config.poker.defaultCurrency),
+          new Money(2, config.poker.defaultCurrency)
+        ),
+        new Money(100, config.poker.defaultCurrency),
         "Test session"
       );
 
@@ -501,8 +505,11 @@ describe("Session Use Cases", () => {
       const mockSession = Session.start(
         mockPlayer.id,
         "Casino Royale",
-        new Stakes(new Money(1, "USD"), new Money(2, "USD")),
-        new Money(100, "USD"),
+        new Stakes(
+          new Money(1, config.poker.defaultCurrency),
+          new Money(2, config.poker.defaultCurrency)
+        ),
+        new Money(100, config.poker.defaultCurrency),
         "Test session"
       );
 
@@ -541,15 +548,21 @@ describe("Session Use Cases", () => {
         Session.start(
           mockPlayer.id,
           "Casino Royale",
-          new Stakes(new Money(1, "USD"), new Money(2, "USD")),
-          new Money(100, "USD"),
+          new Stakes(
+            new Money(1, config.poker.defaultCurrency),
+            new Money(2, config.poker.defaultCurrency)
+          ),
+          new Money(100, config.poker.defaultCurrency),
           "Test session 1"
         ),
         Session.start(
           mockPlayer.id,
           "Casino Royale",
-          new Stakes(new Money(1, "USD"), new Money(2, "USD")),
-          new Money(100, "USD"),
+          new Stakes(
+            new Money(1, config.poker.defaultCurrency),
+            new Money(2, config.poker.defaultCurrency)
+          ),
+          new Money(100, config.poker.defaultCurrency),
           "Test session 2"
         ),
       ];

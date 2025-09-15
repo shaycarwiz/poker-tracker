@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PlayerController } from "@/api/controllers/player-controller";
 import { PlayerService } from "@/application/services/player-service";
+import { config } from "@/infrastructure";
 
 // Mock dependencies
 jest.mock("@/infrastructure/container", () => ({
@@ -112,7 +113,7 @@ describe("PlayerController", () => {
         name: "Jane Doe",
         bankroll: {
           amount: 0,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         createdAt: new Date(),
       };
@@ -130,7 +131,7 @@ describe("PlayerController", () => {
         email: undefined,
         initialBankroll: {
           amount: 0,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -212,12 +213,12 @@ describe("PlayerController", () => {
         email: "john@example.com",
         bankroll: {
           amount: 1000,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         totalSessions: 5,
         totalWinnings: {
           amount: 500,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         winRate: 0.6,
         createdAt: new Date(),
@@ -273,7 +274,7 @@ describe("PlayerController", () => {
         email: "john.updated@example.com",
         bankroll: {
           amount: 1000,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         updatedAt: new Date(),
       };
@@ -332,12 +333,12 @@ describe("PlayerController", () => {
             email: "john@example.com",
             bankroll: {
               amount: 1000,
-              currency: "USD",
+              currency: config.poker.defaultCurrency,
             },
             totalSessions: 0,
             totalWinnings: {
               amount: 0,
-              currency: "USD",
+              currency: config.poker.defaultCurrency,
             },
             winRate: 0,
             createdAt: new Date(),
@@ -388,18 +389,18 @@ describe("PlayerController", () => {
       const playerId = "player-123";
       const requestBody = {
         amount: 500,
-        currency: "USD",
+        currency: config.poker.defaultCurrency,
       };
 
       const mockServiceResponse = {
         playerId: playerId,
         newBankroll: {
           amount: 1500,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         addedAmount: {
           amount: 500,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         addedAt: new Date(),
       };
@@ -417,7 +418,7 @@ describe("PlayerController", () => {
         playerId: playerId,
         amount: {
           amount: 500,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
         reason: undefined,
       });
@@ -430,7 +431,7 @@ describe("PlayerController", () => {
     it("should return 400 for missing amount", async () => {
       const playerId = "player-123";
       const requestBody = {
-        currency: "USD",
+        currency: config.poker.defaultCurrency,
       };
 
       mockRequest.params = { id: playerId };
@@ -452,7 +453,7 @@ describe("PlayerController", () => {
       const playerId = "player-123";
       const requestBody = {
         amount: "invalid",
-        currency: "USD",
+        currency: config.poker.defaultCurrency,
       };
 
       mockRequest.params = { id: playerId };
@@ -474,7 +475,7 @@ describe("PlayerController", () => {
       const playerId = "player-123";
       const requestBody = {
         amount: 500,
-        currency: "USD",
+        currency: config.poker.defaultCurrency,
       };
 
       mockRequest.params = { id: playerId };

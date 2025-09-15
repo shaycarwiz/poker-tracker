@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { container } from "../../infrastructure/container";
 import { logger } from "../../shared/utils/logger";
+import { config } from "../../infrastructure/config";
 import {
   StartSessionRequest,
   EndSessionRequest,
@@ -50,11 +51,11 @@ export class SessionController {
         stakes: {
           smallBlind: stakes.smallBlind,
           bigBlind: stakes.bigBlind,
-          currency: stakes.currency || "USD",
+          currency: stakes.currency || config.poker.defaultCurrency,
         },
         initialBuyIn: {
           amount: initialBuyIn.amount,
-          currency: initialBuyIn.currency || "USD",
+          currency: initialBuyIn.currency || config.poker.defaultCurrency,
         },
         notes,
       };
@@ -97,7 +98,7 @@ export class SessionController {
         sessionId: id,
         finalCashOut: {
           amount: finalCashOut.amount,
-          currency: finalCashOut.currency || "USD",
+          currency: finalCashOut.currency || config.poker.defaultCurrency,
         },
         notes,
       };
@@ -158,7 +159,7 @@ export class SessionController {
         type,
         amount: {
           amount: amount.amount,
-          currency: amount.currency || "USD",
+          currency: amount.currency || config.poker.defaultCurrency,
         },
         description: notes,
       };
@@ -261,7 +262,7 @@ export class SessionController {
 
       const request: EndSessionRequest = {
         sessionId: id,
-        finalCashOut: { amount: 0, currency: "USD" },
+        finalCashOut: { amount: 0, currency: config.poker.defaultCurrency },
         notes: req.body.reason || "Session cancelled",
       };
 

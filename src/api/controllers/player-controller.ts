@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { container } from "../../infrastructure/container";
 import { logger } from "../../shared/utils/logger";
+import { config } from "../../infrastructure/config";
 import {
   CreatePlayerRequest,
   UpdatePlayerRequest,
@@ -27,11 +28,12 @@ export class PlayerController {
         initialBankroll: initialBankroll
           ? {
               amount: initialBankroll.amount,
-              currency: initialBankroll.currency || "USD",
+              currency:
+                initialBankroll.currency || config.poker.defaultCurrency,
             }
           : {
               amount: 0,
-              currency: "USD",
+              currency: config.poker.defaultCurrency,
             },
       };
 
@@ -168,7 +170,7 @@ export class PlayerController {
         playerId: id,
         amount: {
           amount,
-          currency: currency || "USD",
+          currency: currency || config.poker.defaultCurrency,
         },
         reason,
       };
@@ -282,7 +284,7 @@ export class PlayerController {
         playerId: id,
         amount: {
           amount,
-          currency: currency || "USD",
+          currency: currency || config.poker.defaultCurrency,
         },
         reason: "Manual bankroll update",
       };

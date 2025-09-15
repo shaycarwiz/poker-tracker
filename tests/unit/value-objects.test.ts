@@ -1,17 +1,18 @@
+import { config } from "@/infrastructure";
 import { Money, Stakes, Duration } from "@/model/value-objects";
 
 describe("Money Value Object", () => {
   describe("constructor", () => {
     it("should create Money with valid amount and currency", () => {
-      const money = new Money(100, "USD");
+      const money = new Money(100, config.poker.defaultCurrency);
       expect(money.amount).toBe(100);
-      expect(money.currency).toBe("USD");
+      expect(money.currency).toBe(config.poker.defaultCurrency);
     });
 
     it("should create Money with default currency", () => {
       const money = new Money(50);
       expect(money.amount).toBe(50);
-      expect(money.currency).toBe("USD");
+      expect(money.currency).toBe(config.poker.defaultCurrency);
     });
 
     it("should create Money with zero amount", () => {

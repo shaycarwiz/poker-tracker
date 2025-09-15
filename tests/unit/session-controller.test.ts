@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { SessionController } from "@/api/controllers/session-controller";
 import { SessionService } from "@/application/services/session-service";
+import { config } from "@/infrastructure";
 
 // Mock dependencies
 jest.mock("@/infrastructure/container", () => ({
@@ -64,10 +65,10 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: "USD" },
-          bigBlind: { amount: 2, currency: "USD" },
+          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
+          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
         notes: "Test session",
       };
 
@@ -78,9 +79,9 @@ describe("SessionController", () => {
         stakes: {
           smallBlind: 1,
           bigBlind: 2,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
         notes: "Test session",
         status: "ACTIVE",
         startedAt: new Date(),
@@ -98,11 +99,11 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: "USD" },
-          bigBlind: { amount: 2, currency: "USD" },
-          currency: "USD",
+          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
+          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          currency: config.poker.defaultCurrency,
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
         notes: "Test session",
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -116,10 +117,10 @@ describe("SessionController", () => {
       const requestBody = {
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: "USD" },
-          bigBlind: { amount: 2, currency: "USD" },
+          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
+          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.body = requestBody;
@@ -140,10 +141,10 @@ describe("SessionController", () => {
       const requestBody = {
         playerId: "player-123",
         stakes: {
-          smallBlind: { amount: 1, currency: "USD" },
-          bigBlind: { amount: 2, currency: "USD" },
+          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
+          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.body = requestBody;
@@ -164,7 +165,7 @@ describe("SessionController", () => {
       const requestBody = {
         playerId: "player-123",
         location: "Casino Royale",
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.body = requestBody;
@@ -186,10 +187,10 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: "USD" },
-          bigBlind: { amount: 2, currency: "USD" },
+          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
+          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
         },
-        initialBuyIn: { currency: "USD" },
+        initialBuyIn: { currency: config.poker.defaultCurrency },
       };
 
       mockRequest.body = requestBody;
@@ -211,10 +212,10 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: "USD" },
-          bigBlind: { amount: 2, currency: "USD" },
+          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
+          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.body = requestBody;
@@ -239,15 +240,15 @@ describe("SessionController", () => {
     it("should end session successfully", async () => {
       const sessionId = "session-123";
       const requestBody = {
-        finalCashOut: { amount: 150, currency: "USD" },
+        finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
         notes: "Ended session",
       };
 
       const mockSessionData = {
         sessionId: sessionId,
         playerId: "player-123",
-        finalCashOut: { amount: 150, currency: "USD" },
-        profitLoss: { amount: 50, currency: "USD" },
+        finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
+        profitLoss: { amount: 50, currency: config.poker.defaultCurrency },
         duration: 150, // in minutes
         status: "COMPLETED",
         endedAt: new Date(),
@@ -264,7 +265,7 @@ describe("SessionController", () => {
 
       expect(mockSessionService.endSession).toHaveBeenCalledWith({
         sessionId,
-        finalCashOut: { amount: 150, currency: "USD" },
+        finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
         notes: "Ended session",
       });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -277,7 +278,7 @@ describe("SessionController", () => {
     it("should return 400 for missing finalCashOut amount", async () => {
       const sessionId = "session-123";
       const requestBody = {
-        finalCashOut: { currency: "USD" },
+        finalCashOut: { currency: config.poker.defaultCurrency },
       };
 
       mockRequest.params = { id: sessionId };
@@ -298,7 +299,7 @@ describe("SessionController", () => {
     it("should handle service errors", async () => {
       const sessionId = "session-123";
       const requestBody = {
-        finalCashOut: { amount: 150, currency: "USD" },
+        finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.params = { id: sessionId };
@@ -323,7 +324,7 @@ describe("SessionController", () => {
       const sessionId = "session-123";
       const requestBody = {
         type: "BUY_IN",
-        amount: { amount: 50, currency: "USD" },
+        amount: { amount: 50, currency: config.poker.defaultCurrency },
         notes: "Additional buy-in",
       };
 
@@ -331,7 +332,7 @@ describe("SessionController", () => {
         transactionId: "transaction-123",
         sessionId,
         type: "BUY_IN",
-        amount: { amount: 50, currency: "USD" },
+        amount: { amount: 50, currency: config.poker.defaultCurrency },
         description: "Additional buy-in",
         addedAt: new Date(),
       };
@@ -348,7 +349,7 @@ describe("SessionController", () => {
       expect(mockSessionService.addTransaction).toHaveBeenCalledWith({
         sessionId,
         type: "BUY_IN",
-        amount: { amount: 50, currency: "USD" },
+        amount: { amount: 50, currency: config.poker.defaultCurrency },
         description: "Additional buy-in",
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -361,7 +362,7 @@ describe("SessionController", () => {
     it("should return 400 for missing type", async () => {
       const sessionId = "session-123";
       const requestBody = {
-        amount: { amount: 50, currency: "USD" },
+        amount: { amount: 50, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.params = { id: sessionId };
@@ -404,7 +405,7 @@ describe("SessionController", () => {
       const sessionId = "session-123";
       const requestBody = {
         type: "BUY_IN",
-        amount: { amount: 50, currency: "USD" },
+        amount: { amount: 50, currency: config.poker.defaultCurrency },
       };
 
       mockRequest.params = { id: sessionId };
@@ -436,11 +437,11 @@ describe("SessionController", () => {
         stakes: {
           smallBlind: 1,
           bigBlind: 2,
-          currency: "USD",
+          currency: config.poker.defaultCurrency,
         },
-        initialBuyIn: { amount: 100, currency: "USD" },
-        currentCashOut: { amount: 0, currency: "USD" },
-        profitLoss: { amount: 0, currency: "USD" },
+        initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
+        currentCashOut: { amount: 0, currency: config.poker.defaultCurrency },
+        profitLoss: { amount: 0, currency: config.poker.defaultCurrency },
         status: "ACTIVE",
         notes: "Test session",
         transactions: [],
@@ -496,10 +497,16 @@ describe("SessionController", () => {
             stakes: {
               smallBlind: 1,
               bigBlind: 2,
-              currency: "USD",
+              currency: config.poker.defaultCurrency,
             },
-            initialBuyIn: { amount: 100, currency: "USD" },
-            currentCashOut: { amount: 150, currency: "USD" },
+            initialBuyIn: {
+              amount: 100,
+              currency: config.poker.defaultCurrency,
+            },
+            currentCashOut: {
+              amount: 150,
+              currency: config.poker.defaultCurrency,
+            },
             profitLoss: { amount: 50, currency: "USD" },
             status: "COMPLETED",
             notes: "Test session",
@@ -565,8 +572,8 @@ describe("SessionController", () => {
       const mockSessionData = {
         sessionId: sessionId,
         playerId: "player-123",
-        finalCashOut: { amount: 0, currency: "USD" },
-        profitLoss: { amount: 0, currency: "USD" },
+        finalCashOut: { amount: 0, currency: config.poker.defaultCurrency },
+        profitLoss: { amount: 0, currency: config.poker.defaultCurrency },
         duration: 0,
         status: "CANCELLED",
         endedAt: new Date(),
@@ -583,7 +590,7 @@ describe("SessionController", () => {
 
       expect(mockSessionService.endSession).toHaveBeenCalledWith({
         sessionId,
-        finalCashOut: { amount: 0, currency: "USD" },
+        finalCashOut: { amount: 0, currency: config.poker.defaultCurrency },
         notes: "Emergency",
       });
       expect(mockResponse.status).toHaveBeenCalledWith(200);

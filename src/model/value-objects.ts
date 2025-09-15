@@ -1,9 +1,10 @@
 // Value Objects - Immutable objects that represent concepts by their value
+import { config } from "../infrastructure/config";
 
 export class Money {
   constructor(
     public readonly amount: number,
-    public readonly currency: string = "USD"
+    public readonly currency: string = config.poker.defaultCurrency
   ) {
     // Note: Negative amounts are allowed for net results (losses) in poker
   }

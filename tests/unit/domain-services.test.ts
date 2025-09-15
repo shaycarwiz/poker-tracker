@@ -2,6 +2,7 @@ import { PlayerStatsService } from "@/model/domain-services";
 import { Player, Session, Transaction } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { TransactionType, SessionStatus } from "@/model/enums";
+import { config } from "@/infrastructure";
 
 describe("PlayerStatsService", () => {
   let service: PlayerStatsService;
@@ -14,7 +15,7 @@ describe("PlayerStatsService", () => {
       player = Player.create(
         "John Doe",
         "john@example.com",
-        new Money(1000, "USD")
+        new Money(1000, config.poker.defaultCurrency)
       );
     } catch (error) {
       console.error("Error creating player", error);
@@ -37,20 +38,32 @@ describe("PlayerStatsService", () => {
       const session1 = Session.start(
         player.id,
         "Test Session 1",
-        new Stakes(new Money(100, "USD"), new Money(200, "USD")),
-        new Money(150, "USD"),
+        new Stakes(
+          new Money(100, config.poker.defaultCurrency),
+          new Money(200, config.poker.defaultCurrency)
+        ),
+        new Money(150, config.poker.defaultCurrency),
         "Test Session 1"
       );
-      session1.end(new Money(150, "USD"), "Test Session 1");
+      session1.end(
+        new Money(150, config.poker.defaultCurrency),
+        "Test Session 1"
+      );
 
       const session2 = Session.start(
         player.id,
         "Test Session 2",
-        new Stakes(new Money(100, "USD"), new Money(200, "USD")),
-        new Money(80, "USD"),
+        new Stakes(
+          new Money(100, config.poker.defaultCurrency),
+          new Money(200, config.poker.defaultCurrency)
+        ),
+        new Money(80, config.poker.defaultCurrency),
         "Test Session 2"
       );
-      session2.end(new Money(80, "USD"), "Test Session 2");
+      session2.end(
+        new Money(80, config.poker.defaultCurrency),
+        "Test Session 2"
+      );
 
       sessions = [session1, session2];
       const result = service.calculateStats(player, sessions);
@@ -66,8 +79,11 @@ describe("PlayerStatsService", () => {
       const session = Session.start(
         player.id,
         "Test Session",
-        new Stakes(new Money(100, "USD"), new Money(200, "USD")),
-        new Money(100, "USD"),
+        new Stakes(
+          new Money(100, config.poker.defaultCurrency),
+          new Money(200, config.poker.defaultCurrency)
+        ),
+        new Money(100, config.poker.defaultCurrency),
         "Test Session"
       );
 
@@ -84,7 +100,7 @@ describe("PlayerStatsService", () => {
         session.id,
         player.id,
         TransactionType.CASH_OUT,
-        new Money(200, "USD"),
+        new Money(200, config.poker.defaultCurrency),
         endTime,
         "Final cash out"
       );
@@ -99,11 +115,14 @@ describe("PlayerStatsService", () => {
       const session = Session.start(
         player.id,
         "Test Session",
-        new Stakes(new Money(100, "USD"), new Money(200, "USD")),
-        new Money(150, "USD"),
+        new Stakes(
+          new Money(100, config.poker.defaultCurrency),
+          new Money(200, config.poker.defaultCurrency)
+        ),
+        new Money(150, config.poker.defaultCurrency),
         "Test Session"
       );
-      session.end(new Money(150, "USD"), "Test Session");
+      session.end(new Money(150, config.poker.defaultCurrency), "Test Session");
 
       const result = service.calculateStats(player, [session]);
 

@@ -37,7 +37,7 @@ export const config = {
 
   // Poker-specific configuration
   poker: {
-    defaultCurrency: process.env["DEFAULT_CURRENCY"] || "USD",
+    defaultCurrency: process.env["DEFAULT_CURRENCY"] || "ILS",
     supportedGames: ["Texas Hold'em", "Omaha", "Seven Card Stud"],
     supportedStakes: ["micro", "low", "medium", "high", "nosebleed"],
   },

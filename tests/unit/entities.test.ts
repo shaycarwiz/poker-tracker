@@ -1,3 +1,4 @@
+import { config } from "@/infrastructure";
 import { Player, PlayerId, SessionId, TransactionId } from "@/model/entities";
 import { Money } from "@/model/value-objects";
 
@@ -96,7 +97,7 @@ describe("Player Entity", () => {
   describe("updateBankroll", () => {
     it("should update bankroll with positive amount", () => {
       const player = Player.create("John Doe");
-      const newBankroll = new Money(500, "USD");
+      const newBankroll = new Money(500, config.poker.defaultCurrency);
 
       player.adjustBankroll(newBankroll);
 
@@ -105,7 +106,7 @@ describe("Player Entity", () => {
 
     it("should update bankroll with zero amount", () => {
       const player = Player.create("John Doe");
-      const newBankroll = new Money(0, "USD");
+      const newBankroll = new Money(0, config.poker.defaultCurrency);
 
       player.adjustBankroll(newBankroll);
 
