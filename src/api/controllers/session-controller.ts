@@ -103,7 +103,7 @@ export class SessionController {
 
       const response = await this.sessionService.endSession(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -129,7 +129,7 @@ export class SessionController {
   async addTransaction(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { type, amount, description } = req.body;
+      const { type, amount, notes } = req.body;
 
       if (!id) {
         res.status(400).json({
@@ -159,12 +159,12 @@ export class SessionController {
           amount: amount.amount,
           currency: amount.currency || "USD",
         },
-        description,
+        description: notes,
       };
 
       const response = await this.sessionService.addTransaction(request);
 
-      res.json({
+      res.status(201).json({
         success: true,
         data: response,
       });
@@ -200,7 +200,7 @@ export class SessionController {
 
       const response = await this.sessionService.getSession(id);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -234,7 +234,7 @@ export class SessionController {
 
       const response = await this.sessionService.listSessions(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -258,10 +258,17 @@ export class SessionController {
         return;
       }
 
-      // For now, just return success - implement actual cancellation logic later
-      res.json({
+      const request: EndSessionRequest = {
+        sessionId: id,
+        finalCashOut: { amount: 0, currency: "USD" },
+        notes: req.body.reason || "Session cancelled",
+      };
+
+      const response = await this.sessionService.endSession(request);
+
+      res.status(200).json({
         success: true,
-        message: "Session cancelled successfully",
+        data: response,
       });
     } catch (error) {
       logger.error("Error cancelling session", { error, params: req.params });
@@ -284,7 +291,7 @@ export class SessionController {
       }
 
       // For now, just return success - implement actual notes update logic later
-      res.json({
+      res.status(200).json({
         success: true,
         message: "Session notes updated successfully",
       });
@@ -320,7 +327,7 @@ export class SessionController {
 
       const response = await this.sessionService.listSessions(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -356,7 +363,7 @@ export class SessionController {
 
       const response = await this.sessionService.listSessions(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response.sessions[0] || null,
       });
