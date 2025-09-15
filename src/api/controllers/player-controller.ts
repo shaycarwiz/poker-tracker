@@ -91,7 +91,7 @@ export class PlayerController {
     }
   }
 
-  async getAllPlayers(req: Request, res: Response): Promise<void> {
+  async getAllPlayers(_: Request, res: Response): Promise<void> {
     try {
       const players = await this.playerService.getAllPlayers();
 
