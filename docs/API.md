@@ -21,8 +21,7 @@ All API responses follow this format:
 ```json
 {
   "success": true,
-  "data": { ... },
-  "message": "Optional message"
+  "data": { ... }
 }
 ```
 
@@ -65,10 +64,11 @@ Creates a new player.
     "id": "uuid",
     "name": "John Doe",
     "email": "john@example.com",
-    "currentBankroll": "$1000.00",
-    "totalSessions": 0,
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
+    "bankroll": {
+      "amount": 1000,
+      "currency": "USD"
+    },
+    "createdAt": "2024-01-01T00:00:00.000Z"
   }
 }
 ```
@@ -84,17 +84,30 @@ Retrieves all players.
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "currentBankroll": "$1000.00",
-      "totalSessions": 5,
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
-    }
-  ]
+  "data": {
+    "players": [
+      {
+        "id": "uuid",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "bankroll": {
+          "amount": 1000,
+          "currency": "USD"
+        },
+        "totalSessions": 5,
+        "totalWinnings": {
+          "amount": 500,
+          "currency": "USD"
+        },
+        "winRate": 60.0,
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-01T00:00:00.000Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "limit": 10
+  }
 }
 ```
 
@@ -113,8 +126,16 @@ Retrieves a specific player by ID.
     "id": "uuid",
     "name": "John Doe",
     "email": "john@example.com",
-    "currentBankroll": "$1000.00",
+    "bankroll": {
+      "amount": 1000,
+      "currency": "USD"
+    },
     "totalSessions": 5,
+    "totalWinnings": {
+      "amount": 500,
+      "currency": "USD"
+    },
+    "winRate": 60.0,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   }
@@ -141,8 +162,16 @@ Searches for players by name.
       "id": "uuid",
       "name": "John Doe",
       "email": "john@example.com",
-      "currentBankroll": "$1000.00",
+      "bankroll": {
+        "amount": 1000,
+        "currency": "USD"
+      },
       "totalSessions": 5,
+      "totalWinnings": {
+        "amount": 500,
+        "currency": "USD"
+      },
+      "winRate": 60.0,
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
     }
@@ -170,7 +199,18 @@ Updates a player's bankroll.
 ```json
 {
   "success": true,
-  "message": "Player bankroll updated successfully"
+  "data": {
+    "playerId": "uuid",
+    "newBankroll": {
+      "amount": 1500,
+      "currency": "USD"
+    },
+    "addedAmount": {
+      "amount": 500,
+      "currency": "USD"
+    },
+    "addedAt": "2024-01-01T00:00:00.000Z"
+  }
 }
 ```
 
@@ -186,32 +226,11 @@ Retrieves detailed statistics for a player.
 {
   "success": true,
   "data": {
-    "player": {
-      "id": "uuid",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "currentBankroll": "$1000.00"
-    },
-    "stats": {
-      "totalSessions": 5,
-      "totalBuyIn": "$5000.00",
-      "totalCashOut": "$5500.00",
-      "netProfit": "$500.00",
-      "winRate": 60.0,
-      "winningSessions": 3,
-      "losingSessions": 2
-    },
-    "sessions": [
-      {
-        "id": "uuid",
-        "location": "Casino A",
-        "stakes": "$1/$2",
-        "startTime": "2024-01-01T00:00:00.000Z",
-        "endTime": "2024-01-01T04:00:00.000Z",
-        "netResult": "$100.00",
-        "duration": 240
-      }
-    ]
+    "playerId": "uuid",
+    "totalSessions": 0,
+    "totalWinnings": 0,
+    "winRate": 0,
+    "averageSession": 0
   }
 }
 ```
@@ -227,7 +246,9 @@ Deletes a player (only if they have no active sessions).
 ```json
 {
   "success": true,
-  "message": "Player deleted successfully"
+  "data": {
+    "message": "Player deleted successfully"
+  }
 }
 ```
 
@@ -269,18 +290,21 @@ Starts a new poker session.
 {
   "success": true,
   "data": {
-    "id": "uuid",
+    "sessionId": "uuid",
     "playerId": "uuid",
     "location": "Casino A",
-    "stakes": "$1/$2",
-    "startTime": "2024-01-01T00:00:00.000Z",
-    "status": "ACTIVE",
-    "totalBuyIn": "$200.00",
-    "totalCashOut": "$0.00",
-    "netResult": "-$200.00",
+    "stakes": {
+      "smallBlind": 1,
+      "bigBlind": 2,
+      "currency": "USD"
+    },
+    "initialBuyIn": {
+      "amount": 200,
+      "currency": "USD"
+    },
     "notes": "Starting session at table 5",
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
+    "status": "ACTIVE",
+    "startedAt": "2024-01-01T00:00:00.000Z"
   }
 }
 ```
@@ -297,32 +321,43 @@ Retrieves a specific session by ID.
 {
   "success": true,
   "data": {
-    "id": "uuid",
+    "sessionId": "uuid",
     "playerId": "uuid",
     "location": "Casino A",
-    "stakes": "$1/$2",
-    "startTime": "2024-01-01T00:00:00.000Z",
-    "endTime": "2024-01-01T04:00:00.000Z",
+    "stakes": {
+      "smallBlind": 1,
+      "bigBlind": 2,
+      "currency": "USD"
+    },
+    "initialBuyIn": {
+      "amount": 200,
+      "currency": "USD"
+    },
+    "currentCashOut": {
+      "amount": 300,
+      "currency": "USD"
+    },
+    "profitLoss": {
+      "amount": 100,
+      "currency": "USD"
+    },
     "status": "COMPLETED",
-    "totalBuyIn": "$200.00",
-    "totalCashOut": "$300.00",
-    "netResult": "$100.00",
-    "duration": 240,
-    "hourlyRate": "$25.00",
-    "bigBlindsWon": 50,
     "notes": "Great session!",
     "transactions": [
       {
         "id": "uuid",
         "type": "BUY_IN",
-        "amount": "$200.00",
-        "timestamp": "2024-01-01T00:00:00.000Z",
+        "amount": {
+          "amount": 200,
+          "currency": "USD"
+        },
         "description": "Initial buy-in",
-        "notes": null
+        "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
+    "startedAt": "2024-01-01T00:00:00.000Z",
+    "endedAt": "2024-01-01T04:00:00.000Z",
+    "duration": 240
   }
 }
 ```
@@ -350,7 +385,21 @@ Ends an active session.
 ```json
 {
   "success": true,
-  "message": "Session ended successfully"
+  "data": {
+    "sessionId": "uuid",
+    "playerId": "uuid",
+    "finalCashOut": {
+      "amount": 300,
+      "currency": "USD"
+    },
+    "profitLoss": {
+      "amount": 100,
+      "currency": "USD"
+    },
+    "duration": 240,
+    "status": "COMPLETED",
+    "endedAt": "2024-01-01T04:00:00.000Z"
+  }
 }
 ```
 
@@ -385,7 +434,17 @@ Adds a transaction to an active session.
 ```json
 {
   "success": true,
-  "message": "Transaction added successfully"
+  "data": {
+    "transactionId": "uuid",
+    "sessionId": "uuid",
+    "type": "REBUY",
+    "amount": {
+      "amount": 100,
+      "currency": "USD"
+    },
+    "description": "Additional buy-in",
+    "addedAt": "2024-01-01T00:00:00.000Z"
+  }
 }
 ```
 
@@ -408,7 +467,9 @@ Cancels an active session.
 ```json
 {
   "success": true,
-  "message": "Session cancelled successfully"
+  "data": {
+    "message": "Session cancelled successfully"
+  }
 }
 ```
 
@@ -431,7 +492,9 @@ Updates session notes.
 ```json
 {
   "success": true,
-  "message": "Session notes updated successfully"
+  "data": {
+    "message": "Session notes updated successfully"
+  }
 }
 ```
 
@@ -446,26 +509,41 @@ Retrieves all sessions for a specific player.
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "playerId": "uuid",
-      "location": "Casino A",
-      "stakes": "$1/$2",
-      "startTime": "2024-01-01T00:00:00.000Z",
-      "endTime": "2024-01-01T04:00:00.000Z",
-      "status": "COMPLETED",
-      "totalBuyIn": "$200.00",
-      "totalCashOut": "$300.00",
-      "netResult": "$100.00",
-      "duration": 240,
-      "hourlyRate": "$25.00",
-      "bigBlindsWon": 50,
-      "notes": "Great session!",
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
-    }
-  ]
+  "data": {
+    "sessions": [
+      {
+        "sessionId": "uuid",
+        "playerId": "uuid",
+        "location": "Casino A",
+        "stakes": {
+          "smallBlind": 1,
+          "bigBlind": 2,
+          "currency": "USD"
+        },
+        "initialBuyIn": {
+          "amount": 200,
+          "currency": "USD"
+        },
+        "currentCashOut": {
+          "amount": 300,
+          "currency": "USD"
+        },
+        "profitLoss": {
+          "amount": 100,
+          "currency": "USD"
+        },
+        "status": "COMPLETED",
+        "notes": "Great session!",
+        "transactions": [],
+        "startedAt": "2024-01-01T00:00:00.000Z",
+        "endedAt": "2024-01-01T04:00:00.000Z",
+        "duration": 240
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "limit": 10
+  }
 }
 ```
 
@@ -481,28 +559,41 @@ Retrieves the active session for a specific player.
 {
   "success": true,
   "data": {
-    "id": "uuid",
+    "sessionId": "uuid",
     "playerId": "uuid",
     "location": "Casino A",
-    "stakes": "$1/$2",
-    "startTime": "2024-01-01T00:00:00.000Z",
+    "stakes": {
+      "smallBlind": 1,
+      "bigBlind": 2,
+      "currency": "USD"
+    },
+    "initialBuyIn": {
+      "amount": 200,
+      "currency": "USD"
+    },
+    "currentCashOut": {
+      "amount": 0,
+      "currency": "USD"
+    },
+    "profitLoss": {
+      "amount": -200,
+      "currency": "USD"
+    },
     "status": "ACTIVE",
-    "totalBuyIn": "$200.00",
-    "totalCashOut": "$0.00",
-    "netResult": "-$200.00",
     "notes": "Starting session at table 5",
     "transactions": [
       {
         "id": "uuid",
         "type": "BUY_IN",
-        "amount": "$200.00",
-        "timestamp": "2024-01-01T00:00:00.000Z",
+        "amount": {
+          "amount": 200,
+          "currency": "USD"
+        },
         "description": "Initial buy-in",
-        "notes": null
+        "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
+    "startedAt": "2024-01-01T00:00:00.000Z"
   }
 }
 ```

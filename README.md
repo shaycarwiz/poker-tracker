@@ -12,10 +12,9 @@ A comprehensive poker tracking application built with Express.js and TypeScript,
 
 ### In Development
 
-- 🎯 **Game Tracking API**: REST endpoints for session management
-- 📊 **Statistics & Analytics**: Performance metrics and analysis
 - 🏆 **Hand Rankings**: Advanced poker hand evaluation system
 - 📈 **Progress Monitoring**: Track improvement over time
+- 📊 **Advanced Analytics**: Enhanced performance metrics and analysis
 
 ## Tech Stack
 
@@ -109,27 +108,30 @@ The server will start on `http://localhost:3000`
 
 - `GET /health` - Server health status
 
+### Player Management
+
+- `POST /api/v1/players` - Create a new player
+- `GET /api/v1/players` - List all players
+- `GET /api/v1/players/search` - Search players by name
+- `GET /api/v1/players/:id` - Get player details
+- `GET /api/v1/players/:id/stats` - Get player statistics
+- `PATCH /api/v1/players/:id/bankroll` - Update player bankroll
+- `DELETE /api/v1/players/:id` - Delete a player
+
+### Session Tracking
+
+- `POST /api/v1/sessions` - Start a new poker session
+- `GET /api/v1/sessions/:id` - Get session details
+- `POST /api/v1/sessions/:id/end` - End a session
+- `POST /api/v1/sessions/:id/transactions` - Add transaction to session
+- `POST /api/v1/sessions/:id/cancel` - Cancel a session
+- `PATCH /api/v1/sessions/:id/notes` - Update session notes
+- `GET /api/v1/sessions/player/:playerId` - Get player sessions
+- `GET /api/v1/sessions/player/:playerId/active` - Get active session
+
 ### Coming Soon
 
-The following endpoints are planned but not yet implemented:
-
-- **Player Management**
-
-  - `POST /api/v1/players` - Create a new player
-  - `GET /api/v1/players/:id` - Get player details
-  - `PUT /api/v1/players/:id` - Update player information
-  - `GET /api/v1/players` - List all players
-
-- **Session Tracking**
-
-  - `POST /api/v1/sessions` - Start a new poker session
-  - `GET /api/v1/sessions/:id` - Get session details
-  - `PUT /api/v1/sessions/:id/end` - End a session
-  - `POST /api/v1/sessions/:id/transactions` - Add transaction to session
-  - `GET /api/v1/sessions` - List sessions with filtering
-
-- **Statistics & Analytics**
-  - `GET /api/v1/players/:id/stats` - Get player statistics
+- **Advanced Analytics**
   - `GET /api/v1/analytics/summary` - Get overall analytics
   - `GET /api/v1/analytics/trends` - Get performance trends
 
@@ -159,6 +161,14 @@ The following endpoints are planned but not yet implemented:
   - `SessionService` for session tracking
   - Comprehensive error handling and logging
 
+- **API Layer**: Complete REST API implementation
+
+  - Player management endpoints (CRUD operations)
+  - Session tracking endpoints (start, end, transactions)
+  - Request validation and error handling
+  - Rate limiting and security middleware
+  - Comprehensive API documentation
+
 - **Infrastructure**: Production-ready setup
   - Express.js server with security middleware
   - Winston logging with file rotation
@@ -167,9 +177,8 @@ The following endpoints are planned but not yet implemented:
 
 ### 🚧 In Progress
 
-- **API Layer**: REST endpoints for external access
 - **Hand Ranking System**: Poker hand evaluation
-- **Analytics Engine**: Performance metrics calculation
+- **Advanced Analytics**: Enhanced performance metrics calculation
 
 ### 📋 Planned Features
 
@@ -178,9 +187,32 @@ The following endpoints are planned but not yet implemented:
 - **Export/Import**: Data portability features
 - **Advanced Analytics**: Machine learning insights
 
-## Using the Application Services
+## Using the API
 
-While the API endpoints are not yet implemented, you can use the application services directly:
+The Poker Tracker API is now fully implemented and ready to use. You can interact with it using HTTP requests or use the application services directly in your code.
+
+### HTTP API Usage
+
+Start the server and make requests to the endpoints:
+
+```bash
+# Start the server
+npm run dev
+
+# Create a player
+curl -X POST http://localhost:3000/api/v1/players \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John Doe", "email": "john@example.com", "initialBankroll": {"amount": 1000, "currency": "USD"}}'
+
+# Start a session
+curl -X POST http://localhost:3000/api/v1/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"playerId": "player-id", "location": "Casino Royale", "stakes": {"smallBlind": 1, "bigBlind": 2, "currency": "USD"}, "initialBuyIn": {"amount": 200, "currency": "USD"}}'
+```
+
+### Direct Service Usage
+
+You can also use the application services directly in your code:
 
 ```typescript
 import { container } from "@/infrastructure";
