@@ -2,6 +2,12 @@
 
 import { Money, Stakes, Duration } from "./value-objects";
 import { SessionStatus, TransactionType } from "./enums";
+import {
+  DomainEvents,
+  SessionStartedEvent,
+  SessionEndedEvent,
+  TransactionAddedEvent,
+} from "./events";
 
 // ID Value Objects
 export class PlayerId {
@@ -153,6 +159,16 @@ export class Session {
       session._notes = notes;
     }
 
+    // Collect session started event
+    DomainEvents.add(
+      new SessionStartedEvent(
+        session.id,
+        session.playerId,
+        session.location,
+        session.stakes
+      )
+    );
+
     return session;
   }
 
@@ -255,6 +271,17 @@ export class Session {
 
     this._transactions.push(transaction);
     this._updatedAt = new Date();
+
+    // Collect transaction added event
+    DomainEvents.add(
+      new TransactionAddedEvent(
+        transaction.id,
+        this.id,
+        this.playerId,
+        type,
+        amount
+      )
+    );
   }
 
   end(finalCashOut: Money, notes?: string): void {
@@ -279,6 +306,16 @@ export class Session {
     }
 
     this._updatedAt = new Date();
+
+    // Collect session ended event
+    DomainEvents.add(
+      new SessionEndedEvent(
+        this.id,
+        this.playerId,
+        this.netResult,
+        this.duration || new Duration(0)
+      )
+    );
   }
 
   cancel(reason?: string): void {

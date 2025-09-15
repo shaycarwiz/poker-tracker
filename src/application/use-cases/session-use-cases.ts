@@ -5,6 +5,7 @@ import { UnitOfWork } from "@/model/repositories";
 import { Money, Stakes } from "@/model/value-objects";
 import { TransactionType, SessionStatus } from "@/model/enums";
 import { logger } from "@/shared/utils/logger";
+import { DomainEvents, DomainEventDispatcher } from "@/model/events";
 import {
   StartSessionRequest,
   StartSessionResponse,
@@ -53,6 +54,13 @@ export class StartSessionUseCase {
 
       await this.unitOfWork.sessions.save(session);
       await this.unitOfWork.commit();
+
+      // Publish collected domain events after successful commit
+      const events = DomainEvents.getEvents();
+      if (events.length > 0) {
+        await DomainEventDispatcher.publishAll(events);
+        DomainEvents.clear();
+      }
 
       logger.info("Session started successfully", {
         sessionId: session.id.value,
@@ -112,6 +120,13 @@ export class EndSessionUseCase {
 
       await this.unitOfWork.sessions.save(session);
       await this.unitOfWork.commit();
+
+      // Publish collected domain events after successful commit
+      const events = DomainEvents.getEvents();
+      if (events.length > 0) {
+        await DomainEventDispatcher.publishAll(events);
+        DomainEvents.clear();
+      }
 
       const duration = session.endTime
         ? Math.floor(
@@ -176,6 +191,13 @@ export class AddTransactionUseCase {
 
       await this.unitOfWork.sessions.save(session);
       await this.unitOfWork.commit();
+
+      // Publish collected domain events after successful commit
+      const events = DomainEvents.getEvents();
+      if (events.length > 0) {
+        await DomainEventDispatcher.publishAll(events);
+        DomainEvents.clear();
+      }
 
       logger.info("Transaction added successfully", {
         sessionId: session.id.value,

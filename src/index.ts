@@ -10,9 +10,13 @@ import { errorHandler } from "./api/middleware/errorHandler";
 import { notFoundHandler } from "./api/middleware/notFoundHandler";
 import { logger } from "./shared/utils/logger";
 import { config } from "./infrastructure/config";
+import { container } from "./infrastructure/container";
 
 // Load environment variables
 dotenv.config();
+
+// Initialize event handlers
+container.initializeEventHandlers();
 
 const app = express();
 const PORT = config.port || 3000;
