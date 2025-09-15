@@ -6,10 +6,10 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 
-import { errorHandler } from "@/api/middleware/errorHandler";
-import { notFoundHandler } from "@/api/middleware/notFoundHandler";
-import { logger } from "@/shared/utils/logger";
-import { config } from "@/infrastructure/config";
+import { errorHandler } from "./api/middleware/errorHandler";
+import { notFoundHandler } from "./api/middleware/notFoundHandler";
+import { logger } from "./shared/utils/logger";
+import { config } from "./infrastructure/config";
 
 // Load environment variables
 dotenv.config();
@@ -53,8 +53,9 @@ app.get("/health", (_, res) => {
   });
 });
 
-// API routes will be added here
-// app.use('/api/v1', apiRoutes);
+// API routes
+import { apiRoutes } from "./api/routes";
+app.use(apiRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);
