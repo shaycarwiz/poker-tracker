@@ -1,12 +1,13 @@
 // PostgreSQL implementation of SessionRepository
 
-import { Session, SessionId, PlayerId } from "@/model/entities";
+import { Session, SessionId, PlayerId, Transaction } from "@/model/entities";
 import { SessionRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { SessionMapper } from "../mappers/session-mapper";
 import { TransactionMapper } from "../mappers/transaction-mapper";
 import { logger } from "@/shared/utils/logger";
 import { SessionStatus } from "@/model/enums";
+import { SessionRow } from "../types";
 
 export class PostgresSessionRepository implements SessionRepository {
   private db = DatabaseConnection.getInstance();
@@ -41,7 +42,7 @@ export class PostgresSessionRepository implements SessionRepository {
       );
 
       const sessions = await Promise.all(
-        result.rows.map(async (row: any) => {
+        result.rows.map(async (row: SessionRow) => {
           const transactions = await this.loadTransactionsForSession(
             new SessionId(row.id)
           );
@@ -89,7 +90,7 @@ export class PostgresSessionRepository implements SessionRepository {
       );
 
       const sessions = await Promise.all(
-        result.rows.map(async (row: any) => {
+        result.rows.map(async (row: SessionRow) => {
           const transactions = await this.loadTransactionsForSession(
             new SessionId(row.id)
           );
@@ -118,7 +119,7 @@ export class PostgresSessionRepository implements SessionRepository {
       );
 
       const sessions = await Promise.all(
-        result.rows.map(async (row: any) => {
+        result.rows.map(async (row: SessionRow) => {
           const transactions = await this.loadTransactionsForSession(
             new SessionId(row.id)
           );
@@ -198,7 +199,7 @@ export class PostgresSessionRepository implements SessionRepository {
       const result = await this.db.query(mainQuery, params);
 
       const sessions = await Promise.all(
-        result.rows.map(async (row: any) => {
+        result.rows.map(async (row: SessionRow) => {
           const transactions = await this.loadTransactionsForSession(
             new SessionId(row.id)
           );
@@ -269,14 +270,16 @@ export class PostgresSessionRepository implements SessionRepository {
 
   private async loadTransactionsForSession(
     sessionId: SessionId
-  ): Promise<any[]> {
+  ): Promise<Transaction[]> {
     try {
       const result = await this.db.query(
         "SELECT * FROM transactions WHERE session_id = $1 ORDER BY timestamp ASC",
         [sessionId.value]
       );
 
-      return result.rows.map((row: any) => TransactionMapper.toDomain(row));
+      const transactions = result.rows.map(TransactionMapper.toDomain);
+
+      return transactions;
     } catch (error) {
       logger.error("Error loading transactions for session", {
         sessionId: sessionId.value,

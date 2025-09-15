@@ -5,6 +5,7 @@ import { PlayerRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { logger } from "@/shared/utils/logger";
+import { PlayerRow } from "../types";
 
 export class PostgresPlayerRepository implements PlayerRepository {
   private db = DatabaseConnection.getInstance();
@@ -43,10 +44,10 @@ export class PostgresPlayerRepository implements PlayerRepository {
 
   async findAll(): Promise<Player[]> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<PlayerRow>(
         "SELECT * FROM players ORDER BY created_at DESC"
       );
-      return result.rows.map((row: any) => PlayerMapper.toDomain(row));
+      return result.rows.map(PlayerMapper.toDomain);
     } catch (error) {
       logger.error("Error finding all players", { error });
       throw new Error("Failed to find players");
@@ -55,11 +56,11 @@ export class PostgresPlayerRepository implements PlayerRepository {
 
   async findByName(name: string): Promise<Player[]> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<PlayerRow>(
         "SELECT * FROM players WHERE name ILIKE $1 ORDER BY created_at DESC",
         [`%${name}%`]
       );
-      return result.rows.map((row: any) => PlayerMapper.toDomain(row));
+      return result.rows.map(PlayerMapper.toDomain);
     } catch (error) {
       logger.error("Error finding players by name", { name, error });
       throw new Error("Failed to find players by name");
