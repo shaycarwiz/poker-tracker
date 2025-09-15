@@ -1,2 +1,10 @@
 export * from "./player-validators";
-export * from "./session-validators";
+export {
+  validateStartSession,
+  validateEndSession,
+  validateAddTransaction,
+  validateSessionId,
+  validatePlayerId as validatePlayerIdForSession,
+  validateUpdateNotes,
+  validateCancelSession,
+} from "./session-validators";

@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
-import { PlayerId, SessionId } from "../../model/entities";
-import { Money, Stakes } from "../../model/value-objects";
-import { TransactionType } from "../../model/enums";
 import { container } from "../../infrastructure/container";
 import { logger } from "../../shared/utils/logger";
+import {
+  StartSessionRequest,
+  EndSessionRequest,
+  AddTransactionRequest,
+  ListSessionsRequest,
+} from "../../application/dto/session-dto";
 
 export class SessionController {
   private sessionService = container.services.sessions;
@@ -40,43 +43,26 @@ export class SessionController {
         return;
       }
 
-      const playerIdObj = new PlayerId(playerId);
-      const stakesObj = new Stakes(
-        new Money(
-          stakes.smallBlind.amount,
-          stakes.smallBlind.currency || "USD"
-        ),
-        new Money(stakes.bigBlind.amount, stakes.bigBlind.currency || "USD")
-      );
-      const initialBuyInMoney = new Money(
-        initialBuyIn.amount,
-        initialBuyIn.currency || "USD"
-      );
-
-      const session = await this.sessionService.startSession(
-        playerIdObj,
+      const request: StartSessionRequest = {
+        playerId,
         location,
-        stakesObj,
-        initialBuyInMoney,
-        notes
-      );
+        stakes: {
+          smallBlind: stakes.smallBlind,
+          bigBlind: stakes.bigBlind,
+          currency: stakes.currency || "USD",
+        },
+        initialBuyIn: {
+          amount: initialBuyIn.amount,
+          currency: initialBuyIn.currency || "USD",
+        },
+        notes,
+      };
+
+      const response = await this.sessionService.startSession(request);
 
       res.status(201).json({
         success: true,
-        data: {
-          id: session.id.value,
-          playerId: session.playerId.value,
-          location: session.location,
-          stakes: session.stakes.formatted,
-          startTime: session.startTime.toISOString(),
-          status: session.status,
-          totalBuyIn: session.totalBuyIn.toString(),
-          totalCashOut: session.totalCashOut.toString(),
-          netResult: session.netResult.toString(),
-          notes: session.notes,
-          createdAt: session.createdAt.toISOString(),
-          updatedAt: session.updatedAt.toISOString(),
-        },
+        data: response,
       });
     } catch (error) {
       logger.error("Error starting session", { error, body: req.body });
@@ -106,17 +92,20 @@ export class SessionController {
         return;
       }
 
-      const sessionId = new SessionId(id);
-      const finalCashOutMoney = new Money(
-        finalCashOut.amount,
-        finalCashOut.currency || "USD"
-      );
+      const request: EndSessionRequest = {
+        sessionId: id,
+        finalCashOut: {
+          amount: finalCashOut.amount,
+          currency: finalCashOut.currency || "USD",
+        },
+        notes,
+      };
 
-      await this.sessionService.endSession(sessionId, finalCashOutMoney, notes);
+      const response = await this.sessionService.endSession(request);
 
       res.json({
         success: true,
-        message: "Session ended successfully",
+        data: response,
       });
     } catch (error) {
       logger.error("Error ending session", {
@@ -124,6 +113,12 @@ export class SessionController {
         params: req.params,
         body: req.body,
       });
+      if (error instanceof Error && error.message === "Session not found") {
+        res.status(404).json({
+          error: "Session not found",
+        });
+        return;
+      }
       res.status(500).json({
         error: "Failed to end session",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -134,7 +129,7 @@ export class SessionController {
   async addTransaction(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { type, amount, description, notes } = req.body;
+      const { type, amount, description } = req.body;
 
       if (!id) {
         res.status(400).json({
@@ -143,9 +138,9 @@ export class SessionController {
         return;
       }
 
-      if (!type || !Object.values(TransactionType).includes(type)) {
+      if (!type || typeof type !== "string") {
         res.status(400).json({
-          error: "Valid transaction type is required",
+          error: "Transaction type is required and must be a string",
         });
         return;
       }
@@ -157,20 +152,21 @@ export class SessionController {
         return;
       }
 
-      const sessionId = new SessionId(id);
-      const amountMoney = new Money(amount.amount, amount.currency || "USD");
-
-      await this.sessionService.addTransaction(
-        sessionId,
+      const request: AddTransactionRequest = {
+        sessionId: id,
         type,
-        amountMoney,
+        amount: {
+          amount: amount.amount,
+          currency: amount.currency || "USD",
+        },
         description,
-        notes
-      );
+      };
+
+      const response = await this.sessionService.addTransaction(request);
 
       res.json({
         success: true,
-        message: "Transaction added successfully",
+        data: response,
       });
     } catch (error) {
       logger.error("Error adding transaction", {
@@ -178,6 +174,12 @@ export class SessionController {
         params: req.params,
         body: req.body,
       });
+      if (error instanceof Error && error.message === "Session not found") {
+        res.status(404).json({
+          error: "Session not found",
+        });
+        return;
+      }
       res.status(500).json({
         error: "Failed to add transaction",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -196,47 +198,20 @@ export class SessionController {
         return;
       }
 
-      const sessionId = new SessionId(id);
-      const session = await this.sessionService.getSessionById(sessionId);
+      const response = await this.sessionService.getSession(id);
 
-      if (!session) {
+      res.json({
+        success: true,
+        data: response,
+      });
+    } catch (error) {
+      logger.error("Error getting session", { error, params: req.params });
+      if (error instanceof Error && error.message === "Session not found") {
         res.status(404).json({
           error: "Session not found",
         });
         return;
       }
-
-      res.json({
-        success: true,
-        data: {
-          id: session.id.value,
-          playerId: session.playerId.value,
-          location: session.location,
-          stakes: session.stakes.formatted,
-          startTime: session.startTime.toISOString(),
-          endTime: session.endTime?.toISOString(),
-          status: session.status,
-          totalBuyIn: session.totalBuyIn.toString(),
-          totalCashOut: session.totalCashOut.toString(),
-          netResult: session.netResult.toString(),
-          duration: session.duration?.minutes || 0,
-          hourlyRate: session.hourlyRate?.toString(),
-          bigBlindsWon: session.bigBlindsWon,
-          notes: session.notes,
-          transactions: session.transactions.map((t) => ({
-            id: t.id.value,
-            type: t.type,
-            amount: t.amount.toString(),
-            timestamp: t.timestamp.toISOString(),
-            description: t.description,
-            notes: t.notes,
-          })),
-          createdAt: session.createdAt.toISOString(),
-          updatedAt: session.updatedAt.toISOString(),
-        },
-      });
-    } catch (error) {
-      logger.error("Error getting session", { error, params: req.params });
       res.status(500).json({
         error: "Failed to get session",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -244,181 +219,29 @@ export class SessionController {
     }
   }
 
-  async getPlayerSessions(req: Request, res: Response): Promise<void> {
+  async listSessions(req: Request, res: Response): Promise<void> {
     try {
-      const { playerId } = req.params;
+      const { playerId, status, page, limit, startDate, endDate } = req.query;
 
-      if (!playerId) {
-        res.status(400).json({
-          error: "Player ID is required",
-        });
-        return;
-      }
+      const request: ListSessionsRequest = {
+        playerId: playerId as string,
+        status: status as string,
+        page: page ? parseInt(page as string) : 1,
+        limit: limit ? parseInt(limit as string) : 10,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+      };
 
-      const playerIdObj = new PlayerId(playerId);
-      const sessions = await this.sessionService.getPlayerSessions(playerIdObj);
+      const response = await this.sessionService.listSessions(request);
 
       res.json({
         success: true,
-        data: sessions.map((session) => ({
-          id: session.id.value,
-          playerId: session.playerId.value,
-          location: session.location,
-          stakes: session.stakes.formatted,
-          startTime: session.startTime.toISOString(),
-          endTime: session.endTime?.toISOString(),
-          status: session.status,
-          totalBuyIn: session.totalBuyIn.toString(),
-          totalCashOut: session.totalCashOut.toString(),
-          netResult: session.netResult.toString(),
-          duration: session.duration?.minutes || 0,
-          hourlyRate: session.hourlyRate?.toString(),
-          bigBlindsWon: session.bigBlindsWon,
-          notes: session.notes,
-          createdAt: session.createdAt.toISOString(),
-          updatedAt: session.updatedAt.toISOString(),
-        })),
+        data: response,
       });
     } catch (error) {
-      logger.error("Error getting player sessions", {
-        error,
-        params: req.params,
-      });
+      logger.error("Error listing sessions", { error, query: req.query });
       res.status(500).json({
-        error: "Failed to get player sessions",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-
-  async getActiveSession(req: Request, res: Response): Promise<void> {
-    try {
-      const { playerId } = req.params;
-
-      if (!playerId) {
-        res.status(400).json({
-          error: "Player ID is required",
-        });
-        return;
-      }
-
-      const playerIdObj = new PlayerId(playerId);
-      const session = await this.sessionService.getActiveSession(playerIdObj);
-
-      if (!session) {
-        res.status(404).json({
-          error: "No active session found for this player",
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: {
-          id: session.id.value,
-          playerId: session.playerId.value,
-          location: session.location,
-          stakes: session.stakes.formatted,
-          startTime: session.startTime.toISOString(),
-          endTime: session.endTime?.toISOString(),
-          status: session.status,
-          totalBuyIn: session.totalBuyIn.toString(),
-          totalCashOut: session.totalCashOut.toString(),
-          netResult: session.netResult.toString(),
-          duration: session.duration?.minutes || 0,
-          hourlyRate: session.hourlyRate?.toString(),
-          bigBlindsWon: session.bigBlindsWon,
-          notes: session.notes,
-          transactions: session.transactions.map((t) => ({
-            id: t.id.value,
-            type: t.type,
-            amount: t.amount.toString(),
-            timestamp: t.timestamp.toISOString(),
-            description: t.description,
-            notes: t.notes,
-          })),
-          createdAt: session.createdAt.toISOString(),
-          updatedAt: session.updatedAt.toISOString(),
-        },
-      });
-    } catch (error) {
-      logger.error("Error getting active session", {
-        error,
-        params: req.params,
-      });
-      res.status(500).json({
-        error: "Failed to get active session",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-
-  async cancelSession(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { reason } = req.body;
-
-      if (!id) {
-        res.status(400).json({
-          error: "Session ID is required",
-        });
-        return;
-      }
-
-      const sessionId = new SessionId(id);
-      await this.sessionService.cancelSession(sessionId, reason);
-
-      res.json({
-        success: true,
-        message: "Session cancelled successfully",
-      });
-    } catch (error) {
-      logger.error("Error cancelling session", {
-        error,
-        params: req.params,
-        body: req.body,
-      });
-      res.status(500).json({
-        error: "Failed to cancel session",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-
-  async updateSessionNotes(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { notes } = req.body;
-
-      if (!id) {
-        res.status(400).json({
-          error: "Session ID is required",
-        });
-        return;
-      }
-
-      if (typeof notes !== "string") {
-        res.status(400).json({
-          error: "Notes must be a string",
-        });
-        return;
-      }
-
-      const sessionId = new SessionId(id);
-      await this.sessionService.updateSessionNotes(sessionId, notes);
-
-      res.json({
-        success: true,
-        message: "Session notes updated successfully",
-      });
-    } catch (error) {
-      logger.error("Error updating session notes", {
-        error,
-        params: req.params,
-        body: req.body,
-      });
-      res.status(500).json({
-        error: "Failed to update session notes",
+        error: "Failed to list sessions",
         message: error instanceof Error ? error.message : "Unknown error",
       });
     }
