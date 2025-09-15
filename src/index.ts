@@ -70,7 +70,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Only start server if not in test environment
-let server: any = null;
+let server: ReturnType<typeof app.listen> | null = null;
 
 if (process.env["NODE_ENV"] !== "test") {
   server = app.listen(PORT, () => {
@@ -82,7 +82,7 @@ if (process.env["NODE_ENV"] !== "test") {
   // Graceful shutdown
   process.on("SIGTERM", () => {
     logger.info("SIGTERM received, shutting down gracefully");
-    server.close(() => {
+    server?.close(() => {
       logger.info("Process terminated");
       process.exit(0);
     });
@@ -90,7 +90,7 @@ if (process.env["NODE_ENV"] !== "test") {
 
   process.on("SIGINT", () => {
     logger.info("SIGINT received, shutting down gracefully");
-    server.close(() => {
+    server?.close(() => {
       logger.info("Process terminated");
       process.exit(0);
     });
