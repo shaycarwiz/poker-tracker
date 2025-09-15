@@ -1,6 +1,6 @@
 // Player application service - Orchestrates use cases
 
-import { PlayerRepository, UnitOfWork } from "@/model/repositories";
+import { UnitOfWork } from "@/model/repositories";
 import {
   CreatePlayerUseCase,
   UpdatePlayerUseCase,
@@ -26,11 +26,11 @@ export class PlayerService {
   private listPlayersUseCase: ListPlayersUseCase;
   private addBankrollUseCase: AddBankrollUseCase;
 
-  constructor(playerRepository: PlayerRepository, unitOfWork: UnitOfWork) {
+  constructor(unitOfWork: UnitOfWork) {
     this.createPlayerUseCase = new CreatePlayerUseCase(unitOfWork);
     this.updatePlayerUseCase = new UpdatePlayerUseCase(unitOfWork);
-    this.getPlayerUseCase = new GetPlayerUseCase(playerRepository);
-    this.listPlayersUseCase = new ListPlayersUseCase(playerRepository);
+    this.getPlayerUseCase = new GetPlayerUseCase(unitOfWork);
+    this.listPlayersUseCase = new ListPlayersUseCase(unitOfWork);
     this.addBankrollUseCase = new AddBankrollUseCase(unitOfWork);
   }
 

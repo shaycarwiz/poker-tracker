@@ -15,7 +15,7 @@ const transactionRepository = new PostgresTransactionRepository();
 const unitOfWork = new PostgresUnitOfWork();
 
 // Create application services
-const playerService = new PlayerService(playerRepository, unitOfWork);
+const playerService = new PlayerService(unitOfWork);
 const sessionService = new SessionService(unitOfWork);
 
 // Export the container

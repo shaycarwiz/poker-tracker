@@ -37,7 +37,7 @@ describe("PlayerService", () => {
       transactions: {} as any,
     } as any;
 
-    playerService = new PlayerService(mockPlayerRepository, mockUnitOfWork);
+    playerService = new PlayerService(mockUnitOfWork);
   });
 
   describe("createPlayer", () => {

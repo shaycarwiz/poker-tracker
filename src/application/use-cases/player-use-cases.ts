@@ -1,7 +1,8 @@
 // Player use cases - Business logic for player operations
 
 import { Player, PlayerId } from "@/model/entities";
-import { PlayerRepository, UnitOfWork } from "@/model/repositories";
+import { UnitOfWork } from "@/model/repositories";
+import { PlayerStatsService } from "@/model/domain-services";
 import { Money } from "@/model/value-objects";
 import { logger } from "@/shared/utils/logger";
 import {
@@ -129,14 +130,19 @@ export class UpdatePlayerUseCase {
 }
 
 export class GetPlayerUseCase {
-  constructor(private playerRepository: PlayerRepository) {}
+  constructor(private unitOfWork: UnitOfWork) {}
 
   async execute(playerId: string): Promise<GetPlayerResponse> {
     const id = new PlayerId(playerId);
-    const player = await this.playerRepository.findById(id);
+    const player = await this.unitOfWork.players.findById(id);
     if (!player) {
       throw new Error("Player not found");
     }
+
+    // Get player's sessions to calculate stats
+    const sessions = await this.unitOfWork.sessions.findByPlayerId(id);
+    const statsService = new PlayerStatsService();
+    const stats = statsService.calculateStats(player, sessions);
 
     return {
       id: player.id.value,
@@ -146,12 +152,12 @@ export class GetPlayerUseCase {
         amount: player.currentBankroll.amount,
         currency: player.currentBankroll.currency,
       },
-      totalSessions: player.totalSessions,
+      totalSessions: stats.totalSessions,
       totalWinnings: {
-        amount: 0, // TODO: Calculate from sessions
-        currency: "USD",
+        amount: stats.netProfit.amount,
+        currency: stats.netProfit.currency,
       },
-      winRate: 0, // TODO: Calculate from sessions
+      winRate: stats.winRate,
       createdAt: player.createdAt,
       updatedAt: player.updatedAt,
     };
@@ -159,35 +165,47 @@ export class GetPlayerUseCase {
 }
 
 export class ListPlayersUseCase {
-  constructor(private playerRepository: PlayerRepository) {}
+  constructor(private unitOfWork: UnitOfWork) {}
 
   async execute(
     page: number = 1,
     limit: number = 10
   ): Promise<ListPlayersResponse> {
-    const players = await this.playerRepository.findAll();
+    const players = await this.unitOfWork.players.findAll();
     const total = players.length;
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const paginatedPlayers = players.slice(startIndex, endIndex);
 
-    const playerResponses = paginatedPlayers.map((player) => ({
-      id: player.id.value,
-      name: player.name,
-      email: player.email || undefined,
-      bankroll: {
-        amount: player.currentBankroll.amount,
-        currency: player.currentBankroll.currency,
-      },
-      totalSessions: player.totalSessions,
-      totalWinnings: {
-        amount: 0, // TODO: Calculate from sessions
-        currency: "USD",
-      },
-      winRate: 0, // TODO: Calculate from sessions
-      createdAt: player.createdAt,
-      updatedAt: player.updatedAt,
-    }));
+    const statsService = new PlayerStatsService();
+
+    const playerResponses = await Promise.all(
+      paginatedPlayers.map(async (player) => {
+        // Get player's sessions to calculate stats
+        const sessions = await this.unitOfWork.sessions.findByPlayerId(
+          player.id
+        );
+        const stats = statsService.calculateStats(player, sessions);
+
+        return {
+          id: player.id.value,
+          name: player.name,
+          email: player.email || undefined,
+          bankroll: {
+            amount: player.currentBankroll.amount,
+            currency: player.currentBankroll.currency,
+          },
+          totalSessions: stats.totalSessions,
+          totalWinnings: {
+            amount: stats.netProfit.amount,
+            currency: stats.netProfit.currency,
+          },
+          winRate: stats.winRate,
+          createdAt: player.createdAt,
+          updatedAt: player.updatedAt,
+        };
+      })
+    );
 
     return {
       players: playerResponses,
