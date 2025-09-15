@@ -14,7 +14,7 @@ export abstract class BaseUseCase {
   protected async executeWithTransaction<T>(
     operation: () => Promise<T>,
     operationName: string,
-    context?: any
+    context?: Record<string, any>
   ): Promise<T> {
     try {
       await this.unitOfWork.begin();
@@ -34,7 +34,7 @@ export abstract class BaseUseCase {
   protected async executeWithTransactionAndEvents<T>(
     operation: () => Promise<{ result: T; entity?: AggregateRoot }>,
     operationName: string,
-    context?: any
+    context?: Record<string, any>
   ): Promise<T> {
     try {
       await this.unitOfWork.begin();
@@ -61,7 +61,7 @@ export abstract class BaseUseCase {
   protected async executeReadOnly<T>(
     operation: () => Promise<T>,
     operationName: string,
-    context?: any
+    context?: Record<string, any>
   ): Promise<T> {
     try {
       return await operation();
