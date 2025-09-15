@@ -2,9 +2,10 @@
 
 import { Player, PlayerId } from "@/model/entities";
 import { Money } from "@/model/value-objects";
+import { PlayerRow } from "../types";
 
 export class PlayerMapper {
-  static toDomain(row: any): Player {
+  static toDomain(row: PlayerRow): Player {
     // Create a new Player instance using the private constructor approach
     const player = Object.create(Player.prototype);
     Object.assign(player, {
@@ -19,11 +20,11 @@ export class PlayerMapper {
     return player;
   }
 
-  static toPersistence(player: Player): any {
+  static toPersistence(player: Player): PlayerRow {
     return {
       id: player.id.value,
       name: player.name,
-      email: player.email,
+      email: player.email || null,
       current_bankroll: player.currentBankroll.amount,
       currency: player.currentBankroll.currency,
       total_sessions: player.totalSessions,

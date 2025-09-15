@@ -3,9 +3,10 @@
 import { Session, SessionId, PlayerId, Transaction } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { SessionStatus } from "@/model/enums";
+import { SessionRow } from "../types";
 
 export class SessionMapper {
-  static toDomain(row: any, transactions: Transaction[] = []): Session {
+  static toDomain(row: SessionRow, transactions: Transaction[] = []): Session {
     const session = Object.create(Session.prototype);
     Object.assign(session, {
       id: new SessionId(row.id),
@@ -27,7 +28,7 @@ export class SessionMapper {
     return session;
   }
 
-  static toPersistence(session: Session): any {
+  static toPersistence(session: Session): SessionRow {
     return {
       id: session.id.value,
       player_id: session.playerId.value,
@@ -37,9 +38,9 @@ export class SessionMapper {
       ante: session.stakes.ante?.amount || null,
       currency: session.stakes.bigBlind.currency,
       start_time: session.startTime,
-      end_time: session.endTime,
+      end_time: session.endTime || null,
       status: session.status,
-      notes: session.notes,
+      notes: session.notes || null,
       created_at: session.createdAt,
       updated_at: session.updatedAt,
     };
