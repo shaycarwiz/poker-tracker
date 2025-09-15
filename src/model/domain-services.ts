@@ -45,7 +45,10 @@ export class PlayerStatsService {
 
     const results = completedSessions.map((s) => s.netResult.amount);
     const biggestWin = new Money(Math.max(...results, 0), netProfit.currency);
-    const biggestLoss = new Money(Math.min(...results, 0), netProfit.currency);
+    const biggestLoss = new Money(
+      Math.abs(Math.min(...results, 0)),
+      netProfit.currency
+    );
 
     const streak = this.calculateStreak(completedSessions);
 
