@@ -7,7 +7,7 @@ import {
   GetPlayerUseCase,
   ListPlayersUseCase,
   AddBankrollUseCase,
-} from "../use-cases/player-use-cases";
+} from "../use-cases/players";
 import {
   CreatePlayerRequest,
   CreatePlayerResponse,

@@ -8,14 +8,14 @@ import {
   DeletePlayerUseCase,
   ListPlayersUseCase,
   AddBankrollUseCase,
-} from "@/application/use-cases/player-use-cases";
+} from "@/application/use-cases/players";
 import {
   StartSessionUseCase,
   EndSessionUseCase,
   AddTransactionUseCase,
   GetSessionUseCase,
   ListSessionsUseCase,
-} from "@/application/use-cases/session-use-cases";
+} from "@/application/use-cases/session";
 import { config } from "@/infrastructure";
 
 // Mock dependencies

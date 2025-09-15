@@ -8,7 +8,7 @@ import {
   GetSessionUseCase,
   ListSessionsUseCase,
   UpdateSessionNotesUseCase,
-} from "../use-cases/session-use-cases";
+} from "../use-cases/session";
 import {
   StartSessionRequest,
   StartSessionResponse,
