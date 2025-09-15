@@ -7,6 +7,7 @@ import { SessionMapper } from "../mappers/session-mapper";
 import { TransactionMapper } from "../mappers/transaction-mapper";
 import { logger } from "@/shared/utils/logger";
 import { SessionStatus } from "@/model/enums";
+import { SessionFilters } from "@/model/types";
 import { SessionRow } from "../types";
 
 export class PostgresSessionRepository implements SessionRepository {
@@ -138,7 +139,7 @@ export class PostgresSessionRepository implements SessionRepository {
   }
 
   async findByFilters(
-    filters: any
+    filters: SessionFilters
   ): Promise<{ sessions: Session[]; total: number }> {
     try {
       // Build base query for filtering
