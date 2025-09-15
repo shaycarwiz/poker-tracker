@@ -218,9 +218,9 @@ export const validateUpdateNotes = (
 ): void => {
   const { notes } = req.body;
 
-  if (typeof notes !== "string") {
+  if (!notes || typeof notes !== "string" || notes.trim().length === 0) {
     res.status(400).json({
-      error: "Notes must be a string",
+      error: "Notes are required and must be a non-empty string",
     });
     return;
   }

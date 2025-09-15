@@ -6,6 +6,7 @@ import {
   EndSessionRequest,
   AddTransactionRequest,
   ListSessionsRequest,
+  UpdateSessionNotesRequest,
 } from "../../application/dto/session-dto";
 
 export class SessionController {
@@ -282,6 +283,7 @@ export class SessionController {
   async updateSessionNotes(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const { notes } = req.body;
 
       if (!id) {
         res.status(400).json({
@@ -290,10 +292,23 @@ export class SessionController {
         return;
       }
 
-      // For now, just return success - implement actual notes update logic later
+      if (!notes || typeof notes !== "string") {
+        res.status(400).json({
+          error: "Notes are required and must be a string",
+        });
+        return;
+      }
+
+      const request: UpdateSessionNotesRequest = {
+        sessionId: id,
+        notes,
+      };
+
+      const response = await this.sessionService.updateSessionNotes(request);
+
       res.status(200).json({
         success: true,
-        message: "Session notes updated successfully",
+        data: response,
       });
     } catch (error) {
       logger.error("Error updating session notes", {
@@ -301,6 +316,18 @@ export class SessionController {
         params: req.params,
         body: req.body,
       });
+      if (error instanceof Error && error.message === "Session not found") {
+        res.status(404).json({
+          error: "Session not found",
+        });
+        return;
+      }
+      if (error instanceof Error && error.message === "Session is not active") {
+        res.status(400).json({
+          error: "Session is not active",
+        });
+        return;
+      }
       res.status(500).json({
         error: "Failed to update session notes",
         message: error instanceof Error ? error.message : "Unknown error",

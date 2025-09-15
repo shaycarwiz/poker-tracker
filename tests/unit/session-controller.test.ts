@@ -36,6 +36,7 @@ describe("SessionController", () => {
       addTransaction: jest.fn(),
       getSession: jest.fn(),
       listSessions: jest.fn(),
+      updateSessionNotes: jest.fn(),
     } as any;
 
     // Mock the container
@@ -622,23 +623,29 @@ describe("SessionController", () => {
         notes: "Updated notes",
       };
 
+      const mockResponseData = {
+        sessionId: sessionId,
+        notes: "Updated notes",
+        updatedAt: new Date(),
+      };
+
       mockRequest.params = { id: sessionId };
       mockRequest.body = requestBody;
-      mockSessionService.getSession.mockResolvedValue({
-        id: sessionId,
-        playerId: "player-123",
-        status: "ACTIVE",
-      } as any);
+      mockSessionService.updateSessionNotes.mockResolvedValue(mockResponseData);
 
       await sessionController.updateSessionNotes(
         mockRequest as Request,
         mockResponse as Response
       );
 
+      expect(mockSessionService.updateSessionNotes).toHaveBeenCalledWith({
+        sessionId,
+        notes: "Updated notes",
+      });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        message: "Session notes updated successfully",
+        data: mockResponseData,
       });
     });
 
@@ -656,7 +663,75 @@ describe("SessionController", () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Notes are required",
+        error: "Notes are required and must be a string",
+      });
+      expect(mockSessionService.updateSessionNotes).not.toHaveBeenCalled();
+    });
+
+    it("should return 400 for invalid notes type", async () => {
+      const sessionId = "session-123";
+      const requestBody = {
+        notes: 123,
+      };
+
+      mockRequest.params = { id: sessionId };
+      mockRequest.body = requestBody;
+
+      await sessionController.updateSessionNotes(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        error: "Notes are required and must be a string",
+      });
+      expect(mockSessionService.updateSessionNotes).not.toHaveBeenCalled();
+    });
+
+    it("should return 404 for session not found", async () => {
+      const sessionId = "session-123";
+      const requestBody = {
+        notes: "Updated notes",
+      };
+
+      mockRequest.params = { id: sessionId };
+      mockRequest.body = requestBody;
+      mockSessionService.updateSessionNotes.mockRejectedValue(
+        new Error("Session not found")
+      );
+
+      await sessionController.updateSessionNotes(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        error: "Session not found",
+      });
+    });
+
+    it("should return 400 for session not active", async () => {
+      const sessionId = "session-123";
+      const requestBody = {
+        notes: "Updated notes",
+      };
+
+      mockRequest.params = { id: sessionId };
+      mockRequest.body = requestBody;
+      mockSessionService.updateSessionNotes.mockRejectedValue(
+        new Error("Session is not active")
+      );
+
+      await sessionController.updateSessionNotes(
+        mockRequest as Request,
+        mockResponse as Response
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        error: "Session is not active",
       });
     });
 
@@ -668,7 +743,9 @@ describe("SessionController", () => {
 
       mockRequest.params = { id: sessionId };
       mockRequest.body = requestBody;
-      mockSessionService.getSession.mockRejectedValue(new Error("test error"));
+      mockSessionService.updateSessionNotes.mockRejectedValue(
+        new Error("Database error")
+      );
 
       await sessionController.updateSessionNotes(
         mockRequest as Request,
@@ -678,7 +755,7 @@ describe("SessionController", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         error: "Failed to update session notes",
-        message: "test error",
+        message: "Database error",
       });
     });
   });
