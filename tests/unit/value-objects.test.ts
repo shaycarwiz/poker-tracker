@@ -20,10 +20,10 @@ describe("Money Value Object", () => {
       expect(money.currency).toBe("EUR");
     });
 
-    it("should throw error for negative amount", () => {
-      expect(() => new Money(-10, "USD")).toThrow(
-        "Money amount cannot be negative"
-      );
+    it("should allow negative amount for net results", () => {
+      const money = new Money(-10, "USD");
+      expect(money.amount).toBe(-10);
+      expect(money.currency).toBe("USD");
     });
   });
 
@@ -63,11 +63,10 @@ describe("Money Value Object", () => {
       const money1 = new Money(50, "USD");
       const money2 = new Money(100, "USD");
 
-      // Note: The Money constructor throws an error for negative amounts
-      // This test verifies the subtraction logic works even with negative results
-      expect(() => money1.subtract(money2)).toThrow(
-        "Money amount cannot be negative"
-      );
+      // This test verifies the subtraction logic works with negative results
+      const result = money1.subtract(money2);
+      expect(result.amount).toBe(-50);
+      expect(result.currency).toBe("USD");
     });
 
     it("should throw error for different currencies", () => {

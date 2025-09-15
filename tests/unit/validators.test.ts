@@ -993,7 +993,7 @@ describe("Session Validators", () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Notes must be a string",
+        error: "Notes are required and must be a non-empty string",
       });
       expect(mockNext).not.toHaveBeenCalled();
     });

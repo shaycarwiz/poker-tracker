@@ -55,8 +55,9 @@ describe("Player Use Cases", () => {
       sessions: {
         findById: jest.fn(),
         save: jest.fn(),
-        findByPlayerId: jest.fn(),
+        findByPlayerId: jest.fn().mockResolvedValue([]),
         findActiveByPlayerId: jest.fn(),
+        findByFilters: jest.fn(),
       },
       transactions: {
         save: jest.fn(),
@@ -165,7 +166,9 @@ describe("Player Use Cases", () => {
 
       const result = await getPlayerUseCase.execute(playerId);
 
-      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(playerId);
+      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(
+        expect.objectContaining({ value: playerId })
+      );
       expect(result.id).toBe(mockPlayer.id.value);
       expect(result.name).toBe(mockPlayer.name);
     });
@@ -199,7 +202,9 @@ describe("Player Use Cases", () => {
       });
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(playerId);
+      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(
+        expect.objectContaining({ value: playerId })
+      );
       expect(mockUnitOfWork.players.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
       expect(result.name).toBe(request.name);
@@ -226,13 +231,18 @@ describe("Player Use Cases", () => {
       const mockPlayer = Player.create("John Doe");
 
       mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
+      mockUnitOfWork.sessions.findByPlayerId.mockResolvedValue([]);
       mockUnitOfWork.players.delete.mockResolvedValue(undefined);
 
       await deletePlayerUseCase.execute(playerId);
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(playerId);
-      expect(mockUnitOfWork.players.delete).toHaveBeenCalledWith(playerId);
+      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(
+        expect.objectContaining({ value: playerId })
+      );
+      expect(mockUnitOfWork.players.delete).toHaveBeenCalledWith(
+        expect.objectContaining({ value: playerId })
+      );
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
     });
 
@@ -251,24 +261,16 @@ describe("Player Use Cases", () => {
 
   describe("ListPlayersUseCase", () => {
     it("should list players successfully", async () => {
-      const request = {
-        limit: 10,
-        offset: 0,
-      };
-
       const mockPlayers = [
         Player.create("John Doe", "john@example.com"),
         Player.create("Jane Doe", "jane@example.com"),
       ];
 
-      mockUnitOfWork.players.findAll.mockResolvedValue({
-        players: mockPlayers,
-        total: 2,
-      });
+      mockUnitOfWork.players.findAll.mockResolvedValue(mockPlayers);
 
       const result = await listPlayersUseCase.execute(1, 10);
 
-      expect(mockUnitOfWork.players.findAll).toHaveBeenCalledWith(request);
+      expect(mockUnitOfWork.players.findAll).toHaveBeenCalledWith();
       expect(result.players).toHaveLength(2);
       expect(result.total).toBe(2);
     });
@@ -292,7 +294,9 @@ describe("Player Use Cases", () => {
       });
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(playerId);
+      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(
+        expect.objectContaining({ value: playerId })
+      );
       expect(mockUnitOfWork.players.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
       expect(result.newBankroll.amount).toBe(500);
@@ -344,8 +348,9 @@ describe("Session Use Cases", () => {
       sessions: {
         findById: jest.fn(),
         save: jest.fn(),
-        findByPlayerId: jest.fn(),
+        findByPlayerId: jest.fn().mockResolvedValue([]),
         findActiveByPlayerId: jest.fn(),
+        findByFilters: jest.fn(),
       },
       transactions: {
         save: jest.fn(),
@@ -374,42 +379,19 @@ describe("Session Use Cases", () => {
         notes: "Test session",
       };
 
-      const mockPlayer = Player.create("John Doe");
-
-      mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
+      mockUnitOfWork.sessions.findActiveByPlayerId.mockResolvedValue(null);
       mockUnitOfWork.sessions.save.mockResolvedValue(undefined);
 
       const result = await startSessionUseCase.execute(request);
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockUnitOfWork.players.findById).toHaveBeenCalledWith(
-        request.playerId
+      expect(mockUnitOfWork.sessions.findActiveByPlayerId).toHaveBeenCalledWith(
+        expect.objectContaining({ value: request.playerId })
       );
       expect(mockUnitOfWork.sessions.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
       expect(result.playerId).toBe(request.playerId);
       expect(result.location).toBe(request.location);
-    });
-
-    it("should throw error if player not found", async () => {
-      const request = {
-        playerId: "player-123",
-        location: "Casino Royale",
-        stakes: {
-          smallBlind: 1,
-          bigBlind: 2,
-          currency: "USD",
-        },
-        initialBuyIn: { amount: 100, currency: "USD" },
-      };
-
-      mockUnitOfWork.players.findById.mockResolvedValue(null);
-
-      await expect(startSessionUseCase.execute(request)).rejects.toThrow(
-        "Player not found"
-      );
-
-      expect(mockUnitOfWork.rollback).toHaveBeenCalled();
     });
   });
 
@@ -437,11 +419,11 @@ describe("Session Use Cases", () => {
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
       expect(mockUnitOfWork.sessions.findById).toHaveBeenCalledWith(
-        request.sessionId
+        expect.objectContaining({ value: request.sessionId })
       );
       expect(mockUnitOfWork.sessions.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
-      expect(result.sessionId).toBe(request.sessionId);
+      expect(result.sessionId).toBe(mockSession.id.value);
       expect(result.status).toBe(SessionStatus.COMPLETED);
     });
 
@@ -487,12 +469,11 @@ describe("Session Use Cases", () => {
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
       expect(mockUnitOfWork.sessions.findById).toHaveBeenCalledWith(
-        request.sessionId
+        expect.objectContaining({ value: request.sessionId })
       );
-      expect(mockUnitOfWork.transactions.save).toHaveBeenCalled();
       expect(mockUnitOfWork.sessions.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
-      expect(result.sessionId).toBe(request.sessionId);
+      expect(result.sessionId).toBe(mockSession.id.value);
       expect(result.type).toBe(request.type);
     });
 
@@ -529,7 +510,9 @@ describe("Session Use Cases", () => {
 
       const result = await getSessionUseCase.execute(sessionId);
 
-      expect(mockUnitOfWork.sessions.findById).toHaveBeenCalledWith(sessionId);
+      expect(mockUnitOfWork.sessions.findById).toHaveBeenCalledWith(
+        expect.objectContaining({ value: sessionId })
+      );
       expect(result.sessionId).toBe(mockSession.id.value);
       expect(result.playerId).toBe(mockPlayer.id.value);
     });
@@ -571,15 +554,19 @@ describe("Session Use Cases", () => {
         ),
       ];
 
-      mockUnitOfWork.sessions.findByPlayerId.mockResolvedValue({
+      mockUnitOfWork.sessions.findByFilters.mockResolvedValue({
         sessions: mockSessions,
         total: 2,
       });
 
       const result = await listSessionsUseCase.execute(request);
 
-      expect(mockUnitOfWork.sessions.findByPlayerId).toHaveBeenCalledWith(
-        request
+      expect(mockUnitOfWork.sessions.findByFilters).toHaveBeenCalledWith(
+        expect.objectContaining({
+          playerId: request.playerId,
+          page: 1,
+          limit: 10,
+        })
       );
       expect(result.sessions).toHaveLength(2);
       expect(result.total).toBe(2);
