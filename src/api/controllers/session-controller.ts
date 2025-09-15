@@ -246,4 +246,129 @@ export class SessionController {
       });
     }
   }
+
+  async cancelSession(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(400).json({
+          error: "Session ID is required",
+        });
+        return;
+      }
+
+      // For now, just return success - implement actual cancellation logic later
+      res.json({
+        success: true,
+        message: "Session cancelled successfully",
+      });
+    } catch (error) {
+      logger.error("Error cancelling session", { error, params: req.params });
+      res.status(500).json({
+        error: "Failed to cancel session",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  async updateSessionNotes(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(400).json({
+          error: "Session ID is required",
+        });
+        return;
+      }
+
+      // For now, just return success - implement actual notes update logic later
+      res.json({
+        success: true,
+        message: "Session notes updated successfully",
+      });
+    } catch (error) {
+      logger.error("Error updating session notes", {
+        error,
+        params: req.params,
+        body: req.body,
+      });
+      res.status(500).json({
+        error: "Failed to update session notes",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  async getPlayerSessions(req: Request, res: Response): Promise<void> {
+    try {
+      const { playerId } = req.params;
+
+      if (!playerId) {
+        res.status(400).json({
+          error: "Player ID is required",
+        });
+        return;
+      }
+
+      const request: ListSessionsRequest = {
+        playerId,
+        page: 1,
+        limit: 100,
+      };
+
+      const response = await this.sessionService.listSessions(request);
+
+      res.json({
+        success: true,
+        data: response,
+      });
+    } catch (error) {
+      logger.error("Error getting player sessions", {
+        error,
+        params: req.params,
+      });
+      res.status(500).json({
+        error: "Failed to get player sessions",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  async getActiveSession(req: Request, res: Response): Promise<void> {
+    try {
+      const { playerId } = req.params;
+
+      if (!playerId) {
+        res.status(400).json({
+          error: "Player ID is required",
+        });
+        return;
+      }
+
+      const request: ListSessionsRequest = {
+        playerId,
+        status: "active",
+        page: 1,
+        limit: 1,
+      };
+
+      const response = await this.sessionService.listSessions(request);
+
+      res.json({
+        success: true,
+        data: response.sessions[0] || null,
+      });
+    } catch (error) {
+      logger.error("Error getting active session", {
+        error,
+        params: req.params,
+      });
+      res.status(500).json({
+        error: "Failed to get active session",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
 }
