@@ -133,3 +133,14 @@ export interface ListSessionsResponse {
   page: number;
   limit: number;
 }
+
+export interface UpdateSessionNotesRequest {
+  sessionId: string;
+  notes: string;
+}
+
+export interface UpdateSessionNotesResponse {
+  sessionId: string;
+  notes: string;
+  updatedAt: Date;
+}

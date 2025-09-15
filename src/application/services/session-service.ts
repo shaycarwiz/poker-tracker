@@ -7,6 +7,7 @@ import {
   AddTransactionUseCase,
   GetSessionUseCase,
   ListSessionsUseCase,
+  UpdateSessionNotesUseCase,
 } from "../use-cases/session-use-cases";
 import {
   StartSessionRequest,
@@ -18,6 +19,8 @@ import {
   GetSessionResponse,
   ListSessionsRequest,
   ListSessionsResponse,
+  UpdateSessionNotesRequest,
+  UpdateSessionNotesResponse,
 } from "../dto/session-dto";
 
 export class SessionService {
@@ -26,6 +29,7 @@ export class SessionService {
   private addTransactionUseCase: AddTransactionUseCase;
   private getSessionUseCase: GetSessionUseCase;
   private listSessionsUseCase: ListSessionsUseCase;
+  private updateSessionNotesUseCase: UpdateSessionNotesUseCase;
 
   constructor(unitOfWork: UnitOfWork) {
     this.startSessionUseCase = new StartSessionUseCase(unitOfWork);
@@ -33,6 +37,7 @@ export class SessionService {
     this.addTransactionUseCase = new AddTransactionUseCase(unitOfWork);
     this.getSessionUseCase = new GetSessionUseCase(unitOfWork);
     this.listSessionsUseCase = new ListSessionsUseCase(unitOfWork);
+    this.updateSessionNotesUseCase = new UpdateSessionNotesUseCase(unitOfWork);
   }
 
   async startSession(
@@ -59,5 +64,11 @@ export class SessionService {
     request: ListSessionsRequest
   ): Promise<ListSessionsResponse> {
     return await this.listSessionsUseCase.execute(request);
+  }
+
+  async updateSessionNotes(
+    request: UpdateSessionNotesRequest
+  ): Promise<UpdateSessionNotesResponse> {
+    return await this.updateSessionNotesUseCase.execute(request);
   }
 }

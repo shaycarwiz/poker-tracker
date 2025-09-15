@@ -5,7 +5,7 @@ export class Money {
     public readonly amount: number,
     public readonly currency: string = "USD"
   ) {
-    if (amount < 0) throw new Error("Money amount cannot be negative");
+    // Note: Negative amounts are allowed for net results (losses) in poker
   }
 
   add(other: Money): Money {

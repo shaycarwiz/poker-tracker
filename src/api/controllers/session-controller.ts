@@ -6,6 +6,7 @@ import {
   EndSessionRequest,
   AddTransactionRequest,
   ListSessionsRequest,
+  UpdateSessionNotesRequest,
 } from "../../application/dto/session-dto";
 
 export class SessionController {
@@ -103,7 +104,7 @@ export class SessionController {
 
       const response = await this.sessionService.endSession(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -129,7 +130,7 @@ export class SessionController {
   async addTransaction(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { type, amount, description } = req.body;
+      const { type, amount, notes } = req.body;
 
       if (!id) {
         res.status(400).json({
@@ -159,12 +160,12 @@ export class SessionController {
           amount: amount.amount,
           currency: amount.currency || "USD",
         },
-        description,
+        description: notes,
       };
 
       const response = await this.sessionService.addTransaction(request);
 
-      res.json({
+      res.status(201).json({
         success: true,
         data: response,
       });
@@ -200,7 +201,7 @@ export class SessionController {
 
       const response = await this.sessionService.getSession(id);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -234,7 +235,7 @@ export class SessionController {
 
       const response = await this.sessionService.listSessions(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -258,10 +259,17 @@ export class SessionController {
         return;
       }
 
-      // For now, just return success - implement actual cancellation logic later
-      res.json({
+      const request: EndSessionRequest = {
+        sessionId: id,
+        finalCashOut: { amount: 0, currency: "USD" },
+        notes: req.body.reason || "Session cancelled",
+      };
+
+      const response = await this.sessionService.endSession(request);
+
+      res.status(200).json({
         success: true,
-        message: "Session cancelled successfully",
+        data: response,
       });
     } catch (error) {
       logger.error("Error cancelling session", { error, params: req.params });
@@ -275,6 +283,7 @@ export class SessionController {
   async updateSessionNotes(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const { notes } = req.body;
 
       if (!id) {
         res.status(400).json({
@@ -283,10 +292,23 @@ export class SessionController {
         return;
       }
 
-      // For now, just return success - implement actual notes update logic later
-      res.json({
+      if (!notes || typeof notes !== "string") {
+        res.status(400).json({
+          error: "Notes are required and must be a string",
+        });
+        return;
+      }
+
+      const request: UpdateSessionNotesRequest = {
+        sessionId: id,
+        notes,
+      };
+
+      const response = await this.sessionService.updateSessionNotes(request);
+
+      res.status(200).json({
         success: true,
-        message: "Session notes updated successfully",
+        data: response,
       });
     } catch (error) {
       logger.error("Error updating session notes", {
@@ -294,6 +316,18 @@ export class SessionController {
         params: req.params,
         body: req.body,
       });
+      if (error instanceof Error && error.message === "Session not found") {
+        res.status(404).json({
+          error: "Session not found",
+        });
+        return;
+      }
+      if (error instanceof Error && error.message === "Session is not active") {
+        res.status(400).json({
+          error: "Session is not active",
+        });
+        return;
+      }
       res.status(500).json({
         error: "Failed to update session notes",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -320,7 +354,7 @@ export class SessionController {
 
       const response = await this.sessionService.listSessions(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response,
       });
@@ -356,7 +390,7 @@ export class SessionController {
 
       const response = await this.sessionService.listSessions(request);
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: response.sessions[0] || null,
       });

@@ -2,6 +2,12 @@
 
 import { Money, Stakes, Duration } from "./value-objects";
 import { SessionStatus, TransactionType } from "./enums";
+import {
+  AggregateRoot,
+  SessionStartedEvent,
+  SessionEndedEvent,
+  TransactionAddedEvent,
+} from "./events";
 
 // ID Value Objects
 export class PlayerId {
@@ -47,7 +53,7 @@ export class TransactionId {
 }
 
 // Main Entities
-export class Player {
+export class Player extends AggregateRoot {
   private constructor(
     public readonly id: PlayerId,
     private _name: string,
@@ -56,7 +62,9 @@ export class Player {
     private _totalSessions: number = 0,
     private _createdAt: Date = new Date(),
     private _updatedAt: Date = new Date()
-  ) {}
+  ) {
+    super();
+  }
 
   static create(name: string, email?: string, initialBankroll?: Money): Player {
     const id = PlayerId.generate();
@@ -117,7 +125,7 @@ export class Player {
   }
 }
 
-export class Session {
+export class Session extends AggregateRoot {
   private constructor(
     public readonly id: SessionId,
     public readonly playerId: PlayerId,
@@ -130,7 +138,9 @@ export class Session {
     private _notes?: string,
     private _createdAt: Date = new Date(),
     private _updatedAt: Date = new Date()
-  ) {}
+  ) {
+    super();
+  }
 
   static start(
     playerId: PlayerId,
@@ -152,6 +162,16 @@ export class Session {
     if (notes) {
       session._notes = notes;
     }
+
+    // Add domain event to the session
+    session.addDomainEvent(
+      new SessionStartedEvent(
+        session.id,
+        session.playerId,
+        session.location,
+        session.stakes
+      )
+    );
 
     return session;
   }
@@ -255,6 +275,17 @@ export class Session {
 
     this._transactions.push(transaction);
     this._updatedAt = new Date();
+
+    // Add domain event to the session
+    this.addDomainEvent(
+      new TransactionAddedEvent(
+        transaction.id,
+        this.id,
+        this.playerId,
+        type,
+        amount
+      )
+    );
   }
 
   end(finalCashOut: Money, notes?: string): void {
@@ -279,6 +310,16 @@ export class Session {
     }
 
     this._updatedAt = new Date();
+
+    // Add domain event to the session
+    this.addDomainEvent(
+      new SessionEndedEvent(
+        this.id,
+        this.playerId,
+        this.netResult,
+        this.duration || new Duration(0)
+      )
+    );
   }
 
   cancel(reason?: string): void {
