@@ -267,36 +267,35 @@ export class ListSessionsUseCase {
   async execute(request: ListSessionsRequest): Promise<ListSessionsResponse> {
     const page = request.page || 1;
     const limit = request.limit || 10;
-    const offset = (page - 1) * limit;
 
-    const playerId = request.playerId
-      ? new PlayerId(request.playerId)
-      : undefined;
-    const status = request.status as SessionStatus | undefined;
+    // Build filters for repository
+    const filters: any = {
+      page,
+      limit,
+    };
 
-    // For now, get all sessions and filter manually
-    // TODO: Implement proper filtering in repository
-    const allSessions = await this.unitOfWork.sessions.findByPlayerId(
-      playerId || new PlayerId("")
-    );
-    let sessions = allSessions;
+    if (request.playerId) {
+      filters.playerId = request.playerId;
+    }
 
-    if (status) {
-      sessions = sessions.filter((s) => s.status === status);
+    if (request.status) {
+      filters.status = request.status as SessionStatus;
     }
 
     if (request.startDate) {
-      sessions = sessions.filter((s) => s.startTime >= request.startDate!);
+      filters.dateFrom = request.startDate;
     }
 
     if (request.endDate) {
-      sessions = sessions.filter((s) => s.startTime <= request.endDate!);
+      filters.dateTo = request.endDate;
     }
 
-    const total = sessions.length;
-    const paginatedSessions = sessions.slice(offset, offset + limit);
+    // Use repository's findByFilters method with proper database-level filtering
+    const { sessions, total } = await this.unitOfWork.sessions.findByFilters(
+      filters
+    );
 
-    const sessionResponses = paginatedSessions.map((session) => {
+    const sessionResponses = sessions.map((session) => {
       const duration = session.endTime
         ? Math.floor(
             (session.endTime.getTime() - session.startTime.getTime()) /

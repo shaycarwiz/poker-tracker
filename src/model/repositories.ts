@@ -28,7 +28,9 @@ export interface PlayerRepository extends Repository<Player, PlayerId> {
 export interface SessionRepository extends Repository<Session, SessionId> {
   findByPlayerId(playerId: PlayerId): Promise<Session[]>;
   findActiveByPlayerId(playerId: PlayerId): Promise<Session | null>;
-  findByFilters(filters: SessionFilters): Promise<Session[]>;
+  findByFilters(
+    filters: SessionFilters
+  ): Promise<{ sessions: Session[]; total: number }>;
   findCompletedByPlayerId(playerId: PlayerId): Promise<Session[]>;
   findRecentByPlayerId(playerId: PlayerId, limit: number): Promise<Session[]>;
 }

@@ -136,45 +136,66 @@ export class PostgresSessionRepository implements SessionRepository {
     }
   }
 
-  async findByFilters(filters: any): Promise<Session[]> {
+  async findByFilters(
+    filters: any
+  ): Promise<{ sessions: Session[]; total: number }> {
     try {
-      let query = "SELECT * FROM sessions WHERE 1=1";
+      // Build base query for filtering
+      let baseQuery = "FROM sessions WHERE 1=1";
       const params: any[] = [];
       let paramCount = 0;
 
       if (filters.playerId) {
         paramCount++;
-        query += ` AND player_id = $${paramCount}`;
+        baseQuery += ` AND player_id = $${paramCount}`;
         params.push(filters.playerId);
       }
 
       if (filters.status) {
         paramCount++;
-        query += ` AND status = $${paramCount}`;
+        baseQuery += ` AND status = $${paramCount}`;
         params.push(filters.status);
       }
 
       if (filters.dateFrom) {
         paramCount++;
-        query += ` AND start_time >= $${paramCount}`;
+        baseQuery += ` AND start_time >= $${paramCount}`;
         params.push(filters.dateFrom);
       }
 
       if (filters.dateTo) {
         paramCount++;
-        query += ` AND start_time <= $${paramCount}`;
+        baseQuery += ` AND start_time <= $${paramCount}`;
         params.push(filters.dateTo);
       }
 
       if (filters.location) {
         paramCount++;
-        query += ` AND location ILIKE $${paramCount}`;
+        baseQuery += ` AND location ILIKE $${paramCount}`;
         params.push(`%${filters.location}%`);
       }
 
-      query += " ORDER BY start_time DESC";
+      // Get total count for pagination
+      const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+      const countResult = await this.db.query(countQuery, params);
+      const total = parseInt(countResult.rows[0].total);
 
-      const result = await this.db.query(query, params);
+      // Build main query with pagination
+      let mainQuery = `SELECT * ${baseQuery} ORDER BY start_time DESC`;
+
+      // Add pagination if specified
+      if (filters.page && filters.limit) {
+        const offset = (filters.page - 1) * filters.limit;
+        paramCount++;
+        mainQuery += ` LIMIT $${paramCount}`;
+        params.push(filters.limit);
+
+        paramCount++;
+        mainQuery += ` OFFSET $${paramCount}`;
+        params.push(offset);
+      }
+
+      const result = await this.db.query(mainQuery, params);
 
       const sessions = await Promise.all(
         result.rows.map(async (row: any) => {
@@ -185,7 +206,7 @@ export class PostgresSessionRepository implements SessionRepository {
         })
       );
 
-      return sessions;
+      return { sessions, total };
     } catch (error) {
       logger.error("Error finding sessions by filters", { filters, error });
       throw new Error("Failed to find sessions by filters");

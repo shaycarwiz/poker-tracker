@@ -27,6 +27,8 @@ export interface SessionFilters {
   status?: SessionStatus;
   location?: string;
   stakes?: string; // filter by stakes like "1/2", "2/5"
+  page?: number;
+  limit?: number;
 }
 
 export interface TransactionFilters {
