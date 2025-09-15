@@ -25,8 +25,8 @@ export class PlayerStats {
   ) {}
 
   static Empty = new PlayerStats(
-    new PlayerId(""),
-    "",
+    new PlayerId("N/A"),
+    "N/A",
     0,
     new Duration(0),
     new Money(0),
