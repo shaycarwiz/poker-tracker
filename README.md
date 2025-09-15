@@ -1,15 +1,21 @@
 # Poker Tracker
 
-A comprehensive poker tracking application built with Express.js and TypeScript, designed to help poker players track their games, analyze statistics, and improve their performance.
+A comprehensive poker tracking application built with Express.js and TypeScript, featuring a complete domain model and data persistence layer. The application is designed to help poker players track their games, analyze statistics, and improve their performance through a clean, scalable architecture.
 
 ## Features
 
-- 🎯 **Game Tracking**: Record poker sessions with detailed hand histories
-- 📊 **Statistics & Analytics**: Comprehensive performance metrics and analysis
-- 🏆 **Hand Rankings**: Advanced poker hand evaluation system
-- 📈 **Progress Monitoring**: Track improvement over time
+- 🏗️ **Core Domain Model**: Complete poker domain entities and business logic
+- 🗄️ **Data Persistence**: Full database layer with migrations and repositories
+- 🔧 **Application Services**: Business logic services for players and sessions
 - 🔒 **Secure**: Built with security best practices
 - 🚀 **Scalable**: Clean architecture for future growth
+
+### In Development
+
+- 🎯 **Game Tracking API**: REST endpoints for session management
+- 📊 **Statistics & Analytics**: Performance metrics and analysis
+- 🏆 **Hand Rankings**: Advanced poker hand evaluation system
+- 📈 **Progress Monitoring**: Track improvement over time
 
 ## Tech Stack
 
@@ -103,7 +109,134 @@ The server will start on `http://localhost:3000`
 
 - `GET /health` - Server health status
 
-_More endpoints will be added as features are developed_
+### Coming Soon
+
+The following endpoints are planned but not yet implemented:
+
+- **Player Management**
+
+  - `POST /api/v1/players` - Create a new player
+  - `GET /api/v1/players/:id` - Get player details
+  - `PUT /api/v1/players/:id` - Update player information
+  - `GET /api/v1/players` - List all players
+
+- **Session Tracking**
+
+  - `POST /api/v1/sessions` - Start a new poker session
+  - `GET /api/v1/sessions/:id` - Get session details
+  - `PUT /api/v1/sessions/:id/end` - End a session
+  - `POST /api/v1/sessions/:id/transactions` - Add transaction to session
+  - `GET /api/v1/sessions` - List sessions with filtering
+
+- **Statistics & Analytics**
+  - `GET /api/v1/players/:id/stats` - Get player statistics
+  - `GET /api/v1/analytics/summary` - Get overall analytics
+  - `GET /api/v1/analytics/trends` - Get performance trends
+
+## Current Implementation Status
+
+### ✅ Implemented Features
+
+- **Domain Model**: Complete implementation of poker domain entities
+
+  - `Player` entity with bankroll management
+  - `Session` entity with transaction tracking
+  - `Transaction` entity for buy-ins, rebuys, and cash-outs
+  - Value objects: `Money`, `Stakes`, `Duration`
+  - Domain services for statistics calculation
+
+- **Data Access Layer**: Full database implementation
+
+  - Repository pattern with interfaces
+  - Unit of Work pattern for transactions
+  - PostgreSQL adapter with connection pooling
+  - Database migrations system
+  - Data mappers for domain objects
+
+- **Application Services**: Business logic layer
+
+  - `PlayerService` for player management
+  - `SessionService` for session tracking
+  - Comprehensive error handling and logging
+
+- **Infrastructure**: Production-ready setup
+  - Express.js server with security middleware
+  - Winston logging with file rotation
+  - Environment configuration
+  - Comprehensive test suite
+
+### 🚧 In Progress
+
+- **API Layer**: REST endpoints for external access
+- **Hand Ranking System**: Poker hand evaluation
+- **Analytics Engine**: Performance metrics calculation
+
+### 📋 Planned Features
+
+- **Web Interface**: Frontend for easy interaction
+- **Real-time Updates**: WebSocket support for live tracking
+- **Export/Import**: Data portability features
+- **Advanced Analytics**: Machine learning insights
+
+## Using the Application Services
+
+While the API endpoints are not yet implemented, you can use the application services directly:
+
+```typescript
+import { container } from "@/infrastructure";
+import { Money, Stakes } from "@/model/value-objects";
+import { TransactionType } from "@/model/enums";
+
+// Create a player
+const player = await container.services.players.createPlayer(
+  "John Doe",
+  "john@example.com",
+  new Money(1000, "USD")
+);
+
+// Start a session
+const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
+const session = await container.services.sessions.startSession(
+  player.id,
+  "Casino Royale",
+  stakes,
+  new Money(200, "USD"),
+  "Friday night game"
+);
+
+// Add transactions
+await container.services.sessions.addTransaction(
+  session.id,
+  TransactionType.REBUY,
+  new Money(100, "USD"),
+  "Rebuy after losing big pot"
+);
+
+// End session
+await container.services.sessions.endSession(
+  session.id,
+  new Money(350, "USD"),
+  "Great session, up $150!"
+);
+```
+
+## Database Schema
+
+The application uses PostgreSQL with the following main tables:
+
+- **`players`**: Player information and basic statistics
+- **`sessions`**: Poker session data with stakes and timing
+- **`transactions`**: All financial transactions within sessions
+- **`migrations`**: Migration tracking table
+
+The database includes:
+
+- Proper indexes for performance
+- Foreign key constraints for data integrity
+- Views for pre-calculated statistics
+- Migration system for schema evolution
+
+See [Database Documentation](src/infrastructure/database/README.md) for detailed information.
 
 ## Development
 
