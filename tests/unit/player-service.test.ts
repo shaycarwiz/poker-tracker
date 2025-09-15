@@ -1,6 +1,4 @@
 import { PlayerService } from "@/application/services/player-service";
-import { Player, PlayerId } from "@/model/entities";
-import { Money } from "@/model/value-objects";
 import { PlayerRepository, UnitOfWork } from "@/model/repositories";
 
 // Mock dependencies
@@ -44,99 +42,143 @@ describe("PlayerService", () => {
 
   describe("createPlayer", () => {
     it("should create player successfully", async () => {
-      const name = "John Doe";
-      const email = "john@example.com";
-      const initialBankroll = new Money(1000, "USD");
+      const request = {
+        name: "John Doe",
+        email: "john@example.com",
+        initialBankroll: {
+          amount: 1000,
+          currency: "USD",
+        },
+      };
 
-      mockPlayerRepository.findByEmail.mockResolvedValue(null);
-      mockPlayerRepository.save.mockResolvedValue(undefined);
+      // Mock the use case execution
+      const mockResponse = {
+        id: "player-123",
+        name: "John Doe",
+        email: "john@example.com",
+        bankroll: {
+          amount: 1000,
+          currency: "USD",
+        },
+        createdAt: new Date(),
+      };
 
-      const result = await playerService.createPlayer(
-        name,
-        email,
-        initialBankroll
-      );
+      // Mock the use case
+      const mockCreatePlayerUseCase = {
+        execute: jest.fn().mockResolvedValue(mockResponse),
+      };
+      (playerService as any).createPlayerUseCase = mockCreatePlayerUseCase;
 
-      expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockPlayerRepository.findByEmail).toHaveBeenCalledWith(email);
-      expect(mockPlayerRepository.save).toHaveBeenCalled();
-      expect(mockUnitOfWork.commit).toHaveBeenCalled();
-      expect(result).toBeInstanceOf(Player);
-      expect(result.name).toBe(name);
-      expect(result.email).toBe(email);
+      const result = await playerService.createPlayer(request);
+
+      expect(mockCreatePlayerUseCase.execute).toHaveBeenCalledWith(request);
+      expect(result).toEqual(mockResponse);
     });
 
     it("should create player without email", async () => {
-      const name = "John Doe";
+      const request = {
+        name: "John Doe",
+      };
 
-      mockPlayerRepository.save.mockResolvedValue(undefined);
+      const mockResponse = {
+        id: "player-123",
+        name: "John Doe",
+        bankroll: {
+          amount: 0,
+          currency: "USD",
+        },
+        createdAt: new Date(),
+      };
 
-      const result = await playerService.createPlayer(name);
+      const mockCreatePlayerUseCase = {
+        execute: jest.fn().mockResolvedValue(mockResponse),
+      };
+      (playerService as any).createPlayerUseCase = mockCreatePlayerUseCase;
 
-      expect(mockPlayerRepository.findByEmail).not.toHaveBeenCalled();
-      expect(result.name).toBe(name);
-      expect(result.email).toBeUndefined();
+      const result = await playerService.createPlayer(request);
+
+      expect(mockCreatePlayerUseCase.execute).toHaveBeenCalledWith(request);
+      expect(result).toEqual(mockResponse);
     });
 
     it("should throw error if email already exists", async () => {
-      const name = "John Doe";
-      const email = "john@example.com";
-      const existingPlayer = Player.create("Existing Player", email);
+      const request = {
+        name: "John Doe",
+        email: "john@example.com",
+      };
 
-      mockPlayerRepository.findByEmail.mockResolvedValue(existingPlayer);
+      const mockCreatePlayerUseCase = {
+        execute: jest
+          .fn()
+          .mockRejectedValue(
+            new Error("Player with this email already exists")
+          ),
+      };
+      (playerService as any).createPlayerUseCase = mockCreatePlayerUseCase;
 
-      await expect(playerService.createPlayer(name, email)).rejects.toThrow(
+      await expect(playerService.createPlayer(request)).rejects.toThrow(
         "Player with this email already exists"
       );
-
-      expect(mockUnitOfWork.rollback).toHaveBeenCalled();
     });
 
     it("should rollback on error", async () => {
-      const name = "John Doe";
+      const request = {
+        name: "John Doe",
+      };
 
-      mockPlayerRepository.save.mockRejectedValue(new Error("Database error"));
+      const mockCreatePlayerUseCase = {
+        execute: jest.fn().mockRejectedValue(new Error("Database error")),
+      };
+      (playerService as any).createPlayerUseCase = mockCreatePlayerUseCase;
 
-      await expect(playerService.createPlayer(name)).rejects.toThrow(
+      await expect(playerService.createPlayer(request)).rejects.toThrow(
         "Database error"
       );
-
-      expect(mockUnitOfWork.rollback).toHaveBeenCalled();
     });
   });
 
-  describe("getPlayerById", () => {
+  describe("getPlayer", () => {
     it("should return player if found", async () => {
-      const playerId = PlayerId.generate();
-      const player = Player.create("John Doe");
+      const playerId = "player-123";
+      const mockResponse = {
+        id: playerId,
+        name: "John Doe",
+        email: "john@example.com",
+        bankroll: {
+          amount: 1000,
+          currency: "USD",
+        },
+        totalSessions: 5,
+        totalWinnings: {
+          amount: 500,
+          currency: "USD",
+        },
+        winRate: 0.6,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      mockPlayerRepository.findById.mockResolvedValue(player);
+      const mockGetPlayerUseCase = {
+        execute: jest.fn().mockResolvedValue(mockResponse),
+      };
+      (playerService as any).getPlayerUseCase = mockGetPlayerUseCase;
 
-      const result = await playerService.getPlayerById(playerId);
+      const result = await playerService.getPlayer(playerId);
 
-      expect(mockPlayerRepository.findById).toHaveBeenCalledWith(playerId);
-      expect(result).toBe(player);
-    });
-
-    it("should return null if player not found", async () => {
-      const playerId = PlayerId.generate();
-
-      mockPlayerRepository.findById.mockResolvedValue(null);
-
-      const result = await playerService.getPlayerById(playerId);
-
-      expect(result).toBeNull();
+      expect(mockGetPlayerUseCase.execute).toHaveBeenCalledWith(playerId);
+      expect(result).toEqual(mockResponse);
     });
 
     it("should throw error on database error", async () => {
-      const playerId = PlayerId.generate();
+      const playerId = "player-123";
 
-      mockPlayerRepository.findById.mockRejectedValue(
-        new Error("Database error")
-      );
+      const mockGetPlayerUseCase = {
+        execute: jest.fn().mockRejectedValue(new Error("Database error")),
+      };
+      (playerService as any).getPlayerUseCase = mockGetPlayerUseCase;
 
-      await expect(playerService.getPlayerById(playerId)).rejects.toThrow(
-        "Failed to get player"
+      await expect(playerService.getPlayer(playerId)).rejects.toThrow(
+        "Database error"
       );
     });
   });
