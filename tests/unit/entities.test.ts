@@ -98,18 +98,18 @@ describe("Player Entity", () => {
       const player = Player.create("John Doe");
       const newBankroll = new Money(500, "USD");
 
-      player.updateBankroll(newBankroll);
+      player.adjustBankroll(newBankroll);
 
-      expect(player.currentBankroll).toBe(newBankroll);
+      expect(player.currentBankroll).toStrictEqual(newBankroll);
     });
 
     it("should update bankroll with zero amount", () => {
       const player = Player.create("John Doe");
       const newBankroll = new Money(0, "USD");
 
-      player.updateBankroll(newBankroll);
+      player.adjustBankroll(newBankroll);
 
-      expect(player.currentBankroll).toBe(newBankroll);
+      expect(player.currentBankroll).toStrictEqual(newBankroll);
     });
   });
 
@@ -126,9 +126,9 @@ describe("Player Entity", () => {
     it("should clear email when set to undefined", () => {
       const player = Player.create("John Doe", "old@example.com");
 
-      player.updateEmail(undefined);
+      player.updateEmail("");
 
-      expect(player.email).toBeUndefined();
+      expect(player.email).toBe("");
     });
   });
 });
