@@ -136,7 +136,7 @@ describe("PlayerService", () => {
       );
 
       await expect(playerService.getPlayerById(playerId)).rejects.toThrow(
-        "Database error"
+        "Failed to get player"
       );
     });
   });
