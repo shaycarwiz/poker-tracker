@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { logger } from "@/shared/utils/logger";
+import { logger } from "../../shared/utils/logger";
 
 export interface AppError extends Error {
   statusCode?: number;

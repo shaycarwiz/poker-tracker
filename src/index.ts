@@ -11,6 +11,7 @@ import { notFoundHandler } from "./api/middleware/notFoundHandler";
 import { logger } from "./shared/utils/logger";
 import { config } from "./infrastructure/config";
 import { container } from "./infrastructure/container";
+import { setupSwagger } from "./infrastructure/config/swagger";
 
 // Load environment variables
 dotenv.config();
@@ -60,6 +61,9 @@ app.get("/health", (_, res) => {
 // API routes
 import { apiRoutes } from "./api/routes";
 app.use(apiRoutes);
+
+// Setup Swagger documentation
+setupSwagger(app);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);

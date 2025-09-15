@@ -13,6 +13,8 @@ declare global {
       PORT?: string;
       /** The current environment mode (development, production, test) */
       NODE_ENV?: "development" | "production" | "test";
+      /** The base URL of the API */
+      API_BASE_URL?: string;
 
       // CORS Configuration
       /** Allowed CORS origins (comma-separated list or single origin) */

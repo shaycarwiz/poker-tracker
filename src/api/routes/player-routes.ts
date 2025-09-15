@@ -10,6 +10,13 @@ import {
 const router = Router();
 const playerController = new PlayerController();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Players
+ *   description: Player management endpoints
+ */
+
 // Player routes
 router.post(
   "/",
