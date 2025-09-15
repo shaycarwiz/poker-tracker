@@ -1,6 +1,6 @@
 // Database connection management
 
-import { Pool, PoolClient } from "pg";
+import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
 import { config } from "../config";
 import { logger } from "@/shared/utils/logger";
 
@@ -37,11 +37,14 @@ export class DatabaseConnection {
     return await this.pool.connect();
   }
 
-  async query(text: string, params?: any[]): Promise<any> {
+  async query<T extends QueryResultRow = any>(
+    text: string,
+    params?: any[]
+  ): Promise<QueryResult<T>> {
     const client = await this.getClient();
     try {
       const result = await client.query(text, params);
-      return result;
+      return result as QueryResult<T>;
     } finally {
       client.release();
     }

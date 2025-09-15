@@ -8,9 +8,9 @@ import {
 } from "@/model/entities";
 import { Money } from "@/model/value-objects";
 import { TransactionType } from "@/model/enums";
-
+import { TransactionRow } from "../types";
 export class TransactionMapper {
-  static toDomain(row: any): Transaction {
+  static toDomain(row: TransactionRow): Transaction {
     return new Transaction(
       new TransactionId(row.id),
       new SessionId(row.session_id),
@@ -18,12 +18,15 @@ export class TransactionMapper {
       row.type as TransactionType,
       new Money(row.amount, row.currency),
       new Date(row.timestamp),
-      row.description,
-      row.notes
+      row.description || undefined,
+      row.notes || undefined
     );
   }
 
-  static toPersistence(transaction: Transaction): any {
+  static toPersistence(
+    transaction: Transaction,
+    createdAt: Date = new Date()
+  ): TransactionRow {
     return {
       id: transaction.id.value,
       session_id: transaction.sessionId.value,
@@ -32,8 +35,9 @@ export class TransactionMapper {
       amount: transaction.amount.amount,
       currency: transaction.amount.currency,
       timestamp: transaction.timestamp,
-      description: transaction.description,
-      notes: transaction.notes,
+      description: transaction.description || null,
+      notes: transaction.notes || null,
+      created_at: createdAt,
     };
   }
 }

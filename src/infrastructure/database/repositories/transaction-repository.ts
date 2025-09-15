@@ -128,7 +128,7 @@ export class PostgresTransactionRepository implements TransactionRepository {
 
   async save(transaction: Transaction): Promise<void> {
     try {
-      const data = TransactionMapper.toPersistence(transaction);
+      const data = TransactionMapper.toPersistence(transaction, new Date());
 
       await this.db.query(
         `
