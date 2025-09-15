@@ -42,14 +42,27 @@ export class PostgresSessionRepository implements SessionRepository {
         [playerId.value]
       );
 
-      const sessions = await Promise.all(
-        result.rows.map(async (row: SessionRow) => {
-          const transactions = await this.loadTransactionsForSession(
-            new SessionId(row.id)
-          );
-          return SessionMapper.toDomain(row, transactions);
-        })
-      );
+      if (result.rows.length === 0) return [];
+
+      // Load all transactions for all sessions in a single query
+      const sessionIds = result.rows.map((row) => new SessionId(row.id));
+      const transactions = await this.loadTransactionsForSessions(sessionIds);
+
+      // Group transactions by session ID
+      const transactionsBySessionId = new Map<string, Transaction[]>();
+      transactions.forEach((transaction) => {
+        const sessionId = transaction.sessionId.value;
+        if (!transactionsBySessionId.has(sessionId)) {
+          transactionsBySessionId.set(sessionId, []);
+        }
+        transactionsBySessionId.get(sessionId)!.push(transaction);
+      });
+
+      // Map sessions with their transactions
+      const sessions = result.rows.map((row: SessionRow) => {
+        const sessionTransactions = transactionsBySessionId.get(row.id) || [];
+        return SessionMapper.toDomain(row, sessionTransactions);
+      });
 
       return sessions;
     } catch (error) {
@@ -70,9 +83,8 @@ export class PostgresSessionRepository implements SessionRepository {
 
       if (result.rows.length === 0) return null;
 
-      const transactions = await this.loadTransactionsForSession(
-        new SessionId(result.rows[0].id)
-      );
+      const sessionId = new SessionId(result.rows[0].id);
+      const transactions = await this.loadTransactionsForSession(sessionId);
       return SessionMapper.toDomain(result.rows[0], transactions);
     } catch (error) {
       logger.error("Error finding active session by player ID", {
@@ -90,14 +102,27 @@ export class PostgresSessionRepository implements SessionRepository {
         [playerId.value, SessionStatus.COMPLETED]
       );
 
-      const sessions = await Promise.all(
-        result.rows.map(async (row: SessionRow) => {
-          const transactions = await this.loadTransactionsForSession(
-            new SessionId(row.id)
-          );
-          return SessionMapper.toDomain(row, transactions);
-        })
-      );
+      if (result.rows.length === 0) return [];
+
+      // Load all transactions for all sessions in a single query
+      const sessionIds = result.rows.map((row) => new SessionId(row.id));
+      const transactions = await this.loadTransactionsForSessions(sessionIds);
+
+      // Group transactions by session ID
+      const transactionsBySessionId = new Map<string, Transaction[]>();
+      transactions.forEach((transaction) => {
+        const sessionId = transaction.sessionId.value;
+        if (!transactionsBySessionId.has(sessionId)) {
+          transactionsBySessionId.set(sessionId, []);
+        }
+        transactionsBySessionId.get(sessionId)!.push(transaction);
+      });
+
+      // Map sessions with their transactions
+      const sessions = result.rows.map((row: SessionRow) => {
+        const sessionTransactions = transactionsBySessionId.get(row.id) || [];
+        return SessionMapper.toDomain(row, sessionTransactions);
+      });
 
       return sessions;
     } catch (error) {
@@ -119,14 +144,27 @@ export class PostgresSessionRepository implements SessionRepository {
         [playerId.value, limit]
       );
 
-      const sessions = await Promise.all(
-        result.rows.map(async (row: SessionRow) => {
-          const transactions = await this.loadTransactionsForSession(
-            new SessionId(row.id)
-          );
-          return SessionMapper.toDomain(row, transactions);
-        })
-      );
+      if (result.rows.length === 0) return [];
+
+      // Load all transactions for all sessions in a single query
+      const sessionIds = result.rows.map((row) => new SessionId(row.id));
+      const transactions = await this.loadTransactionsForSessions(sessionIds);
+
+      // Group transactions by session ID
+      const transactionsBySessionId = new Map<string, Transaction[]>();
+      transactions.forEach((transaction) => {
+        const sessionId = transaction.sessionId.value;
+        if (!transactionsBySessionId.has(sessionId)) {
+          transactionsBySessionId.set(sessionId, []);
+        }
+        transactionsBySessionId.get(sessionId)!.push(transaction);
+      });
+
+      // Map sessions with their transactions
+      const sessions = result.rows.map((row: SessionRow) => {
+        const sessionTransactions = transactionsBySessionId.get(row.id) || [];
+        return SessionMapper.toDomain(row, sessionTransactions);
+      });
 
       return sessions;
     } catch (error) {
@@ -199,14 +237,28 @@ export class PostgresSessionRepository implements SessionRepository {
 
       const result = await this.db.query(mainQuery, params);
 
-      const sessions = await Promise.all(
-        result.rows.map(async (row: SessionRow) => {
-          const transactions = await this.loadTransactionsForSession(
-            new SessionId(row.id)
-          );
-          return SessionMapper.toDomain(row, transactions);
-        })
+      if (result.rows.length === 0) return { sessions: [], total };
+
+      // Load all transactions for all sessions in a single query
+      const transactions = await this.loadTransactionsForSessions(
+        result.rows.map((row) => new SessionId(row.id))
       );
+
+      // Group transactions by session ID
+      const transactionsBySessionId = new Map<string, Transaction[]>();
+      transactions.forEach((transaction) => {
+        const sessionId = transaction.sessionId.value;
+        if (!transactionsBySessionId.has(sessionId)) {
+          transactionsBySessionId.set(sessionId, []);
+        }
+        transactionsBySessionId.get(sessionId)!.push(transaction);
+      });
+
+      // Map sessions with their transactions
+      const sessions = result.rows.map((row: SessionRow) => {
+        const sessionTransactions = transactionsBySessionId.get(row.id) || [];
+        return SessionMapper.toDomain(row, sessionTransactions);
+      });
 
       return { sessions, total };
     } catch (error) {
@@ -284,6 +336,32 @@ export class PostgresSessionRepository implements SessionRepository {
     } catch (error) {
       logger.error("Error loading transactions for session", {
         sessionId: sessionId.value,
+        error,
+      });
+      return [];
+    }
+  }
+
+  private async loadTransactionsForSessions(
+    sessionIds: SessionId[]
+  ): Promise<Transaction[]> {
+    if (sessionIds.length === 0) return [];
+
+    try {
+      const placeholders = sessionIds
+        .map((_, index) => `$${index + 1}`)
+        .join(",");
+      const result = await this.db.query(
+        `SELECT * FROM transactions WHERE session_id IN (${placeholders}) ORDER BY session_id, timestamp ASC`,
+        sessionIds.map((id) => id.value)
+      );
+
+      const transactions = result.rows.map(TransactionMapper.toDomain);
+
+      return transactions;
+    } catch (error) {
+      logger.error("Error loading transactions for sessions", {
+        sessionIds: sessionIds.map((id) => id.value),
         error,
       });
       return [];
