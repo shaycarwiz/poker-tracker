@@ -262,9 +262,7 @@ export class Session {
       throw new Error("Cannot end inactive session");
     }
 
-    this._endTime = new Date();
-    this._status = SessionStatus.COMPLETED;
-
+    // Add cash-out transaction before changing status
     if (finalCashOut.amount > 0) {
       this.addTransaction(
         TransactionType.CASH_OUT,
@@ -272,6 +270,9 @@ export class Session {
         "Final cash out"
       );
     }
+
+    this._endTime = new Date();
+    this._status = SessionStatus.COMPLETED;
 
     if (notes) {
       this._notes = this._notes ? `${this._notes}\n${notes}` : notes;
