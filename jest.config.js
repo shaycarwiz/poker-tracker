@@ -28,5 +28,43 @@ module.exports = {
       forceExit: true,
       detectOpenHandles: true,
     },
+    {
+      displayName: "web",
+      testMatch: [
+        "<rootDir>/packages/web/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+        "<rootDir>/packages/web/src/**/*.{test,spec}.{js,jsx,ts,tsx}",
+        "<rootDir>/packages/web/tests/**/*.{test,spec}.{js,jsx,ts,tsx}",
+      ],
+      testEnvironment: "jsdom",
+      setupFilesAfterEnv: [
+        "<rootDir>/packages/web/jest.setup.js",
+        "<rootDir>/packages/web/tests/setup.ts",
+      ],
+      moduleNameMapper: {
+        "^@/(.*)$": "<rootDir>/packages/web/src/$1",
+        "^@/components/(.*)$": "<rootDir>/packages/web/src/components/$1",
+        "^@/lib/(.*)$": "<rootDir>/packages/web/src/lib/$1",
+        "^@/utils/(.*)$": "<rootDir>/packages/web/src/utils/$1",
+        "^@/types/(.*)$": "<rootDir>/packages/web/src/types/$1",
+        "^@/hooks/(.*)$": "<rootDir>/packages/web/src/hooks/$1",
+      },
+      transform: {
+        "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
+      },
+      transformIgnorePatterns: [
+        "/node_modules/",
+        "^.+\\.module\\.(css|sass|scss)$",
+      ],
+      testPathIgnorePatterns: [
+        "<rootDir>/packages/web/.next/",
+        "<rootDir>/packages/web/node_modules/",
+      ],
+      collectCoverageFrom: [
+        "packages/web/src/**/*.{js,jsx,ts,tsx}",
+        "!packages/web/src/**/*.d.ts",
+        "!packages/web/src/**/*.stories.{js,jsx,ts,tsx}",
+        "!packages/web/src/**/index.{js,jsx,ts,tsx}",
+      ],
+    },
   ],
 };
