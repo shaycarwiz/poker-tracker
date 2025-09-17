@@ -1,11 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
+"use client";
+import { useEffect, useState } from "react";
 
 const stats = [
-  { name: 'Sessions Tracked', value: '1,000+' },
-  { name: 'Total Hours', value: '5,000+' },
-  { name: 'Win Rate', value: '65%' },
-  { name: 'Profit/Loss', value: '+$25,000' },
+  { name: "Sessions Tracked", value: "1,000+" },
+  { name: "Total Hours", value: "5,000+" },
+  { name: "Win Rate", value: "65%" },
+  { name: "Profit/Loss", value: "+$25,000" },
 ];
 
 export function Stats() {
@@ -13,6 +13,7 @@ export function Stats() {
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -33,7 +34,7 @@ export function Stats() {
               <div
                 key={stat.name}
                 className={`flex flex-col-reverse transform transition-all duration-700 ${
-                  isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                  isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >

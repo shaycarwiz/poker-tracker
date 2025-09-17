@@ -5,37 +5,37 @@ import {
   DocumentChartBarIcon,
   TrophyIcon,
   UserGroupIcon,
-} from '@heroicons/react/24/outline';
+} from "@heroicons/react/24/outline";
 
 const features = [
   {
-    name: 'Session Tracking',
-    description: 'Record every poker session with detailed information about stakes, duration, and outcomes.',
+    name: "Session Tracking",
+    description: "Record every poker session with detailed information about stakes, duration, and outcomes.",
     icon: ClockIcon,
   },
   {
-    name: 'Performance Analytics',
-    description: 'Analyze your performance with comprehensive statistics and visualizations.',
+    name: "Performance Analytics",
+    description: "Analyze your performance with comprehensive statistics and visualizations.",
     icon: ChartBarIcon,
   },
   {
-    name: 'Profit Tracking',
-    description: 'Monitor your winnings and losses across different games and time periods.',
+    name: "Profit Tracking",
+    description: "Monitor your winnings and losses across different games and time periods.",
     icon: CurrencyDollarIcon,
   },
   {
-    name: 'Detailed Reports',
-    description: 'Generate detailed reports to understand your strengths and areas for improvement.',
+    name: "Detailed Reports",
+    description: "Generate detailed reports to understand your strengths and areas for improvement.",
     icon: DocumentChartBarIcon,
   },
   {
-    name: 'Achievement System',
-    description: 'Track milestones and achievements to stay motivated in your poker journey.',
+    name: "Achievement System",
+    description: "Track milestones and achievements to stay motivated in your poker journey.",
     icon: TrophyIcon,
   },
   {
-    name: 'Multi-Player Support',
-    description: 'Track multiple players and compare performance across different accounts.',
+    name: "Multi-Player Support",
+    description: "Track multiple players and compare performance across different accounts.",
     icon: UserGroupIcon,
   },
 ];

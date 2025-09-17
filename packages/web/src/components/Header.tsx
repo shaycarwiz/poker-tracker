@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import Link from "next/link";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Sessions', href: '/sessions' },
-    { name: 'Statistics', href: '/statistics' },
-    { name: 'Settings', href: '/settings' },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Sessions", href: "/sessions" },
+    { name: "Statistics", href: "/statistics" },
+    { name: "Settings", href: "/settings" },
   ];
 
   return (

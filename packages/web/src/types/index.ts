@@ -41,7 +41,7 @@ export interface MonthlyStats {
   winRate: number;
 }
 
-export type GameType = 'NLH' | 'PLO' | 'PLO5' | 'Stud' | 'Razz' | 'Mixed';
+export type GameType = "NLH" | "PLO" | "PLO5" | "Stud" | "Razz" | "Mixed";
 
 export interface ApiResponse<T> {
   data: T;

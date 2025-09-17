@@ -1,21 +1,21 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 const navigation = {
   main: [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Sessions', href: '/sessions' },
-    { name: 'Statistics', href: '/statistics' },
-    { name: 'Settings', href: '/settings' },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Sessions", href: "/sessions" },
+    { name: "Statistics", href: "/statistics" },
+    { name: "Settings", href: "/settings" },
   ],
   support: [
-    { name: 'Help Center', href: '/help' },
-    { name: 'Documentation', href: '/docs' },
-    { name: 'Contact', href: '/contact' },
+    { name: "Help Center", href: "/help" },
+    { name: "Documentation", href: "/docs" },
+    { name: "Contact", href: "/contact" },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Cookie Policy", href: "/cookies" },
   ],
 };
 
