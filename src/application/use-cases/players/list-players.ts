@@ -7,7 +7,7 @@ import { BaseUseCase } from "../base-use-case";
 export class ListPlayersUseCase extends BaseUseCase {
   async execute(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<ListPlayersResponse> {
     return this.executeReadOnly(
       async () => {
@@ -23,7 +23,7 @@ export class ListPlayersUseCase extends BaseUseCase {
           paginatedPlayers.map(async (player) => {
             // Get player's sessions to calculate stats
             const sessions = await this.unitOfWork.sessions.findByPlayerId(
-              player.id
+              player.id,
             );
             const stats = statsService.calculateStats(player, sessions);
 
@@ -44,7 +44,7 @@ export class ListPlayersUseCase extends BaseUseCase {
               createdAt: player.createdAt,
               updatedAt: player.updatedAt,
             };
-          })
+          }),
         );
 
         return {
@@ -55,7 +55,7 @@ export class ListPlayersUseCase extends BaseUseCase {
         };
       },
       "ListPlayersUseCase",
-      { page, limit }
+      { page, limit },
     );
   }
 }

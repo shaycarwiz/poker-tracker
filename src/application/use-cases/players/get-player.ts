@@ -11,6 +11,7 @@ export class GetPlayerUseCase extends BaseUseCase {
       async () => {
         const id = new PlayerId(playerId);
         const player = await this.unitOfWork.players.findById(id);
+
         if (!player) {
           throw new Error("Player not found");
         }
@@ -39,7 +40,7 @@ export class GetPlayerUseCase extends BaseUseCase {
         };
       },
       "GetPlayerUseCase",
-      { playerId }
+      { playerId },
     );
   }
 }

@@ -3,9 +3,9 @@ import { container } from "../../infrastructure/container";
 import { logger } from "../../shared/utils/logger";
 import { config } from "../../infrastructure/config";
 import {
+  AddBankrollRequest,
   CreatePlayerRequest,
   UpdatePlayerRequest,
-  AddBankrollRequest,
 } from "../../application/dto/player-dto";
 
 /**
@@ -169,6 +169,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Name is required and must be a string",
         });
+
         return;
       }
 
@@ -257,6 +258,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 
@@ -272,6 +274,7 @@ export class PlayerController {
         res.status(404).json({
           error: "Player not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -348,8 +351,8 @@ export class PlayerController {
    */
   async getAllPlayers(req: Request, res: Response): Promise<void> {
     try {
-      const page = parseInt(req.query["page"] as string) || 1;
-      const limit = parseInt(req.query["limit"] as string) || 10;
+      const page = parseInt(req.query["page"] as string, 10) || 1;
+      const limit = parseInt(req.query["limit"] as string, 10) || 10;
 
       const response = await this.playerService.getAllPlayers(page, limit);
 
@@ -428,6 +431,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 
@@ -453,6 +457,7 @@ export class PlayerController {
         res.status(404).json({
           error: "Player not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -524,6 +529,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 
@@ -531,6 +537,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Amount is required and must be a number",
         });
+
         return;
       }
 
@@ -559,6 +566,7 @@ export class PlayerController {
         res.status(404).json({
           error: "Player not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -627,6 +635,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Search query is required",
         });
+
         return;
       }
 
@@ -698,6 +707,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 
@@ -783,6 +793,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 
@@ -790,6 +801,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Amount is required and must be a number",
         });
+
         return;
       }
 
@@ -818,6 +830,7 @@ export class PlayerController {
         res.status(404).json({
           error: "Player not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -877,6 +890,7 @@ export class PlayerController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 

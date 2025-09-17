@@ -2,7 +2,7 @@
 
 import { SessionId } from "@/model/entities";
 import { Money } from "@/model/value-objects";
-import { TransactionType, SessionStatus } from "@/model/enums";
+import { SessionStatus, TransactionType } from "@/model/enums";
 import { logger } from "@/shared/utils/logger";
 import {
   AddTransactionRequest,
@@ -12,12 +12,13 @@ import { BaseUseCase } from "../base-use-case";
 
 export class AddTransactionUseCase extends BaseUseCase {
   async execute(
-    request: AddTransactionRequest
+    request: AddTransactionRequest,
   ): Promise<AddTransactionResponse> {
     return this.executeWithTransactionAndEvents(
       async () => {
         const sessionId = new SessionId(request.sessionId);
         const session = await this.unitOfWork.sessions.findById(sessionId);
+
         if (!session) {
           throw new Error("Session not found");
         }
@@ -28,7 +29,7 @@ export class AddTransactionUseCase extends BaseUseCase {
 
         const amount = new Money(
           request.amount.amount,
-          request.amount.currency
+          request.amount.currency,
         );
         const transactionType = request.type as TransactionType;
 
@@ -44,6 +45,7 @@ export class AddTransactionUseCase extends BaseUseCase {
 
         const lastTransaction =
           session.transactions[session.transactions.length - 1];
+
         return {
           result: {
             transactionId: lastTransaction?.id.value || "",
@@ -60,7 +62,7 @@ export class AddTransactionUseCase extends BaseUseCase {
         };
       },
       "AddTransactionUseCase",
-      { request }
+      { request },
     );
   }
 }

@@ -2,8 +2,7 @@
 
 import { UnitOfWork } from "@/model/repositories";
 import { logger } from "@/shared/utils/logger";
-import { DomainEventDispatcher } from "@/model/events";
-import { AggregateRoot } from "@/model/events";
+import { AggregateRoot, DomainEventDispatcher } from "@/model/events";
 
 export abstract class BaseUseCase {
   constructor(protected unitOfWork: UnitOfWork) {}
@@ -14,12 +13,14 @@ export abstract class BaseUseCase {
   protected async executeWithTransaction<T>(
     operation: () => Promise<T>,
     operationName: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): Promise<T> {
     try {
       await this.unitOfWork.begin();
       const result = await operation();
+
       await this.unitOfWork.commit();
+
       return result;
     } catch (error) {
       await this.unitOfWork.rollback();
@@ -34,11 +35,12 @@ export abstract class BaseUseCase {
   protected async executeWithTransactionAndEvents<T>(
     operation: () => Promise<{ result: T; entity?: AggregateRoot }>,
     operationName: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): Promise<T> {
     try {
       await this.unitOfWork.begin();
       const { result, entity } = await operation();
+
       await this.unitOfWork.commit();
 
       // Publish domain events if entity has them
@@ -61,7 +63,7 @@ export abstract class BaseUseCase {
   protected async executeReadOnly<T>(
     operation: () => Promise<T>,
     operationName: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): Promise<T> {
     try {
       return await operation();

@@ -16,7 +16,14 @@ module.exports = {
   plugins: ["@typescript-eslint"],
   rules: {
     // TypeScript specific rules
-    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/explicit-function-return-type": "off", // Let TypeScript infer
@@ -24,6 +31,7 @@ module.exports = {
     "@typescript-eslint/no-inferrable-types": "off", // Allow explicit types for clarity
 
     // General JavaScript/Node.js rules
+    "no-unused-vars": "off", // Use @typescript-eslint/no-unused-vars instead
     "no-console": "warn",
     "no-debugger": "error",
     "no-alert": "error",

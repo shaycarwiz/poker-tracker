@@ -6,6 +6,7 @@ import {
   ListSessionsResponse,
 } from "../../dto/session-dto";
 import { BaseUseCase } from "../base-use-case";
+import { SessionFilters } from "@/model";
 
 export class ListSessionsUseCase extends BaseUseCase {
   async execute(request: ListSessionsRequest): Promise<ListSessionsResponse> {
@@ -15,7 +16,7 @@ export class ListSessionsUseCase extends BaseUseCase {
         const limit = request.limit || 10;
 
         // Build filters for repository
-        const filters: any = {
+        const filters: SessionFilters = {
           page,
           limit,
         };

@@ -5,9 +5,11 @@ dotenv.config();
 // Helper function to get required environment variables
 function getRequiredEnv(key: string): string {
   const value = process.env[key];
+
   if (!value) {
     throw new Error(`Required environment variable ${key} is not set`);
   }
+
   return value;
 }
 
@@ -15,12 +17,14 @@ function getRequiredEnv(key: string): string {
 function getRequiredEnvWithValidation(
   key: string,
   validator: (value: string) => boolean,
-  errorMessage: string
+  errorMessage: string,
 ): string {
   const value = getRequiredEnv(key);
+
   if (!validator(value)) {
     throw new Error(`${errorMessage} (${key}=${value})`);
   }
+
   return value;
 }
 
@@ -43,6 +47,7 @@ export const config = {
         if (process.env["NODE_ENV"] === "production") {
           throw new Error("CORS_ORIGIN must be set in production environment");
         }
+
         return "http://localhost:3000"; // Safe default for development
       })(),
     credentials: true,
@@ -55,17 +60,17 @@ export const config = {
     name: getRequiredEnvWithValidation(
       "DB_NAME",
       isNonEmptyString,
-      "Database name must be a non-empty string"
+      "Database name must be a non-empty string",
     ),
     username: getRequiredEnvWithValidation(
       "DB_USERNAME",
       isNonEmptyString,
-      "Database username must be a non-empty string"
+      "Database username must be a non-empty string",
     ),
     password: getRequiredEnvWithValidation(
       "DB_PASSWORD",
       (value) => value.length >= 8,
-      "Database password must be at least 8 characters long"
+      "Database password must be at least 8 characters long",
     ),
     ssl: process.env["DB_SSL"] === "true",
   },
@@ -75,7 +80,7 @@ export const config = {
     secret: getRequiredEnvWithValidation(
       "JWT_SECRET",
       isJwtSecret,
-      "JWT secret must be at least 32 characters long"
+      "JWT secret must be at least 32 characters long",
     ),
     expiresIn: process.env["JWT_EXPIRES_IN"] || "24h",
   },
@@ -91,7 +96,7 @@ export const config = {
     defaultCurrency: getRequiredEnvWithValidation(
       "DEFAULT_CURRENCY",
       isCurrencyCode,
-      "Default currency must be a valid 3-letter currency code (e.g., USD, EUR)"
+      "Default currency must be a valid 3-letter currency code (e.g., USD, EUR)",
     ),
     supportedGames: ["Texas Hold'em", "Omaha", "Seven Card Stud"],
     supportedStakes: ["micro", "low", "medium", "high", "nosebleed"],

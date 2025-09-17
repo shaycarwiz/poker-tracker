@@ -1,6 +1,6 @@
 // PostgreSQL implementation of SessionRepository
 
-import { Session, SessionId, PlayerId, Transaction } from "@/model/entities";
+import { PlayerId, Session, SessionId, Transaction } from "@/model/entities";
 import { SessionRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { SessionMapper } from "../mappers/session-mapper";
@@ -15,12 +15,12 @@ export class PostgresSessionRepository implements SessionRepository {
 
   async findById(id: SessionId): Promise<Session | null> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<SessionRow>(
         "SELECT * FROM sessions WHERE id = $1",
         [id.value]
       );
 
-      if (result.rows.length === 0) return null;
+      if (!result.rows[0] || result.rows.length === 0) return null;
 
       // Load transactions for this session
       const transactions = await this.loadTransactionsForSession(id);
@@ -37,7 +37,7 @@ export class PostgresSessionRepository implements SessionRepository {
 
   async findByPlayerId(playerId: PlayerId): Promise<Session[]> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<SessionRow>(
         "SELECT * FROM sessions WHERE player_id = $1 ORDER BY start_time DESC",
         [playerId.value]
       );
@@ -56,15 +56,16 @@ export class PostgresSessionRepository implements SessionRepository {
 
   async findActiveByPlayerId(playerId: PlayerId): Promise<Session | null> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<SessionRow>(
         "SELECT * FROM sessions WHERE player_id = $1 AND status = $2",
         [playerId.value, SessionStatus.ACTIVE]
       );
 
-      if (result.rows.length === 0) return null;
+      if (!result.rows[0] || result.rows.length === 0) return null;
 
       const sessionId = new SessionId(result.rows[0].id);
       const transactions = await this.loadTransactionsForSession(sessionId);
+
       return SessionMapper.toDomain(result.rows[0], transactions);
     } catch (error) {
       logger.error("Error finding active session by player ID", {
@@ -82,7 +83,7 @@ export class PostgresSessionRepository implements SessionRepository {
         [playerId.value, SessionStatus.COMPLETED]
       );
 
-      if (result.rows.length === 0) return [];
+      if (!result.rows[0] || result.rows.length === 0) return [];
 
       return await this.mapSessionsWithTransactions(result.rows);
     } catch (error) {
@@ -104,7 +105,7 @@ export class PostgresSessionRepository implements SessionRepository {
         [playerId.value, limit]
       );
 
-      if (result.rows.length === 0) return [];
+      if (!result.rows[0] || result.rows.length === 0) return [];
 
       return await this.mapSessionsWithTransactions(result.rows);
     } catch (error) {
@@ -122,7 +123,7 @@ export class PostgresSessionRepository implements SessionRepository {
     try {
       // Build base query for filtering
       let baseQuery = "FROM sessions WHERE 1=1";
-      const params: any[] = [];
+      const params: unknown[] = [];
       let paramCount = 0;
 
       if (filters.playerId) {
@@ -157,8 +158,11 @@ export class PostgresSessionRepository implements SessionRepository {
 
       // Get total count for pagination
       const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
-      const countResult = await this.db.query(countQuery, params);
-      const total = parseInt(countResult.rows[0].total);
+      const countResult = await this.db.query<{ total: string }>(
+        countQuery,
+        params
+      );
+      const total = parseInt(countResult.rows[0]!.total, 10);
 
       // Build main query with pagination
       let mainQuery = `SELECT * ${baseQuery} ORDER BY start_time DESC`;
@@ -166,6 +170,7 @@ export class PostgresSessionRepository implements SessionRepository {
       // Add pagination if specified
       if (filters.page && filters.limit) {
         const offset = (filters.page - 1) * filters.limit;
+
         paramCount++;
         mainQuery += ` LIMIT $${paramCount}`;
         params.push(filters.limit);
@@ -259,6 +264,7 @@ export class PostgresSessionRepository implements SessionRepository {
         sessionId: sessionId.value,
         error,
       });
+
       return [];
     }
   }
@@ -285,6 +291,7 @@ export class PostgresSessionRepository implements SessionRepository {
         sessionIds: sessionIds.map((id) => id.value),
         error,
       });
+
       return [];
     }
   }
@@ -305,17 +312,21 @@ export class PostgresSessionRepository implements SessionRepository {
 
     // Group transactions by session ID
     const transactionsBySessionId = new Map<string, Transaction[]>();
+
     transactions.forEach((transaction) => {
       const sessionId = transaction.sessionId.value;
+
       if (!transactionsBySessionId.has(sessionId)) {
         transactionsBySessionId.set(sessionId, []);
       }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       transactionsBySessionId.get(sessionId)!.push(transaction);
     });
 
     // Map sessions with their transactions
     return sessionRows.map((row: SessionRow) => {
       const sessionTransactions = transactionsBySessionId.get(row.id) || [];
+
       return SessionMapper.toDomain(row, sessionTransactions);
     });
   }

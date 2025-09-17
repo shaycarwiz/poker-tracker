@@ -2,13 +2,13 @@
 
 import { Player, Session } from "./entities";
 import { PlayerStats } from "./aggregates";
-import { Money, Duration } from "./value-objects";
+import { Duration, Money } from "./value-objects";
 import { SessionStatus } from "./enums";
 
 export class PlayerStatsService {
   calculateStats(player: Player, sessions: Session[]): PlayerStats {
     const completedSessions = sessions.filter(
-      (s) => s.status === SessionStatus.COMPLETED
+      (s) => s.status === SessionStatus.COMPLETED,
     );
 
     if (completedSessions.length === 0) {
@@ -21,20 +21,21 @@ export class PlayerStatsService {
 
     const totalBuyIn = completedSessions.reduce(
       (sum, s) => sum.add(s.totalBuyIn),
-      new Money(0)
+      new Money(0),
     );
     const totalCashOut = completedSessions.reduce(
       (sum, s) => sum.add(s.totalCashOut),
-      new Money(0)
+      new Money(0),
     );
     const netProfit = totalCashOut.subtract(totalBuyIn);
     const totalDuration = completedSessions.reduce((sum, s) => {
-      const duration = s.duration;
+      const { duration } = s;
+
       return duration ? sum.add(duration) : sum;
     }, new Duration(0));
 
     const winningSessions = completedSessions.filter(
-      (s) => s.netResult.amount > 0
+      (s) => s.netResult.amount > 0,
     );
     const winRate = (winningSessions.length / completedSessions.length) * 100;
 
@@ -47,7 +48,7 @@ export class PlayerStatsService {
     const biggestWin = new Money(Math.max(...results, 0), netProfit.currency);
     const biggestLoss = new Money(
       Math.abs(Math.min(...results, 0)),
-      netProfit.currency
+      netProfit.currency,
     );
 
     const streak = this.calculateStreak(completedSessions);
@@ -65,7 +66,7 @@ export class PlayerStatsService {
       winRate,
       averageSession: new Money(
         netProfit.amount / completedSessions.length,
-        netProfit.currency
+        netProfit.currency,
       ),
       hourlyRate,
       bestStreak: streak.best,

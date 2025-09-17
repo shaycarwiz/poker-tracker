@@ -1,7 +1,7 @@
 // Aggregates - Root entities that maintain consistency boundaries
 
 import { PlayerId } from "./entities";
-import { Money, Duration } from "./value-objects";
+import { Duration, Money } from "./value-objects";
 
 export class PlayerStats {
   constructor(
@@ -21,7 +21,7 @@ export class PlayerStats {
     public readonly worstStreak: number,
     public readonly currentStreak: number,
     public readonly currentBankroll: Money,
-    public readonly lastSessionDate?: Date
+    public readonly lastSessionDate?: Date,
   ) {}
 
   static Empty = new PlayerStats(
@@ -40,7 +40,7 @@ export class PlayerStats {
     0,
     0,
     0,
-    new Money(0)
+    new Money(0),
   );
 
   copyWith({
@@ -79,7 +79,7 @@ export class PlayerStats {
       worstStreak ?? this.worstStreak,
       currentStreak ?? this.currentStreak,
       currentBankroll ?? this.currentBankroll,
-      lastSessionDate ?? this.lastSessionDate
+      lastSessionDate ?? this.lastSessionDate,
     );
   }
 
@@ -102,7 +102,7 @@ export class PlayerStats {
       currentStreak: number;
       currentBankroll: Money;
       lastSessionDate: Date | undefined;
-    }>
+    }>,
   ): PlayerStats {
     return new PlayerStats(
       values.playerId ?? PlayerStats.Empty.playerId,
@@ -121,7 +121,7 @@ export class PlayerStats {
       values.worstStreak ?? PlayerStats.Empty.worstStreak,
       values.currentStreak ?? PlayerStats.Empty.currentStreak,
       values.currentBankroll ?? PlayerStats.Empty.currentBankroll,
-      values.lastSessionDate ?? PlayerStats.Empty.lastSessionDate
+      values.lastSessionDate ?? PlayerStats.Empty.lastSessionDate,
     );
   }
 }

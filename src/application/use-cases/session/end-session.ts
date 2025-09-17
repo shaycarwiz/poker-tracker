@@ -13,6 +13,7 @@ export class EndSessionUseCase extends BaseUseCase {
       async () => {
         const sessionId = new SessionId(request.sessionId);
         const session = await this.unitOfWork.sessions.findById(sessionId);
+
         if (!session) {
           throw new Error("Session not found");
         }
@@ -58,6 +59,7 @@ export class EndSessionUseCase extends BaseUseCase {
             },
             duration,
             status: session.status,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             endedAt: session.endTime!,
           },
           entity: session,

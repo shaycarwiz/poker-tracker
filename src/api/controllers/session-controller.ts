@@ -3,10 +3,10 @@ import { container } from "../../infrastructure/container";
 import { logger } from "../../shared/utils/logger";
 import { config } from "../../infrastructure/config";
 import {
-  StartSessionRequest,
-  EndSessionRequest,
   AddTransactionRequest,
+  EndSessionRequest,
   ListSessionsRequest,
+  StartSessionRequest,
   UpdateSessionNotesRequest,
 } from "../../application/dto/session-dto";
 
@@ -21,6 +21,7 @@ export class SessionController {
         res.status(400).json({
           error: "Player ID is required and must be a string",
         });
+
         return;
       }
 
@@ -28,6 +29,7 @@ export class SessionController {
         res.status(400).json({
           error: "Location is required and must be a string",
         });
+
         return;
       }
 
@@ -35,6 +37,7 @@ export class SessionController {
         res.status(400).json({
           error: "Stakes with smallBlind and bigBlind are required",
         });
+
         return;
       }
 
@@ -42,6 +45,7 @@ export class SessionController {
         res.status(400).json({
           error: "Initial buy-in amount is required and must be a number",
         });
+
         return;
       }
 
@@ -84,6 +88,7 @@ export class SessionController {
         res.status(400).json({
           error: "Session ID is required",
         });
+
         return;
       }
 
@@ -91,6 +96,7 @@ export class SessionController {
         res.status(400).json({
           error: "Final cash out amount is required and must be a number",
         });
+
         return;
       }
 
@@ -119,6 +125,7 @@ export class SessionController {
         res.status(404).json({
           error: "Session not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -137,6 +144,7 @@ export class SessionController {
         res.status(400).json({
           error: "Session ID is required",
         });
+
         return;
       }
 
@@ -144,6 +152,7 @@ export class SessionController {
         res.status(400).json({
           error: "Transaction type is required and must be a string",
         });
+
         return;
       }
 
@@ -151,6 +160,7 @@ export class SessionController {
         res.status(400).json({
           error: "Amount is required and must be a number",
         });
+
         return;
       }
 
@@ -180,6 +190,7 @@ export class SessionController {
         res.status(404).json({
           error: "Session not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -197,6 +208,7 @@ export class SessionController {
         res.status(400).json({
           error: "Session ID is required",
         });
+
         return;
       }
 
@@ -212,6 +224,7 @@ export class SessionController {
         res.status(404).json({
           error: "Session not found",
         });
+
         return;
       }
       res.status(500).json({
@@ -228,8 +241,8 @@ export class SessionController {
       const request: ListSessionsRequest = {
         playerId: playerId as string,
         status: status as string,
-        page: page ? parseInt(page as string) : 1,
-        limit: limit ? parseInt(limit as string) : 10,
+        page: page ? parseInt(page as string, 10) : 1,
+        limit: limit ? parseInt(limit as string, 10) : 10,
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined,
       };
@@ -257,6 +270,7 @@ export class SessionController {
         res.status(400).json({
           error: "Session ID is required",
         });
+
         return;
       }
 
@@ -290,6 +304,7 @@ export class SessionController {
         res.status(400).json({
           error: "Session ID is required",
         });
+
         return;
       }
 
@@ -297,6 +312,7 @@ export class SessionController {
         res.status(400).json({
           error: "Notes are required and must be a string",
         });
+
         return;
       }
 
@@ -321,12 +337,14 @@ export class SessionController {
         res.status(404).json({
           error: "Session not found",
         });
+
         return;
       }
       if (error instanceof Error && error.message === "Session is not active") {
         res.status(400).json({
           error: "Session is not active",
         });
+
         return;
       }
       res.status(500).json({
@@ -344,6 +362,7 @@ export class SessionController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 
@@ -379,6 +398,7 @@ export class SessionController {
         res.status(400).json({
           error: "Player ID is required",
         });
+
         return;
       }
 

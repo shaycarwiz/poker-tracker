@@ -1,10 +1,10 @@
 // Transaction data mapper - converts between domain objects and database rows
 
 import {
+  PlayerId,
+  SessionId,
   Transaction,
   TransactionId,
-  SessionId,
-  PlayerId,
 } from "@/model/entities";
 import { Money } from "@/model/value-objects";
 import { TransactionType } from "@/model/enums";
@@ -19,13 +19,13 @@ export class TransactionMapper {
       new Money(row.amount, row.currency),
       new Date(row.timestamp),
       row.description || undefined,
-      row.notes || undefined
+      row.notes || undefined,
     );
   }
 
   static toPersistence(
     transaction: Transaction,
-    createdAt: Date = new Date()
+    createdAt: Date = new Date(),
   ): TransactionRow {
     return {
       id: transaction.id.value,
