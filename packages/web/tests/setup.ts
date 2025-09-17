@@ -2,8 +2,14 @@
 import '@testing-library/jest-dom'
 
 // Mock environment variables
-process.env.NODE_ENV = 'test'
-process.env.NEXT_PUBLIC_API_URL = 'http://localhost:4000'
+Object.defineProperty(process.env, 'NODE_ENV', {
+  value: 'test',
+  writable: true
+})
+Object.defineProperty(process.env, 'NEXT_PUBLIC_API_URL', {
+  value: 'http://localhost:4000',
+  writable: true
+})
 
 // Mock fetch globally
 global.fetch = jest.fn()
