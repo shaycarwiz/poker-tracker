@@ -1,0 +1,26 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    },
+    {
+      "name": "API",
+      "path": "./packages/api"
+    }
+  ],
+  "settings": {
+    "jest.rootPath": "packages/api",
+    "jest.runMode": "on-demand",
+    "jest.pathToJest": "npm test --workspace=@poker-tracker/api",
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true
+  },
+  "extensions": {
+    "recommendations": [
+      "orta.vscode-jest",
+      "ms-vscode.vscode-typescript-next"
+    ]
+  }
+}
+
