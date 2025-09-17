@@ -79,8 +79,13 @@ npm install
 
 ```bash
 cp env.example .env
+# Generate secure environment variables
+npm run generate:env
+# Copy the generated values to your .env file
 # Edit .env with your configuration
 ```
+
+**Security Note**: The application now requires secure environment variables. See [SECURITY.md](SECURITY.md) for details.
 
 4. Start the development server:
 

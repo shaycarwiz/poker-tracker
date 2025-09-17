@@ -19,6 +19,7 @@
     "migrate:rollback": "npm run migrate rollback",
     "migrate:history": "npm run migrate history",
     "migrate:build": "tsc -p tsconfig.build.json && node dist/infrastructure/database/migrations/cli.js",
+    "generate:env": "node scripts/generate-env.js",
     "docs:serve": "npm run dev",
     "docs:build": "npm run build"
   },
