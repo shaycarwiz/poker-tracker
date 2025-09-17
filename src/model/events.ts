@@ -3,6 +3,7 @@
 import { SessionId, PlayerId, TransactionId } from "./entities";
 import { Money, Stakes, Duration } from "./value-objects";
 import { TransactionType } from "./enums";
+import logger from "@/shared/utils/logger";
 
 export abstract class DomainEvent {
   constructor(
@@ -64,7 +65,7 @@ export class DomainEventDispatcher {
       try {
         await handler(event);
       } catch (error) {
-        console.error(`Error handling event ${eventName}:`, error);
+        logger.error(`Error handling event ${eventName}:`, error);
         // Don't rethrow to prevent one handler failure from affecting others
       }
     });
