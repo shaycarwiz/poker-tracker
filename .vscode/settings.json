@@ -1,0 +1,21 @@
+{
+  "jest.rootPath": ".",
+  "jest.runMode": "on-demand",
+  "jest.pathToJest": "npm test",
+  "jest.jestConfigPath": "jest.config.js",
+  "jest.autoRun": "off",
+  "jest.showCoverageOnLoad": false,
+  "jest.outputConfig": {
+    "revealOn": "run",
+    "revealWithFocus": "test-results",
+    "clearOnRun": "none"
+  },
+  "jest.workspaceRoot": ".",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "testing.automaticallyOpenTestResults": "openOnTestStart",
+  "testing.followRunningTest": true,
+  "testing.gutterEnabled": true,
+  "testing.openTesting": "openExplorer"
+}
+
