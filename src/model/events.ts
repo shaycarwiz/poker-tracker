@@ -37,6 +37,9 @@ export abstract class AggregateRoot {
     return this._domainEvents.length > 0;
   }
 }
+type DomainEventClass<T extends DomainEvent> = abstract new (
+  ...args: never[]
+) => T;
 
 // Event dispatcher for managing and publishing domain events
 export class DomainEventDispatcher {
@@ -44,7 +47,7 @@ export class DomainEventDispatcher {
   private static isEnabled: boolean = true;
 
   static register<T extends DomainEvent>(
-    eventType: new (...args: any[]) => T,
+    eventType: DomainEventClass<T>,
     handler: EventHandler<T>
   ): void {
     const eventName = eventType.name;
