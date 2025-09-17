@@ -7,16 +7,19 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@poker-tracker/api",
+    "build": "npm run build --workspace=@poker-tracker/api && npm run build --workspace=@poker-tracker/web",
     "start": "npm run start --workspace=@poker-tracker/api",
+    "start:web": "npm run start --workspace=@poker-tracker/web",
     "dev": "npm run dev --workspace=@poker-tracker/api",
+    "dev:web": "npm run dev --workspace=@poker-tracker/web",
+    "dev:all": "concurrently \"npm run dev --workspace=@poker-tracker/api\" \"npm run dev --workspace=@poker-tracker/web\"",
     "test": "npm run test --workspace=@poker-tracker/api",
     "test:watch": "npm run test:watch --workspace=@poker-tracker/api",
     "test:coverage": "npm run test:coverage --workspace=@poker-tracker/api",
-    "lint": "npm run lint --workspace=@poker-tracker/api",
-    "lint:fix": "npm run lint:fix --workspace=@poker-tracker/api",
-    "lint:check": "npm run lint:check --workspace=@poker-tracker/api",
-    "type-check": "npm run type-check --workspace=@poker-tracker/api",
+    "lint": "npm run lint --workspace=@poker-tracker/api && npm run lint --workspace=@poker-tracker/web",
+    "lint:fix": "npm run lint:fix --workspace=@poker-tracker/api && npm run lint:fix --workspace=@poker-tracker/web",
+    "lint:check": "npm run lint:check --workspace=@poker-tracker/api && npm run lint:check --workspace=@poker-tracker/web",
+    "type-check": "npm run type-check --workspace=@poker-tracker/api && npm run type-check --workspace=@poker-tracker/web",
     "migrate": "npm run migrate --workspace=@poker-tracker/api",
     "migrate:run": "npm run migrate:run --workspace=@poker-tracker/api",
     "migrate:status": "npm run migrate:status --workspace=@poker-tracker/api",
@@ -31,5 +34,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   }
 }

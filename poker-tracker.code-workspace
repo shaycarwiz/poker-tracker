@@ -7,6 +7,10 @@
     {
       "name": "API",
       "path": "./packages/api"
+    },
+    {
+      "name": "Web",
+      "path": "./packages/web"
     }
   ],
   "settings": {
