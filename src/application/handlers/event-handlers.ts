@@ -2,8 +2,8 @@
 
 import {
   DomainEventDispatcher,
-  SessionStartedEvent,
   SessionEndedEvent,
+  SessionStartedEvent,
   TransactionAddedEvent,
 } from "@/model/events";
 import { logger } from "@/shared/utils/logger";
@@ -28,7 +28,7 @@ export class EventHandlers {
         // - Update analytics
         // - Log to audit trail
         // - Trigger external integrations
-      }
+      },
     );
 
     // Register session ended handler
@@ -49,7 +49,7 @@ export class EventHandlers {
         // - Update player performance metrics
         // - Send session summary notifications
         // - Trigger reporting updates
-      }
+      },
     );
 
     // Register transaction added handler
@@ -71,7 +71,7 @@ export class EventHandlers {
         // - Check for unusual transaction patterns
         // - Log transaction for compliance
         // - Update live session tracking
-      }
+      },
     );
 
     logger.info("All event handlers registered successfully");
@@ -80,12 +80,12 @@ export class EventHandlers {
   static getHandlerCounts(): Record<string, number> {
     return {
       SessionStartedEvent: DomainEventDispatcher.getHandlerCount(
-        "SessionStartedEvent"
+        "SessionStartedEvent",
       ),
       SessionEndedEvent:
         DomainEventDispatcher.getHandlerCount("SessionEndedEvent"),
       TransactionAddedEvent: DomainEventDispatcher.getHandlerCount(
-        "TransactionAddedEvent"
+        "TransactionAddedEvent",
       ),
     };
   }

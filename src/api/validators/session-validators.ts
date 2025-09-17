@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { TransactionType } from "../../model/enums";
 
 export const validateStartSession = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { playerId, location, stakes, initialBuyIn, notes } = req.body;
 
@@ -17,6 +17,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Player ID is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -29,6 +30,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Location is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -37,6 +39,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Stakes with smallBlind and bigBlind are required",
     });
+
     return;
   }
 
@@ -48,6 +51,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Small blind amount must be a positive number",
     });
+
     return;
   }
 
@@ -59,6 +63,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Big blind amount must be a positive number",
     });
+
     return;
   }
 
@@ -66,6 +71,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Big blind must be greater than small blind",
     });
+
     return;
   }
 
@@ -79,6 +85,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Initial buy-in amount is required and must be a positive number",
     });
+
     return;
   }
 
@@ -87,6 +94,7 @@ export const validateStartSession = (
     res.status(400).json({
       error: "Notes must be a string",
     });
+
     return;
   }
 
@@ -96,7 +104,7 @@ export const validateStartSession = (
 export const validateEndSession = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { finalCashOut, notes } = req.body;
 
@@ -111,6 +119,7 @@ export const validateEndSession = (
       error:
         "Final cash out amount is required and must be a non-negative number",
     });
+
     return;
   }
 
@@ -119,6 +128,7 @@ export const validateEndSession = (
     res.status(400).json({
       error: "Notes must be a string",
     });
+
     return;
   }
 
@@ -128,7 +138,7 @@ export const validateEndSession = (
 export const validateAddTransaction = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { type, amount, description, notes } = req.body;
 
@@ -138,6 +148,7 @@ export const validateAddTransaction = (
       error: "Valid transaction type is required",
       validTypes: Object.values(TransactionType),
     });
+
     return;
   }
 
@@ -151,6 +162,7 @@ export const validateAddTransaction = (
     res.status(400).json({
       error: "Amount is required and must be a positive number",
     });
+
     return;
   }
 
@@ -159,6 +171,7 @@ export const validateAddTransaction = (
     res.status(400).json({
       error: "Description must be a string",
     });
+
     return;
   }
 
@@ -167,6 +180,7 @@ export const validateAddTransaction = (
     res.status(400).json({
       error: "Notes must be a string",
     });
+
     return;
   }
 
@@ -176,7 +190,7 @@ export const validateAddTransaction = (
 export const validateSessionId = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { id } = req.params;
 
@@ -184,6 +198,7 @@ export const validateSessionId = (
     res.status(400).json({
       error: "Session ID is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -193,7 +208,7 @@ export const validateSessionId = (
 export const validatePlayerId = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { playerId } = req.params;
 
@@ -205,6 +220,7 @@ export const validatePlayerId = (
     res.status(400).json({
       error: "Player ID is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -214,7 +230,7 @@ export const validatePlayerId = (
 export const validateUpdateNotes = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { notes } = req.body;
 
@@ -222,6 +238,7 @@ export const validateUpdateNotes = (
     res.status(400).json({
       error: "Notes are required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -231,7 +248,7 @@ export const validateUpdateNotes = (
 export const validateCancelSession = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { reason } = req.body;
 
@@ -239,6 +256,7 @@ export const validateCancelSession = (
     res.status(400).json({
       error: "Reason must be a string",
     });
+
     return;
   }
 

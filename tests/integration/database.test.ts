@@ -22,8 +22,8 @@ describe("Database Integration", () => {
     });
 
     it("should execute query", async () => {
-      const result = await db.query("SELECT 1 as test");
-      expect(result.rows[0].test).toBe(1);
+      const result = await db.query<{ test: number }>("SELECT 1 as test");
+      expect(result.rows[0]?.test).toBe(1);
     });
   });
 

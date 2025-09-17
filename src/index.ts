@@ -32,6 +32,7 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
 });
+
 app.use(limiter);
 
 // Body parsing middleware
@@ -84,6 +85,7 @@ if (process.env["NODE_ENV"] !== "test") {
     logger.info("SIGTERM received, shutting down gracefully");
     server?.close(() => {
       logger.info("Process terminated");
+      // eslint-disable-next-line no-process-exit
       process.exit(0);
     });
   });
@@ -92,6 +94,7 @@ if (process.env["NODE_ENV"] !== "test") {
     logger.info("SIGINT received, shutting down gracefully");
     server?.close(() => {
       logger.info("Process terminated");
+      // eslint-disable-next-line no-process-exit
       process.exit(0);
     });
   });

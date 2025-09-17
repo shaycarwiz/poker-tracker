@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
 export const validateCreatePlayer = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { name, email, initialBankroll } = req.body;
 
@@ -12,6 +12,7 @@ export const validateCreatePlayer = (
     res.status(400).json({
       error: "Name is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -20,6 +21,7 @@ export const validateCreatePlayer = (
     res.status(400).json({
       error: "Email must be a valid email address",
     });
+
     return;
   }
 
@@ -33,6 +35,7 @@ export const validateCreatePlayer = (
       res.status(400).json({
         error: "Initial bankroll amount must be a non-negative number",
       });
+
       return;
     }
 
@@ -43,6 +46,7 @@ export const validateCreatePlayer = (
       res.status(400).json({
         error: "Initial bankroll currency must be a string",
       });
+
       return;
     }
   }
@@ -53,7 +57,7 @@ export const validateCreatePlayer = (
 export const validateUpdateBankroll = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { amount, currency } = req.body;
 
@@ -61,6 +65,7 @@ export const validateUpdateBankroll = (
     res.status(400).json({
       error: "Amount is required and must be a number",
     });
+
     return;
   }
 
@@ -68,6 +73,7 @@ export const validateUpdateBankroll = (
     res.status(400).json({
       error: "Currency must be a string",
     });
+
     return;
   }
 
@@ -77,7 +83,7 @@ export const validateUpdateBankroll = (
 export const validatePlayerId = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { id } = req.params;
 
@@ -85,6 +91,7 @@ export const validatePlayerId = (
     res.status(400).json({
       error: "Player ID is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -94,7 +101,7 @@ export const validatePlayerId = (
 export const validateSearchQuery = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { name } = req.query;
 
@@ -102,6 +109,7 @@ export const validateSearchQuery = (
     res.status(400).json({
       error: "Name query parameter is required and must be a non-empty string",
     });
+
     return;
   }
 
@@ -110,5 +118,6 @@ export const validateSearchQuery = (
 
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   return emailRegex.test(email);
 }

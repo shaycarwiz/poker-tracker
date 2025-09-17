@@ -1,0 +1,59 @@
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Generated files
+generated/
+*.d.ts
+*.d.ts.map
+*.js.map
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Documentation build
+docs/build/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Migration build files
+dist/infrastructure/database/migrations/

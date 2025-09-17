@@ -18,7 +18,7 @@ export class DatabaseConnection {
       ssl: config.database.ssl,
       max: 20, // Maximum number of clients in the pool
       idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+      connectionTimeoutMillis: 2000, // Return error after 2s if connection fails
     });
 
     this.pool.on("error", (err) => {
@@ -30,6 +30,7 @@ export class DatabaseConnection {
     if (!DatabaseConnection.instance) {
       DatabaseConnection.instance = new DatabaseConnection();
     }
+
     return DatabaseConnection.instance;
   }
 
@@ -37,13 +38,15 @@ export class DatabaseConnection {
     return await this.pool.connect();
   }
 
-  async query<T extends QueryResultRow = any>(
+  async query<T extends QueryResultRow = Record<string, unknown>>(
     text: string,
-    params?: any[]
+    params?: unknown[]
   ): Promise<QueryResult<T>> {
     const client = await this.getClient();
+
     try {
       const result = await client.query(text, params);
+
       return result as QueryResult<T>;
     } finally {
       client.release();
@@ -54,10 +57,13 @@ export class DatabaseConnection {
     callback: (client: PoolClient) => Promise<T>
   ): Promise<T> {
     const client = await this.getClient();
+
     try {
       await client.query("BEGIN");
       const result = await callback(client);
+
       await client.query("COMMIT");
+
       return result;
     } catch (error) {
       await client.query("ROLLBACK");

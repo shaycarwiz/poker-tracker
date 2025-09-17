@@ -16,7 +16,7 @@ export const logger = winston.createLogger({
   format: combine(
     timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     errors({ stack: true }),
-    json()
+    json(),
   ),
   defaultMeta: { service: "poker-tracker" },
   transports: [
@@ -25,7 +25,7 @@ export const logger = winston.createLogger({
       format: combine(
         colorize(),
         timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-        consoleFormat
+        consoleFormat,
       ),
     }),
 

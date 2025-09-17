@@ -4,7 +4,7 @@ import { config } from "../infrastructure/config";
 export class Money {
   constructor(
     public readonly amount: number,
-    public readonly currency: string = config.poker.defaultCurrency
+    public readonly currency: string = config.poker.defaultCurrency,
   ) {
     // Note: Negative amounts are allowed for net results (losses) in poker
   }
@@ -13,6 +13,7 @@ export class Money {
     if (this.currency !== other.currency) {
       throw new Error("Cannot add money with different currencies");
     }
+
     return new Money(this.amount + other.amount, this.currency);
   }
 
@@ -20,6 +21,7 @@ export class Money {
     if (this.currency !== other.currency) {
       throw new Error("Cannot subtract money with different currencies");
     }
+
     return new Money(this.amount - other.amount, this.currency);
   }
 
@@ -40,7 +42,7 @@ export class Stakes {
   constructor(
     public readonly smallBlind: Money,
     public readonly bigBlind: Money,
-    public readonly ante?: Money
+    public readonly ante?: Money,
   ) {
     if (smallBlind.amount >= bigBlind.amount) {
       throw new Error("Small blind must be less than big blind");
@@ -53,6 +55,7 @@ export class Stakes {
         this.bigBlind.amount
       } ($${this.ante.amount.toFixed(2)} ante)`;
     }
+
     return `$${this.smallBlind.amount}/$${this.bigBlind.amount}`;
   }
 
@@ -82,6 +85,7 @@ export class Duration {
     const totalMinutes = Math.round(this.hours * 60);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
+
     return `${hours}h ${minutes}m`;
   }
 

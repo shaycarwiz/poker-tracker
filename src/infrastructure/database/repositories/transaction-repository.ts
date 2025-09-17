@@ -1,27 +1,29 @@
 // PostgreSQL implementation of TransactionRepository
 
 import {
+  PlayerId,
+  SessionId,
   Transaction,
   TransactionId,
-  SessionId,
-  PlayerId,
 } from "@/model/entities";
 import { TransactionRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { TransactionMapper } from "../mappers/transaction-mapper";
 import { logger } from "@/shared/utils/logger";
+import { TransactionFilters } from "@/model";
+import { TransactionRow } from "../types";
 
 export class PostgresTransactionRepository implements TransactionRepository {
   private db = DatabaseConnection.getInstance();
 
   async findById(id: TransactionId): Promise<Transaction | null> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<TransactionRow>(
         "SELECT * FROM transactions WHERE id = $1",
         [id.value]
       );
 
-      if (result.rows.length === 0) return null;
+      if (!result.rows[0] || result.rows.length === 0) return null;
 
       return TransactionMapper.toDomain(result.rows[0]);
     } catch (error) {
@@ -35,12 +37,12 @@ export class PostgresTransactionRepository implements TransactionRepository {
 
   async findBySessionId(sessionId: SessionId): Promise<Transaction[]> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<TransactionRow>(
         "SELECT * FROM transactions WHERE session_id = $1 ORDER BY timestamp ASC",
         [sessionId.value]
       );
 
-      return result.rows.map((row: any) => TransactionMapper.toDomain(row));
+      return result.rows.map(TransactionMapper.toDomain);
     } catch (error) {
       logger.error("Error finding transactions by session ID", {
         sessionId: sessionId.value,
@@ -52,12 +54,12 @@ export class PostgresTransactionRepository implements TransactionRepository {
 
   async findByPlayerId(playerId: PlayerId): Promise<Transaction[]> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<TransactionRow>(
         "SELECT * FROM transactions WHERE player_id = $1 ORDER BY timestamp DESC",
         [playerId.value]
       );
 
-      return result.rows.map((row: any) => TransactionMapper.toDomain(row));
+      return result.rows.map((row) => TransactionMapper.toDomain(row));
     } catch (error) {
       logger.error("Error finding transactions by player ID", {
         playerId: playerId.value,
@@ -67,10 +69,10 @@ export class PostgresTransactionRepository implements TransactionRepository {
     }
   }
 
-  async findByFilters(filters: any): Promise<Transaction[]> {
+  async findByFilters(filters: TransactionFilters): Promise<Transaction[]> {
     try {
       let query = "SELECT * FROM transactions WHERE 1=1";
-      const params: any[] = [];
+      const params: unknown[] = [];
       let paramCount = 0;
 
       if (filters.sessionId) {
@@ -117,9 +119,9 @@ export class PostgresTransactionRepository implements TransactionRepository {
 
       query += " ORDER BY timestamp DESC";
 
-      const result = await this.db.query(query, params);
+      const result = await this.db.query<TransactionRow>(query, params);
 
-      return result.rows.map((row: any) => TransactionMapper.toDomain(row));
+      return result.rows.map(TransactionMapper.toDomain);
     } catch (error) {
       logger.error("Error finding transactions by filters", { filters, error });
       throw new Error("Failed to find transactions by filters");

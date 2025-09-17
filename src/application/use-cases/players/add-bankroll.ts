@@ -12,14 +12,16 @@ export class AddBankrollUseCase extends BaseUseCase {
       async () => {
         const playerId = new PlayerId(request.playerId);
         const player = await this.unitOfWork.players.findById(playerId);
+
         if (!player) {
           throw new Error("Player not found");
         }
 
         const amount = new Money(
           request.amount.amount,
-          request.amount.currency
+          request.amount.currency,
         );
+
         player.adjustBankroll(amount);
 
         await this.unitOfWork.players.save(player);
@@ -44,7 +46,7 @@ export class AddBankrollUseCase extends BaseUseCase {
         };
       },
       "AddBankrollUseCase",
-      { request }
+      { request },
     );
   }
 }

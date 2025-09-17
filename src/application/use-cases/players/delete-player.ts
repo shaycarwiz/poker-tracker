@@ -11,6 +11,7 @@ export class DeletePlayerUseCase extends BaseUseCase {
       async () => {
         const id = new PlayerId(playerId);
         const player = await this.unitOfWork.players.findById(id);
+
         if (!player) {
           throw new Error("Player not found");
         }
@@ -18,7 +19,7 @@ export class DeletePlayerUseCase extends BaseUseCase {
         // Check if player has any active sessions
         const sessions = await this.unitOfWork.sessions.findByPlayerId(id);
         const hasActiveSessions = sessions.some(
-          (session) => session.status === SessionStatus.ACTIVE
+          (session) => session.status === SessionStatus.ACTIVE,
         );
 
         if (hasActiveSessions) {
@@ -33,7 +34,7 @@ export class DeletePlayerUseCase extends BaseUseCase {
         });
       },
       "DeletePlayerUseCase",
-      { playerId }
+      { playerId },
     );
   }
 }

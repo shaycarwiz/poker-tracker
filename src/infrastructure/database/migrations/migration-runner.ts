@@ -1,8 +1,8 @@
 // Migration runner with proper tracking and error handling
 
 import { createHash } from "crypto";
-import { readFileSync, readdirSync } from "fs";
-import { join, extname } from "path";
+import { readdirSync, readFileSync } from "fs";
+import { extname, join } from "path";
 import { DatabaseConnection } from "../connection";
 import { logger } from "@/shared/utils/logger";
 
@@ -65,6 +65,7 @@ export class MigrationRunner {
       `);
 
       const appliedMigrations = new Map<string, MigrationInfo>();
+
       result.rows.forEach((row: any) => {
         appliedMigrations.set(row.filename, {
           filename: row.filename,
@@ -79,6 +80,7 @@ export class MigrationRunner {
     } catch (error) {
       // If migrations table doesn't exist, return empty map
       logger.warn("Migrations table not found, assuming no migrations applied");
+
       return new Map();
     }
   }
@@ -109,7 +111,9 @@ export class MigrationRunner {
     appliedMigrations: Map<string, MigrationInfo>
   ): boolean {
     const applied = appliedMigrations.get(filename);
+
     if (!applied) return true;
+
     return applied.checksum !== checksum;
   }
 
@@ -131,6 +135,7 @@ export class MigrationRunner {
 
       // Get all migration files
       const migrationFiles = this.getMigrationFiles();
+
       logger.info(`Found ${migrationFiles.length} migration files`);
 
       // Get applied migrations from database
@@ -170,6 +175,7 @@ export class MigrationRunner {
           result.appliedMigrations.push(filename);
         } catch (error) {
           const errorMsg = `Failed to run migration ${filename}: ${error}`;
+
           logger.error(errorMsg);
           result.errors.push(errorMsg);
           result.success = false;
@@ -196,8 +202,10 @@ export class MigrationRunner {
       result.success = false;
       result.totalTimeMs = Date.now() - startTime;
       const errorMsg = `Migration process failed: ${error}`;
+
       logger.error(errorMsg);
       result.errors.push(errorMsg);
+
       return result;
     }
   }
@@ -228,6 +236,7 @@ export class MigrationRunner {
       };
 
       const appliedMigration = appliedMigrations.get(filename);
+
       if (appliedMigration && appliedMigration.checksum === checksum) {
         if (appliedMigration.appliedAt) {
           migrationInfo.appliedAt = appliedMigration.appliedAt;
@@ -258,7 +267,7 @@ export class MigrationRunner {
   }> {
     try {
       // Get the last applied migration
-      const result = await this.db.query(`
+      const result = await this.db.query<{ filename: string }>(`
         SELECT filename FROM migrations 
         ORDER BY applied_at DESC 
         LIMIT 1
@@ -270,16 +279,17 @@ export class MigrationRunner {
         };
       }
 
-      const lastMigration = result.rows[0].filename;
+      const lastMigration = result.rows[0]?.filename;
+
       logger.warn(`Rolling back migration: ${lastMigration}`);
 
       // Note: This is a basic rollback - in production you'd want to implement
       // proper rollback scripts for each migration
       console.log(
-        `⚠️  Warning: Rollback functionality is basic and may not work for all migrations`
+        "⚠️  Warning: Rollback functionality is basic and may not work for all migrations"
       );
       console.log(`⚠️  Last applied migration: ${lastMigration}`);
-      console.log(`⚠️  Manual rollback may be required`);
+      console.log("⚠️  Manual rollback may be required");
 
       // Remove the migration record
       await this.db.query(
@@ -293,11 +303,13 @@ export class MigrationRunner {
 
       return {
         success: true,
-        rolledBackMigration: lastMigration,
+        rolledBackMigration: lastMigration || "No migration to rollback",
       };
     } catch (error) {
       const errorMsg = `Rollback failed: ${error}`;
+
       logger.error(errorMsg);
+
       return {
         success: false,
         error: errorMsg,
@@ -325,6 +337,7 @@ export class MigrationRunner {
       }));
     } catch (error) {
       logger.error("Failed to get migration history:", error);
+
       return [];
     }
   }

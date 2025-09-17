@@ -11,12 +11,13 @@ import { BaseUseCase } from "../base-use-case";
 
 export class UpdateSessionNotesUseCase extends BaseUseCase {
   async execute(
-    request: UpdateSessionNotesRequest
+    request: UpdateSessionNotesRequest,
   ): Promise<UpdateSessionNotesResponse> {
     return this.executeWithTransactionAndEvents(
       async () => {
         const sessionId = new SessionId(request.sessionId);
         const session = await this.unitOfWork.sessions.findById(sessionId);
+
         if (!session) {
           throw new Error("Session not found");
         }
@@ -44,7 +45,7 @@ export class UpdateSessionNotesUseCase extends BaseUseCase {
         };
       },
       "UpdateSessionNotesUseCase",
-      { request }
+      { request },
     );
   }
 }

@@ -1,6 +1,6 @@
 // Start Session Use Case
 
-import { Session, PlayerId } from "@/model/entities";
+import { PlayerId, Session } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { logger } from "@/shared/utils/logger";
 import {
@@ -18,17 +18,18 @@ export class StartSessionUseCase extends BaseUseCase {
         // Check if player has an active session
         const activeSession =
           await this.unitOfWork.sessions.findActiveByPlayerId(playerId);
+
         if (activeSession) {
           throw new Error("Player already has an active session");
         }
 
         const stakes = new Stakes(
           new Money(request.stakes.smallBlind, request.stakes.currency),
-          new Money(request.stakes.bigBlind, request.stakes.currency)
+          new Money(request.stakes.bigBlind, request.stakes.currency),
         );
         const initialBuyIn = new Money(
           request.initialBuyIn.amount,
-          request.initialBuyIn.currency
+          request.initialBuyIn.currency,
         );
 
         const session = Session.start(
@@ -36,7 +37,7 @@ export class StartSessionUseCase extends BaseUseCase {
           request.location,
           stakes,
           initialBuyIn,
-          request.notes
+          request.notes,
         );
 
         await this.unitOfWork.sessions.save(session);
@@ -70,7 +71,7 @@ export class StartSessionUseCase extends BaseUseCase {
         };
       },
       "StartSessionUseCase",
-      { request }
+      { request },
     );
   }
 }

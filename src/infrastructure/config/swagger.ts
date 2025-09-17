@@ -84,7 +84,7 @@ export const setupSwagger = (app: Express) => {
       explorer: true,
       customCss: ".swagger-ui .topbar { display: none }",
       customSiteTitle: "Poker Tracker API Documentation",
-    })
+    }),
   );
 
   // Serve raw JSON

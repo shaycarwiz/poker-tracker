@@ -8,6 +8,7 @@ export class PlayerMapper {
   static toDomain(row: PlayerRow): Player {
     // Create a new Player instance using the private constructor approach
     const player = Object.create(Player.prototype);
+
     Object.assign(player, {
       id: new PlayerId(row.id),
       _name: row.name,
@@ -17,6 +18,7 @@ export class PlayerMapper {
       _createdAt: new Date(row.created_at),
       _updatedAt: new Date(row.updated_at),
     });
+
     return player;
   }
 

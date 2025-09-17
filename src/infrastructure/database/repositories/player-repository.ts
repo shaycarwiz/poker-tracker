@@ -12,12 +12,12 @@ export class PostgresPlayerRepository implements PlayerRepository {
 
   async findById(id: PlayerId): Promise<Player | null> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<PlayerRow>(
         "SELECT * FROM players WHERE id = $1",
         [id.value]
       );
 
-      if (result.rows.length === 0) return null;
+      if (!result.rows[0] || result.rows.length === 0) return null;
 
       return PlayerMapper.toDomain(result.rows[0]);
     } catch (error) {
@@ -28,12 +28,12 @@ export class PostgresPlayerRepository implements PlayerRepository {
 
   async findByEmail(email: string): Promise<Player | null> {
     try {
-      const result = await this.db.query(
+      const result = await this.db.query<PlayerRow>(
         "SELECT * FROM players WHERE email = $1",
         [email]
       );
 
-      if (result.rows.length === 0) return null;
+      if (!result.rows[0] || result.rows.length === 0) return null;
 
       return PlayerMapper.toDomain(result.rows[0]);
     } catch (error) {
@@ -47,6 +47,7 @@ export class PostgresPlayerRepository implements PlayerRepository {
       const result = await this.db.query<PlayerRow>(
         "SELECT * FROM players ORDER BY created_at DESC"
       );
+
       return result.rows.map(PlayerMapper.toDomain);
     } catch (error) {
       logger.error("Error finding all players", { error });
@@ -60,6 +61,7 @@ export class PostgresPlayerRepository implements PlayerRepository {
         "SELECT * FROM players WHERE name ILIKE $1 ORDER BY created_at DESC",
         [`%${name}%`]
       );
+
       return result.rows.map(PlayerMapper.toDomain);
     } catch (error) {
       logger.error("Error finding players by name", { name, error });

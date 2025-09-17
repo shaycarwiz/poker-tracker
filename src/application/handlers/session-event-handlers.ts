@@ -2,8 +2,8 @@
 
 import {
   DomainEventDispatcher,
-  SessionStartedEvent,
   SessionEndedEvent,
+  SessionStartedEvent,
   TransactionAddedEvent,
 } from "@/model/events";
 import { logger } from "@/shared/utils/logger";
@@ -15,7 +15,7 @@ export class SessionEventHandlers {
       SessionStartedEvent,
       async (event) => {
         await this.handleSessionStarted(event);
-      }
+      },
     );
 
     // Handler for session ended events
@@ -23,7 +23,7 @@ export class SessionEventHandlers {
       SessionEndedEvent,
       async (event) => {
         await this.handleSessionEnded(event);
-      }
+      },
     );
 
     // Handler for transaction added events
@@ -31,14 +31,14 @@ export class SessionEventHandlers {
       TransactionAddedEvent,
       async (event) => {
         await this.handleTransactionAdded(event);
-      }
+      },
     );
 
     logger.info("Session event handlers registered");
   }
 
   private static async handleSessionStarted(
-    event: SessionStartedEvent
+    event: SessionStartedEvent,
   ): Promise<void> {
     logger.info("Processing session started event", {
       sessionId: event.sessionId.value,
@@ -63,7 +63,7 @@ export class SessionEventHandlers {
   }
 
   private static async handleSessionEnded(
-    event: SessionEndedEvent
+    event: SessionEndedEvent,
   ): Promise<void> {
     logger.info("Processing session ended event", {
       sessionId: event.sessionId.value,
@@ -106,7 +106,7 @@ export class SessionEventHandlers {
   }
 
   private static async handleTransactionAdded(
-    event: TransactionAddedEvent
+    event: TransactionAddedEvent,
   ): Promise<void> {
     logger.info("Processing transaction added event", {
       transactionId: event.transactionId.value,

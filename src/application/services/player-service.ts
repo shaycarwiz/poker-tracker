@@ -2,21 +2,21 @@
 
 import { UnitOfWork } from "@/model/repositories";
 import {
+  AddBankrollUseCase,
   CreatePlayerUseCase,
-  UpdatePlayerUseCase,
   GetPlayerUseCase,
   ListPlayersUseCase,
-  AddBankrollUseCase,
+  UpdatePlayerUseCase,
 } from "../use-cases/players";
 import {
-  CreatePlayerRequest,
-  CreatePlayerResponse,
-  UpdatePlayerRequest,
-  UpdatePlayerResponse,
-  GetPlayerResponse,
-  ListPlayersResponse,
   AddBankrollRequest,
   AddBankrollResponse,
+  CreatePlayerRequest,
+  CreatePlayerResponse,
+  GetPlayerResponse,
+  ListPlayersResponse,
+  UpdatePlayerRequest,
+  UpdatePlayerResponse,
 } from "../dto/player-dto";
 
 export class PlayerService {
@@ -35,13 +35,13 @@ export class PlayerService {
   }
 
   async createPlayer(
-    request: CreatePlayerRequest
+    request: CreatePlayerRequest,
   ): Promise<CreatePlayerResponse> {
     return await this.createPlayerUseCase.execute(request);
   }
 
   async updatePlayer(
-    request: UpdatePlayerRequest
+    request: UpdatePlayerRequest,
   ): Promise<UpdatePlayerResponse> {
     return await this.updatePlayerUseCase.execute(request);
   }
@@ -52,13 +52,13 @@ export class PlayerService {
 
   async getAllPlayers(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<ListPlayersResponse> {
     return await this.listPlayersUseCase.execute(page, limit);
   }
 
   async addToBankroll(
-    request: AddBankrollRequest
+    request: AddBankrollRequest,
   ): Promise<AddBankrollResponse> {
     return await this.addBankrollUseCase.execute(request);
   }

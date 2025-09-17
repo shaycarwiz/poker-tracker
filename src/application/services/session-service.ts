@@ -2,23 +2,23 @@
 
 import { UnitOfWork } from "@/model/repositories";
 import {
-  StartSessionUseCase,
-  EndSessionUseCase,
   AddTransactionUseCase,
+  EndSessionUseCase,
   GetSessionUseCase,
   ListSessionsUseCase,
+  StartSessionUseCase,
   UpdateSessionNotesUseCase,
 } from "../use-cases/session";
 import {
-  StartSessionRequest,
-  StartSessionResponse,
-  EndSessionRequest,
-  EndSessionResponse,
   AddTransactionRequest,
   AddTransactionResponse,
+  EndSessionRequest,
+  EndSessionResponse,
   GetSessionResponse,
   ListSessionsRequest,
   ListSessionsResponse,
+  StartSessionRequest,
+  StartSessionResponse,
   UpdateSessionNotesRequest,
   UpdateSessionNotesResponse,
 } from "../dto/session-dto";
@@ -41,7 +41,7 @@ export class SessionService {
   }
 
   async startSession(
-    request: StartSessionRequest
+    request: StartSessionRequest,
   ): Promise<StartSessionResponse> {
     return await this.startSessionUseCase.execute(request);
   }
@@ -51,7 +51,7 @@ export class SessionService {
   }
 
   async addTransaction(
-    request: AddTransactionRequest
+    request: AddTransactionRequest,
   ): Promise<AddTransactionResponse> {
     return await this.addTransactionUseCase.execute(request);
   }
@@ -61,13 +61,13 @@ export class SessionService {
   }
 
   async listSessions(
-    request: ListSessionsRequest
+    request: ListSessionsRequest,
   ): Promise<ListSessionsResponse> {
     return await this.listSessionsUseCase.execute(request);
   }
 
   async updateSessionNotes(
-    request: UpdateSessionNotesRequest
+    request: UpdateSessionNotesRequest,
   ): Promise<UpdateSessionNotesResponse> {
     return await this.updateSessionNotesUseCase.execute(request);
   }

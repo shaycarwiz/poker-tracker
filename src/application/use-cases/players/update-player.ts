@@ -14,6 +14,7 @@ export class UpdatePlayerUseCase extends BaseUseCase {
       async () => {
         const playerId = new PlayerId(request.id);
         const player = await this.unitOfWork.players.findById(playerId);
+
         if (!player) {
           throw new Error("Player not found");
         }
@@ -21,8 +22,9 @@ export class UpdatePlayerUseCase extends BaseUseCase {
         // Check if email is being changed and if it already exists
         if (request.email && request.email !== player.email) {
           const existingPlayer = await this.unitOfWork.players.findByEmail(
-            request.email
+            request.email,
           );
+
           if (existingPlayer) {
             throw new Error("Player with this email already exists");
           }
@@ -54,7 +56,7 @@ export class UpdatePlayerUseCase extends BaseUseCase {
         };
       },
       "UpdatePlayerUseCase",
-      { request }
+      { request },
     );
   }
 }

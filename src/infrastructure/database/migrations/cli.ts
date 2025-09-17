@@ -89,11 +89,14 @@ Examples:
         result.errors.forEach((error) => {
           console.log(`  - ${error}`);
         });
+        // eslint-disable-next-line no-process-exit
+        // eslint-disable-next-line no-process-exit
         process.exit(1);
       }
     } catch (error) {
       logger.error("Migration process failed:", error);
       console.log(`\n❌ Migration failed: ${error}`);
+      // eslint-disable-next-line no-process-exit
       process.exit(1);
     }
   }
@@ -115,6 +118,7 @@ Examples:
           const executionTime = migration.executionTimeMs
             ? `${migration.executionTimeMs}ms`
             : "Unknown";
+
           console.log(
             `  - ${migration.filename} (${appliedAt}, ${executionTime})`
           );
@@ -134,6 +138,7 @@ Examples:
     } catch (error) {
       logger.error("Failed to get migration status:", error);
       console.log(`\n❌ Failed to get status: ${error}`);
+      // eslint-disable-next-line no-process-exit
       process.exit(1);
     }
   }
@@ -153,11 +158,14 @@ Examples:
         }
       } else {
         console.log(`❌ Rollback failed: ${result.error}`);
+        // eslint-disable-next-line no-process-exit
+        // eslint-disable-next-line no-process-exit
         process.exit(1);
       }
     } catch (error) {
       logger.error("Rollback failed:", error);
       console.log(`\n❌ Rollback failed: ${error}`);
+      // eslint-disable-next-line no-process-exit
       process.exit(1);
     }
   }
@@ -171,6 +179,7 @@ Examples:
 
       if (history.length === 0) {
         console.log("No migration history found");
+
         return;
       }
 
@@ -179,6 +188,7 @@ Examples:
         const executionTime = migration.executionTimeMs
           ? `${migration.executionTimeMs}ms`
           : "Unknown";
+
         console.log(`${index + 1}. ${migration.filename}`);
         console.log(`   Applied: ${appliedAt}`);
         console.log(`   Duration: ${executionTime}`);
@@ -188,6 +198,7 @@ Examples:
     } catch (error) {
       logger.error("Failed to get migration history:", error);
       console.log(`\n❌ Failed to get history: ${error}`);
+      // eslint-disable-next-line no-process-exit
       process.exit(1);
     }
   }
@@ -197,6 +208,7 @@ Examples:
 
     if (options.help || options.command === "help") {
       this.printHelp();
+
       return;
     }
 
@@ -217,6 +229,8 @@ Examples:
         default:
           console.log(`Unknown command: ${options.command}`);
           this.printHelp();
+          // eslint-disable-next-line no-process-exit
+          // eslint-disable-next-line no-process-exit
           process.exit(1);
       }
     } finally {
@@ -228,9 +242,11 @@ Examples:
 // Run CLI if this file is executed directly
 if (require.main === module) {
   const cli = new MigrationCLI();
+
   cli.run().catch((error) => {
     logger.error("CLI execution failed:", error);
     console.log(`\n❌ CLI execution failed: ${error}`);
+    // eslint-disable-next-line no-process-exit
     process.exit(1);
   });
 }

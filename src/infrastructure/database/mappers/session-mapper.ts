@@ -1,6 +1,6 @@
 // Session data mapper - converts between domain objects and database rows
 
-import { Session, SessionId, PlayerId, Transaction } from "@/model/entities";
+import { PlayerId, Session, SessionId, Transaction } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { SessionStatus } from "@/model/enums";
 import { SessionRow } from "../types";
@@ -8,6 +8,7 @@ import { SessionRow } from "../types";
 export class SessionMapper {
   static toDomain(row: SessionRow, transactions: Transaction[] = []): Session {
     const session = Object.create(Session.prototype);
+
     Object.assign(session, {
       id: new SessionId(row.id),
       playerId: new PlayerId(row.player_id),
@@ -15,7 +16,7 @@ export class SessionMapper {
       _stakes: new Stakes(
         new Money(row.small_blind, row.currency),
         new Money(row.big_blind, row.currency),
-        row.ante ? new Money(row.ante, row.currency) : undefined
+        row.ante ? new Money(row.ante, row.currency) : undefined,
       ),
       _startTime: new Date(row.start_time),
       _endTime: row.end_time ? new Date(row.end_time) : undefined,
@@ -25,6 +26,7 @@ export class SessionMapper {
       _createdAt: new Date(row.created_at),
       _updatedAt: new Date(row.updated_at),
     });
+
     return session;
   }
 

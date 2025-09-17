@@ -10,15 +10,16 @@ export class GetSessionUseCase extends BaseUseCase {
       async () => {
         const id = new SessionId(sessionId);
         const session = await this.unitOfWork.sessions.findById(id);
+
         if (!session) {
           throw new Error("Session not found");
         }
 
         const duration = session.endTime
           ? Math.floor(
-              (session.endTime.getTime() - session.startTime.getTime()) /
-                (1000 * 60)
-            )
+            (session.endTime.getTime() - session.startTime.getTime()) /
+                (1000 * 60),
+          )
           : undefined;
 
         return {
@@ -60,7 +61,7 @@ export class GetSessionUseCase extends BaseUseCase {
         };
       },
       "GetSessionUseCase",
-      { sessionId }
+      { sessionId },
     );
   }
 }

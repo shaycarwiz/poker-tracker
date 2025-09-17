@@ -1,7 +1,7 @@
 // Domain Events - Events that represent something important that happened in the domain
 
-import { SessionId, PlayerId, TransactionId } from "./entities";
-import { Money, Stakes, Duration } from "./value-objects";
+import { PlayerId, SessionId, TransactionId } from "./entities";
+import { Duration, Money, Stakes } from "./value-objects";
 import { TransactionType } from "./enums";
 import logger from "@/shared/utils/logger";
 
@@ -37,21 +37,31 @@ export abstract class AggregateRoot {
     return this._domainEvents.length > 0;
   }
 }
+type DomainEventClass<T extends DomainEvent> = abstract new (
+  ...args: never[]
+) => T;
 
 // Event dispatcher for managing and publishing domain events
 export class DomainEventDispatcher {
-  private static handlers: Map<string, EventHandler<any>[]> = new Map();
+  private static handlers: Map<string, EventHandler<DomainEvent>[]> = new Map();
   private static isEnabled: boolean = true;
 
   static register<T extends DomainEvent>(
-    eventType: new (...args: any[]) => T,
+    eventType: DomainEventClass<T>,
     handler: EventHandler<T>
   ): void {
     const eventName = eventType.name;
+
     if (!this.handlers.has(eventName)) {
       this.handlers.set(eventName, []);
     }
-    this.handlers.get(eventName)!.push(handler);
+
+    const handlers = this.handlers.get(eventName);
+    if (!handlers) {
+      this.handlers.set(eventName, [handler as EventHandler<DomainEvent>]);
+    } else {
+      handlers.push(handler as EventHandler<DomainEvent>);
+    }
   }
 
   static async publish(event: DomainEvent): Promise<void> {
@@ -75,6 +85,7 @@ export class DomainEventDispatcher {
 
   static async publishAll(events: DomainEvent[]): Promise<void> {
     const promises = events.map((event) => this.publish(event));
+
     await Promise.all(promises);
   }
 

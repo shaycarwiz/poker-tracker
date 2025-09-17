@@ -17,8 +17,9 @@ export class CreatePlayerUseCase extends BaseUseCase {
         // Check if player with email already exists
         if (request.email) {
           const existingPlayer = await this.unitOfWork.players.findByEmail(
-            request.email
+            request.email,
           );
+
           if (existingPlayer) {
             throw new Error("Player with this email already exists");
           }
@@ -26,15 +27,15 @@ export class CreatePlayerUseCase extends BaseUseCase {
 
         const initialBankroll = request.initialBankroll
           ? new Money(
-              request.initialBankroll.amount,
-              request.initialBankroll.currency
-            )
+            request.initialBankroll.amount,
+            request.initialBankroll.currency,
+          )
           : new Money(0, config.poker.defaultCurrency);
 
         const player = Player.create(
           request.name,
           request.email,
-          initialBankroll
+          initialBankroll,
         );
 
         await this.unitOfWork.players.save(player);
@@ -57,7 +58,7 @@ export class CreatePlayerUseCase extends BaseUseCase {
         };
       },
       "CreatePlayerUseCase",
-      { request }
+      { request },
     );
   }
 }

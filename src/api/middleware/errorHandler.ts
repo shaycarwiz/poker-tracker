@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { logger } from "../../shared/utils/logger";
 
 export interface AppError extends Error {
