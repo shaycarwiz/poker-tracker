@@ -20,6 +20,7 @@ export interface Repository<T, ID> {
 // Player repository interface
 export interface PlayerRepository extends Repository<Player, PlayerId> {
   findByEmail(email: string): Promise<Player | null>;
+  findByGoogleId(googleId: string): Promise<Player | null>;
   findAll(): Promise<Player[]>;
   findByName(name: string): Promise<Player[]>;
 }

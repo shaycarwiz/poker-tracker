@@ -21,7 +21,7 @@ const options = {
     },
     servers: [
       {
-        url: config.apiBaseUrl || "http://localhost:3000",
+        url: `${config.apiBaseUrl || "http://localhost:4000"}/api/v1`,
         description: "Development server",
       },
     ],
@@ -66,6 +66,14 @@ const options = {
           },
         },
       },
+      securitySchemes: {
+        BearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "JWT token obtained from login endpoint",
+        },
+      },
     },
   },
   apis: ["./src/api/controllers/*.ts", "./src/api/routes/*.ts"],
@@ -84,7 +92,7 @@ export const setupSwagger = (app: Express) => {
       explorer: true,
       customCss: ".swagger-ui .topbar { display: none }",
       customSiteTitle: "Poker Tracker API Documentation",
-    }),
+    })
   );
 
   // Serve raw JSON

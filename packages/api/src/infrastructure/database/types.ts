@@ -4,6 +4,7 @@ export interface PlayerRow {
   id: string; // UUID
   name: string;
   email: string | null;
+  google_id: string | null;
   current_bankroll: number; // DECIMAL(15,2)
   currency: string; // VARCHAR(3)
   total_sessions: number;
