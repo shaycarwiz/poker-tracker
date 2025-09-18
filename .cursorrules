@@ -81,3 +81,10 @@ Fixes #123, #456
 - Follow TypeScript best practices
 - Ensure all functions have proper type annotations
 - Write unit tests for new features and bug fixes
+
+## File Protection Rules
+
+- **NEVER** touch, modify, or overwrite `.env` files
+- **NEVER** create `.env` files unless explicitly requested by the user
+- If environment configuration is needed, only reference `.env.example` files
+- Always respect existing `.env` files and their contents
