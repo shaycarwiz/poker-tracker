@@ -11,7 +11,8 @@ export interface JWTPayload {
 
 export class JWTService {
   private static readonly secret = process.env.JWT_SECRET;
-  private static readonly expiresIn = process.env.JWT_EXPIRES_IN || "7d";
+  private static readonly expiresIn = (process.env.JWT_EXPIRES_IN ||
+    "7d") as string;
 
   static generateToken(payload: Omit<JWTPayload, "iat" | "exp">): string {
     if (!this.secret) {
@@ -19,10 +20,10 @@ export class JWTService {
     }
 
     return jwt.sign(payload, this.secret, {
-      expiresIn: this.expiresIn,
+      expiresIn: this.expiresIn as string,
       issuer: "poker-tracker-api",
       audience: "poker-tracker-web",
-    });
+    } as jwt.SignOptions);
   }
 
   static verifyToken(token: string): JWTPayload {
