@@ -12,7 +12,102 @@ http://localhost:3000/api/v1
 
 ## Authentication
 
-Currently, the API does not require authentication. This will be added in future versions.
+The API uses JWT (JSON Web Token) authentication with Google OAuth integration. Most endpoints require authentication via Bearer token in the Authorization header.
+
+### Getting Started
+
+1. **Login**: Use the `/api/auth/login` endpoint with Google OAuth credentials to obtain a JWT token
+2. **Include Token**: Add the token to the Authorization header: `Authorization: Bearer <your-jwt-token>`
+3. **Access Protected Endpoints**: Use the token to access protected resources
+
+### Authentication Endpoints
+
+#### Login
+
+**POST** `/api/auth/login`
+
+Authenticate with Google OAuth and receive a JWT token.
+
+**Request Body:**
+
+```json
+{
+  "googleId": "1234567890",
+  "email": "john@example.com",
+  "name": "John Doe"
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "currentBankroll": 1000,
+    "totalSessions": 5
+  }
+}
+```
+
+#### Get Profile
+
+**GET** `/api/auth/profile`
+
+Retrieve the authenticated user's profile information.
+
+**Headers:**
+
+- `Authorization: Bearer <jwt-token>`
+
+**Response:**
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "currentBankroll": 1000,
+  "totalSessions": 5,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### Update Profile
+
+**PUT** `/api/auth/profile`
+
+Update the authenticated user's profile information.
+
+**Headers:**
+
+- `Authorization: Bearer <jwt-token>`
+
+**Request Body:**
+
+```json
+{
+  "name": "John Smith",
+  "email": "johnsmith@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Smith",
+  "email": "johnsmith@example.com",
+  "currentBankroll": 1000,
+  "totalSessions": 5,
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
 
 ## Response Format
 
@@ -601,8 +696,18 @@ Retrieves the active session for a specific player.
 ## Error Codes
 
 - `400` - Bad Request: Invalid input data
+- `401` - Unauthorized: Authentication required or invalid token
 - `404` - Not Found: Resource not found
 - `500` - Internal Server Error: Server error
+
+### Authentication Error Codes
+
+- `MISSING_FIELDS` - Required authentication fields are missing
+- `UNAUTHORIZED` - Authentication token is missing or invalid
+- `PLAYER_NOT_FOUND` - Player account not found
+- `LOGIN_ERROR` - Error during login process
+- `PROFILE_ERROR` - Error retrieving profile
+- `UPDATE_PROFILE_ERROR` - Error updating profile
 
 ## Rate Limiting
 
