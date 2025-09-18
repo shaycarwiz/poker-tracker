@@ -8,15 +8,15 @@ const nextConfig = {
   async rewrites() {
     return [
       // Exclude /api/session from being proxied to the API server
-      {
-        source: '/api/auth/session',
-        destination: '/api/auth/session',
-      },
-      // Proxy all other /api/* requests to the API server
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:4000/api/v1/:path*',
-      },
+      // {
+      //   source: '/api/auth/',
+      //   destination: '/api/auth/',
+      // },
+      // // Proxy all other /api/* requests to the API server
+      // {
+      //   source: '/api/:path*',
+      //   destination: 'http://localhost:4000/api/v1/:path*',
+      // },
     ];
   },
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
