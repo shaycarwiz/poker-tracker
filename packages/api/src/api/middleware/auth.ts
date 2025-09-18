@@ -58,7 +58,7 @@ export const authenticateToken = (
 
 export const optionalAuth = (
   req: AuthenticatedRequest,
-  res: Response,
+  _: Response,
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization;

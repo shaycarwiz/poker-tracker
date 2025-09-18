@@ -3,7 +3,6 @@ import { AuthenticatedRequest } from "../middleware/auth";
 import { JWTService } from "../../shared/utils/jwt";
 import { PlayerRepository } from "../../model/repositories";
 import { Player } from "../../model/entities";
-import { Money } from "../../model/value-objects";
 import { logger } from "../../shared/utils/logger";
 
 export class AuthController {

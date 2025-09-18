@@ -30,7 +30,7 @@ export const validateLoginRequest = [
         details: errors.array(),
       });
     }
-    next();
+    return next();
   },
 ];
 
@@ -57,6 +57,6 @@ export const validateUpdateProfileRequest = [
         details: errors.array(),
       });
     }
-    next();
+    return next();
   },
 ];

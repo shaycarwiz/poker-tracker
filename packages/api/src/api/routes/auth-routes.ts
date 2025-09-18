@@ -8,7 +8,7 @@ import {
 } from "../validators/auth-validators";
 
 const router = Router();
-const authController = new AuthController(container.playerRepository);
+const authController = new AuthController(container.repositories.players);
 
 // Public routes
 router.post(
