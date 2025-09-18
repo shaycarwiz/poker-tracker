@@ -58,10 +58,11 @@ export class Player extends AggregateRoot {
     public readonly id: PlayerId,
     private _name: string,
     private _email?: string,
+    private _googleId?: string,
     private _currentBankroll: Money = new Money(0),
     private _totalSessions: number = 0,
     private _createdAt: Date = new Date(),
-    private _updatedAt: Date = new Date(),
+    private _updatedAt: Date = new Date()
   ) {
     super();
   }
@@ -69,7 +70,30 @@ export class Player extends AggregateRoot {
   static create(name: string, email?: string, initialBankroll?: Money): Player {
     const id = PlayerId.generate();
 
-    return new Player(id, name, email, initialBankroll || new Money(0));
+    return new Player(
+      id,
+      name,
+      email,
+      undefined,
+      initialBankroll || new Money(0)
+    );
+  }
+
+  static createFromGoogle(
+    googleId: string,
+    name: string,
+    email: string,
+    initialBankroll?: Money
+  ): Player {
+    const id = PlayerId.generate();
+
+    return new Player(
+      id,
+      name,
+      email,
+      googleId,
+      initialBankroll || new Money(0)
+    );
   }
 
   get name(): string {
@@ -78,6 +102,10 @@ export class Player extends AggregateRoot {
 
   get email(): string | undefined {
     return this._email;
+  }
+
+  get googleId(): string | undefined {
+    return this._googleId;
   }
 
   get currentBankroll(): Money {
@@ -110,6 +138,14 @@ export class Player extends AggregateRoot {
     this._updatedAt = new Date();
   }
 
+  linkGoogleAccount(googleId: string): void {
+    if (this._googleId) {
+      throw new Error("Player already has a Google account linked");
+    }
+    this._googleId = googleId;
+    this._updatedAt = new Date();
+  }
+
   adjustBankroll(amount: Money): void {
     this._currentBankroll = this._currentBankroll.add(amount);
     this._updatedAt = new Date();
@@ -139,7 +175,7 @@ export class Session extends AggregateRoot {
     private _transactions: Transaction[] = [],
     private _notes?: string,
     private _createdAt: Date = new Date(),
-    private _updatedAt: Date = new Date(),
+    private _updatedAt: Date = new Date()
   ) {
     super();
   }
@@ -149,7 +185,7 @@ export class Session extends AggregateRoot {
     location: string,
     stakes: Stakes,
     initialBuyIn: Money,
-    notes?: string,
+    notes?: string
   ): Session {
     const id = SessionId.generate();
     const session = new Session(id, playerId, location, stakes, new Date());
@@ -158,7 +194,7 @@ export class Session extends AggregateRoot {
     session.addTransaction(
       TransactionType.BUY_IN,
       initialBuyIn,
-      "Initial buy-in",
+      "Initial buy-in"
     );
 
     if (notes) {
@@ -171,8 +207,8 @@ export class Session extends AggregateRoot {
         session.id,
         session.playerId,
         session.location,
-        session.stakes,
-      ),
+        session.stakes
+      )
     );
 
     return session;
@@ -218,7 +254,7 @@ export class Session extends AggregateRoot {
     return this._transactions
       .filter(
         (t) =>
-          t.type === TransactionType.BUY_IN || t.type === TransactionType.REBUY,
+          t.type === TransactionType.BUY_IN || t.type === TransactionType.REBUY
       )
       .reduce((sum, t) => sum.add(t.amount), new Money(0));
   }
@@ -248,7 +284,7 @@ export class Session extends AggregateRoot {
 
     return new Money(
       this.netResult.amount / duration.hours,
-      this.netResult.currency,
+      this.netResult.currency
     );
   }
 
@@ -262,7 +298,7 @@ export class Session extends AggregateRoot {
     type: TransactionType,
     amount: Money,
     description?: string,
-    notes?: string,
+    notes?: string
   ): void {
     if (this._status !== SessionStatus.ACTIVE) {
       throw new Error("Cannot add transactions to inactive session");
@@ -276,7 +312,7 @@ export class Session extends AggregateRoot {
       amount,
       new Date(),
       description,
-      notes,
+      notes
     );
 
     this._transactions.push(transaction);
@@ -289,8 +325,8 @@ export class Session extends AggregateRoot {
         this.id,
         this.playerId,
         type,
-        amount,
-      ),
+        amount
+      )
     );
   }
 
@@ -304,7 +340,7 @@ export class Session extends AggregateRoot {
       this.addTransaction(
         TransactionType.CASH_OUT,
         finalCashOut,
-        "Final cash out",
+        "Final cash out"
       );
     }
 
@@ -323,8 +359,8 @@ export class Session extends AggregateRoot {
         this.id,
         this.playerId,
         this.netResult,
-        this.duration || new Duration(0),
-      ),
+        this.duration || new Duration(0)
+      )
     );
   }
 
@@ -366,7 +402,7 @@ export class Transaction {
     public readonly amount: Money,
     public readonly timestamp: Date,
     public readonly description?: string,
-    public readonly notes?: string,
+    public readonly notes?: string
   ) {
     if (amount.amount <= 0) {
       throw new Error("Transaction amount must be positive");

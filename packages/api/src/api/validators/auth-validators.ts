@@ -1,0 +1,62 @@
+import { Request, Response, NextFunction } from "express";
+import { body, validationResult } from "express-validator";
+
+export const validateLoginRequest = [
+  body("googleId")
+    .notEmpty()
+    .withMessage("Google ID is required")
+    .isString()
+    .withMessage("Google ID must be a string"),
+
+  body("email")
+    .isEmail()
+    .withMessage("Valid email is required")
+    .normalizeEmail(),
+
+  body("name")
+    .notEmpty()
+    .withMessage("Name is required")
+    .isString()
+    .withMessage("Name must be a string")
+    .isLength({ min: 1, max: 100 })
+    .withMessage("Name must be between 1 and 100 characters"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: "Validation failed",
+        code: "VALIDATION_ERROR",
+        details: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export const validateUpdateProfileRequest = [
+  body("name")
+    .optional()
+    .isString()
+    .withMessage("Name must be a string")
+    .isLength({ min: 1, max: 100 })
+    .withMessage("Name must be between 1 and 100 characters"),
+
+  body("email")
+    .optional()
+    .isEmail()
+    .withMessage("Valid email is required")
+    .normalizeEmail(),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: "Validation failed",
+        code: "VALIDATION_ERROR",
+        details: errors.array(),
+      });
+    }
+    next();
+  },
+];

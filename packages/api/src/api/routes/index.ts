@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { playerRoutes } from "./player-routes";
 import { sessionRoutes } from "./session-routes";
+import { authRoutes } from "./auth-routes";
 
 const router = Router();
 
@@ -8,6 +9,7 @@ const router = Router();
 const API_VERSION = "/api/v1";
 
 // Mount route modules
+router.use(`${API_VERSION}/auth`, authRoutes);
 router.use(`${API_VERSION}/players`, playerRoutes);
 router.use(`${API_VERSION}/sessions`, sessionRoutes);
 

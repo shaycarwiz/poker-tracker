@@ -42,6 +42,22 @@ export class PostgresPlayerRepository implements PlayerRepository {
     }
   }
 
+  async findByGoogleId(googleId: string): Promise<Player | null> {
+    try {
+      const result = await this.db.query<PlayerRow>(
+        "SELECT * FROM players WHERE google_id = $1",
+        [googleId]
+      );
+
+      if (!result.rows[0] || result.rows.length === 0) return null;
+
+      return PlayerMapper.toDomain(result.rows[0]);
+    } catch (error) {
+      logger.error("Error finding player by Google ID", { googleId, error });
+      throw new Error("Failed to find player by Google ID");
+    }
+  }
+
   async findAll(): Promise<Player[]> {
     try {
       const result = await this.db.query<PlayerRow>(
@@ -75,11 +91,12 @@ export class PostgresPlayerRepository implements PlayerRepository {
 
       await this.db.query(
         `
-        INSERT INTO players (id, name, email, current_bankroll, currency, total_sessions, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO players (id, name, email, google_id, current_bankroll, currency, total_sessions, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           email = EXCLUDED.email,
+          google_id = EXCLUDED.google_id,
           current_bankroll = EXCLUDED.current_bankroll,
           currency = EXCLUDED.currency,
           total_sessions = EXCLUDED.total_sessions,
@@ -89,6 +106,7 @@ export class PostgresPlayerRepository implements PlayerRepository {
           data.id,
           data.name,
           data.email,
+          data.google_id,
           data.current_bankroll,
           data.currency,
           data.total_sessions,
