@@ -5,6 +5,7 @@ import {
   AddBankrollUseCase,
   CreatePlayerUseCase,
   GetPlayerUseCase,
+  GetPlayerByEmailUseCase,
   ListPlayersUseCase,
   UpdatePlayerUseCase,
 } from "../use-cases/players";
@@ -23,6 +24,7 @@ export class PlayerService {
   private createPlayerUseCase: CreatePlayerUseCase;
   private updatePlayerUseCase: UpdatePlayerUseCase;
   private getPlayerUseCase: GetPlayerUseCase;
+  private getPlayerByEmailUseCase: GetPlayerByEmailUseCase;
   private listPlayersUseCase: ListPlayersUseCase;
   private addBankrollUseCase: AddBankrollUseCase;
 
@@ -30,18 +32,19 @@ export class PlayerService {
     this.createPlayerUseCase = new CreatePlayerUseCase(unitOfWork);
     this.updatePlayerUseCase = new UpdatePlayerUseCase(unitOfWork);
     this.getPlayerUseCase = new GetPlayerUseCase(unitOfWork);
+    this.getPlayerByEmailUseCase = new GetPlayerByEmailUseCase(unitOfWork);
     this.listPlayersUseCase = new ListPlayersUseCase(unitOfWork);
     this.addBankrollUseCase = new AddBankrollUseCase(unitOfWork);
   }
 
   async createPlayer(
-    request: CreatePlayerRequest,
+    request: CreatePlayerRequest
   ): Promise<CreatePlayerResponse> {
     return await this.createPlayerUseCase.execute(request);
   }
 
   async updatePlayer(
-    request: UpdatePlayerRequest,
+    request: UpdatePlayerRequest
   ): Promise<UpdatePlayerResponse> {
     return await this.updatePlayerUseCase.execute(request);
   }
@@ -52,14 +55,18 @@ export class PlayerService {
 
   async getAllPlayers(
     page: number = 1,
-    limit: number = 10,
+    limit: number = 10
   ): Promise<ListPlayersResponse> {
     return await this.listPlayersUseCase.execute(page, limit);
   }
 
   async addToBankroll(
-    request: AddBankrollRequest,
+    request: AddBankrollRequest
   ): Promise<AddBankrollResponse> {
     return await this.addBankrollUseCase.execute(request);
+  }
+
+  async getPlayerByEmail(email: string): Promise<GetPlayerResponse> {
+    return await this.getPlayerByEmailUseCase.execute(email);
   }
 }

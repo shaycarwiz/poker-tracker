@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { container } from "../../infrastructure/container";
 import { logger } from "../../shared/utils/logger";
 import { config } from "../../infrastructure/config";
+import { AuthenticatedRequest } from "../middleware/auth";
 import {
   AddBankrollRequest,
   CreatePlayerRequest,
@@ -903,6 +904,211 @@ export class PlayerController {
       logger.error("Error deleting player", { error, params: req.params });
       res.status(500).json({
         error: "Failed to delete player",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/players/me:
+   *   get:
+   *     summary: Get current player profile
+   *     description: Retrieve the authenticated user's player profile
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Player profile retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/Player'
+   *       401:
+   *         description: Unauthorized - authentication required
+   *       404:
+   *         description: Player profile not found
+   *       500:
+   *         description: Internal server error
+   */
+  async getCurrentPlayer(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      if (!req.player) {
+        res.status(404).json({
+          error: "Player profile not found",
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: req.player,
+      });
+    } catch (error) {
+      logger.error("Error getting current player", {
+        error,
+        userId: req.user?.googleId,
+      });
+      res.status(500).json({
+        error: "Failed to get player profile",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/players/me/stats:
+   *   get:
+   *     summary: Get current player statistics
+   *     description: Retrieve statistics for the authenticated user's player
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Player statistics retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/PlayerStats'
+   *       401:
+   *         description: Unauthorized - authentication required
+   *       404:
+   *         description: Player profile not found
+   *       500:
+   *         description: Internal server error
+   */
+  async getCurrentPlayerStats(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      if (!req.player) {
+        res.status(404).json({
+          error: "Player profile not found",
+        });
+        return;
+      }
+
+      // For now, return basic stats - implement stats logic later
+      res.json({
+        success: true,
+        data: {
+          playerId: req.player.id,
+          totalSessions: 0,
+          totalWinnings: 0,
+          winRate: 0,
+          averageSession: 0,
+        },
+      });
+    } catch (error) {
+      logger.error("Error getting current player stats", {
+        error,
+        userId: req.user?.googleId,
+      });
+      res.status(500).json({
+        error: "Failed to get player stats",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/players/me/bankroll:
+   *   patch:
+   *     summary: Update current player's bankroll
+   *     description: Update the authenticated user's bankroll amount
+   *     tags: [Players]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/AddBankrollRequest'
+   *     responses:
+   *       200:
+   *         description: Bankroll updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/Player'
+   *       401:
+   *         description: Unauthorized - authentication required
+   *       404:
+   *         description: Player profile not found
+   *       500:
+   *         description: Internal server error
+   */
+  async updateCurrentPlayerBankroll(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      if (!req.player) {
+        res.status(404).json({
+          error: "Player profile not found",
+        });
+        return;
+      }
+
+      const { amount, currency } = req.body;
+
+      if (!amount || typeof amount !== "number") {
+        res.status(400).json({
+          error: "Amount is required and must be a number",
+        });
+        return;
+      }
+
+      const request: AddBankrollRequest = {
+        playerId: req.player.id,
+        amount: {
+          amount,
+          currency: currency || config.poker.defaultCurrency,
+        },
+        reason: "Manual bankroll update",
+      };
+
+      const response = await this.playerService.addToBankroll(request);
+
+      res.json({
+        success: true,
+        data: response,
+      });
+    } catch (error) {
+      logger.error("Error updating current player bankroll", {
+        error,
+        userId: req.user?.googleId,
+        body: req.body,
+      });
+      res.status(500).json({
+        error: "Failed to update bankroll",
         message: error instanceof Error ? error.message : "Unknown error",
       });
     }
