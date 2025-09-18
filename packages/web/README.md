@@ -31,21 +31,25 @@ A modern Next.js web application for tracking poker sessions and analyzing perfo
 ### Installation
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Copy environment variables:
+
    ```bash
    cp env.example .env.local
    ```
 
 3. Update environment variables in `.env.local`:
+
    ```env
-   NEXT_PUBLIC_API_URL=http://localhost:3001
+   NEXT_PUBLIC_API_URL=http://localhost:4000
    ```
 
 4. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -99,6 +103,7 @@ The web app integrates with the Poker Tracker API. Make sure the API server is r
 ### Other Platforms
 
 1. Build the application:
+
    ```bash
    npm run build
    ```
