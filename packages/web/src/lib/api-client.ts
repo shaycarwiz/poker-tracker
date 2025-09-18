@@ -11,12 +11,12 @@ const apiClient = axios.create({
   },
 });
 
-// Add request interceptor to include auth token
+// Add request interceptor to include backend auth token
 apiClient.interceptors.request.use(
   async (config) => {
     const session = await getSession();
-    if (session?.accessToken) {
-      config.headers.Authorization = `Bearer ${session.accessToken}`;
+    if (session?.backendToken) {
+      config.headers.Authorization = `Bearer ${session.backendToken}`;
     }
     return config;
   },

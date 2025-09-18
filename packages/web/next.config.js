@@ -15,7 +15,7 @@ const nextConfig = {
       // // Proxy all other /api/* requests to the API server
       // {
       //   source: '/api/:path*',
-      //   destination: 'http://localhost:4000/api/v1/:path*',
+      //   destination: `${process.env.BACKEND_API_URL}/:path*`,
       // },
     ];
   },
