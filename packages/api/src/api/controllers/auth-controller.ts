@@ -132,7 +132,7 @@ export class AuthController {
 
   /**
    * @swagger
-   * /api/auth/login:
+   * /auth/login:
    *   post:
    *     tags:
    *       - Authentication
@@ -229,7 +229,7 @@ export class AuthController {
 
   /**
    * @swagger
-   * /api/auth/profile:
+   * /auth/profile:
    *   get:
    *     tags:
    *       - Authentication
@@ -314,7 +314,7 @@ export class AuthController {
 
   /**
    * @swagger
-   * /api/auth/profile:
+   * /auth/profile:
    *   put:
    *     tags:
    *       - Authentication

@@ -21,7 +21,7 @@ const options = {
     },
     servers: [
       {
-        url: config.apiBaseUrl || "http://localhost:3000",
+        url: `${config.apiBaseUrl || "http://localhost:4000"}/api/v1`,
         description: "Development server",
       },
     ],

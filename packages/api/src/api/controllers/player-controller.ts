@@ -124,7 +124,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players:
+   * /players:
    *   post:
    *     summary: Create a new player
    *     description: Add a new player to the system
@@ -205,7 +205,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players/{id}:
+   * /players/{id}:
    *   get:
    *     summary: Get player by ID
    *     description: Retrieve a specific player by their unique identifier
@@ -286,7 +286,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players:
+   * /players:
    *   get:
    *     summary: Get all players
    *     description: Retrieve a list of all players in the system with pagination
@@ -371,7 +371,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players/{id}:
+   * /players/{id}:
    *   put:
    *     summary: Update player by ID
    *     description: Update an existing player's information
@@ -578,7 +578,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players/search:
+   * /players/search:
    *   get:
    *     summary: Search players
    *     description: Search for players by name or email
@@ -842,7 +842,7 @@ export class PlayerController {
 
   /**
    * @swagger
-   * /api/players/{id}:
+   * /players/{id}:
    *   delete:
    *     summary: Delete player by ID
    *     description: Remove a player from the system
