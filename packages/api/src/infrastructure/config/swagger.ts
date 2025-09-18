@@ -1,6 +1,7 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import { Express } from "express";
 import { config } from "../config";
+import { authSwaggerDocs } from "../../api/docs/auth-swagger";
 
 const options = {
   definition: {
@@ -25,8 +26,12 @@ const options = {
         description: "Development server",
       },
     ],
+    // Merge external documentation
+    ...authSwaggerDocs,
     components: {
+      // Merge schemas from external docs with existing ones
       schemas: {
+        ...authSwaggerDocs.components?.schemas,
         Error: {
           type: "object",
           properties: {
@@ -66,7 +71,9 @@ const options = {
           },
         },
       },
+      // Merge security schemes
       securitySchemes: {
+        ...authSwaggerDocs.components?.securitySchemes,
         BearerAuth: {
           type: "http",
           scheme: "bearer",
