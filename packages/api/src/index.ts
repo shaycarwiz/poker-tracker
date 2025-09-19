@@ -11,7 +11,8 @@ import { notFoundHandler } from "./api/middleware/notFoundHandler";
 import { logger } from "./shared/utils/logger";
 import { config } from "./infrastructure/config";
 import { container } from "./infrastructure/container";
-
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../build/swagger.json";
 // Load environment variables
 dotenv.config();
 
@@ -60,7 +61,26 @@ app.get("/health", (_, res) => {
 
 // API routes
 import { apiRoutes } from "./api/routes";
+import { RegisterRoutes } from "./api/tsoa/routes/routes";
+import path from "path";
+
 app.use(apiRoutes);
+RegisterRoutes(app);
+
+// Swagger UI setup
+app.use(
+  "/swagger.json",
+  express.static(path.join(__dirname, "../build/swagger.json"))
+);
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Poker Tracker API Documentation",
+  })
+);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);
