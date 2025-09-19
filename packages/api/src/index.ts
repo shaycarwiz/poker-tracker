@@ -61,11 +61,12 @@ app.get("/health", (_, res) => {
 
 // API routes
 import { apiRoutes } from "./api/routes";
-import { RegisterRoutes } from "./api/tsoa/routes/routes";
+
 import path from "path";
 
 app.use(apiRoutes);
-RegisterRoutes(app);
+
+// Create a separate router for TSOA routes and mount with basePath
 
 // Swagger UI setup
 app.use(
@@ -77,7 +78,7 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(swaggerDocument, {
     explorer: true,
-    customCss: ".swagger-ui .topbar { display: none }",
+    // customCss: ".swagger-ui .topbar { display: none }",
     customSiteTitle: "Poker Tracker API Documentation",
   })
 );
