@@ -4,9 +4,9 @@
   "description": "A comprehensive poker tracking application with statistics and analytics",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run tsoa:gen && tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "dev": "npm run tsoa:gen && ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -25,7 +25,10 @@
     "check:all": "npm run type-check && npm run lint:check && npm test",
     "pre-commit": "npm run lint:staged && npm run type-check",
     "docs:serve": "npm run dev",
-    "docs:build": "npm run build"
+    "docs:build": "npm run build",
+    "tsoa:routes": "tsoa routes",
+    "tsoa:spec": "tsoa spec",
+    "tsoa:gen": "tsoa routes && tsoa spec"
   },
   "keywords": [
     "poker",
