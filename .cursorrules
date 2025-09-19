@@ -82,6 +82,13 @@ Fixes #123, #456
 - Ensure all functions have proper type annotations
 - Write unit tests for new features and bug fixes
 
+## Development Environment
+
+- **API Server**: Runs on port 4000 in development
+- **Web Application**: Runs on port 3000 in development
+- When referencing API endpoints in the web app, use `http://localhost:4000` as the base URL
+- When testing API endpoints directly, use `http://localhost:4000`
+
 ## File Protection Rules
 
 - **NEVER** touch, modify, or overwrite `.env` files

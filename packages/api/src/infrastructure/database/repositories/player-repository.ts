@@ -1,5 +1,6 @@
 // PostgreSQL implementation of PlayerRepository
 
+import { injectable } from "tsyringe";
 import { Player, PlayerId } from "@/model/entities";
 import { PlayerRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
@@ -7,6 +8,7 @@ import { PlayerMapper } from "../mappers/player-mapper";
 import { logger } from "@/shared/utils/logger";
 import { PlayerRow } from "../types";
 
+@injectable()
 export class PostgresPlayerRepository implements PlayerRepository {
   private db = DatabaseConnection.getInstance();
 

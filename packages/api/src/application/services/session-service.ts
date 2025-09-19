@@ -1,5 +1,6 @@
 // Session application service - Orchestrates use cases
 
+import { injectable, inject } from "tsyringe";
 import { UnitOfWork } from "@/model/repositories";
 import {
   AddTransactionUseCase,
@@ -23,6 +24,7 @@ import {
   UpdateSessionNotesResponse,
 } from "../dto/session-dto";
 
+@injectable()
 export class SessionService {
   private startSessionUseCase: StartSessionUseCase;
   private endSessionUseCase: EndSessionUseCase;
@@ -31,7 +33,7 @@ export class SessionService {
   private listSessionsUseCase: ListSessionsUseCase;
   private updateSessionNotesUseCase: UpdateSessionNotesUseCase;
 
-  constructor(unitOfWork: UnitOfWork) {
+  constructor(@inject("UnitOfWork") unitOfWork: UnitOfWork) {
     this.startSessionUseCase = new StartSessionUseCase(unitOfWork);
     this.endSessionUseCase = new EndSessionUseCase(unitOfWork);
     this.addTransactionUseCase = new AddTransactionUseCase(unitOfWork);
@@ -41,7 +43,7 @@ export class SessionService {
   }
 
   async startSession(
-    request: StartSessionRequest,
+    request: StartSessionRequest
   ): Promise<StartSessionResponse> {
     return await this.startSessionUseCase.execute(request);
   }
@@ -51,7 +53,7 @@ export class SessionService {
   }
 
   async addTransaction(
-    request: AddTransactionRequest,
+    request: AddTransactionRequest
   ): Promise<AddTransactionResponse> {
     return await this.addTransactionUseCase.execute(request);
   }
@@ -61,13 +63,13 @@ export class SessionService {
   }
 
   async listSessions(
-    request: ListSessionsRequest,
+    request: ListSessionsRequest
   ): Promise<ListSessionsResponse> {
     return await this.listSessionsUseCase.execute(request);
   }
 
   async updateSessionNotes(
-    request: UpdateSessionNotesRequest,
+    request: UpdateSessionNotesRequest
   ): Promise<UpdateSessionNotesResponse> {
     return await this.updateSessionNotesUseCase.execute(request);
   }

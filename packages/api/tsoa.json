@@ -9,7 +9,7 @@
   },
   "routes": {
     "routesDir": "src/api/tsoa/routes/",
-
-    "authenticationModule": "./src/api/tsoa/authentication.ts"
+    "authenticationModule": "./src/api/tsoa/authentication.ts",
+    "iocModule": "./src/api/tsoa/tsoa-container.ts"
   }
 }

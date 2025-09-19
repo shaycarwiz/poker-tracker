@@ -27,6 +27,7 @@
     "allowUnreachableCode": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],

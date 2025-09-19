@@ -9,10 +9,10 @@ import {
   Body,
   Request,
 } from "tsoa";
+import { injectable, inject } from "tsyringe";
 import { JWTService } from "@/shared/utils/jwt";
 import { PlayerRepository } from "@/model/repositories";
 import { Player } from "@/model/entities";
-import { container } from "@/infrastructure/container";
 import logger from "@/shared/utils/logger";
 
 // DTOs for TSOA
@@ -60,9 +60,12 @@ export interface ErrorResponse {
  */
 @Route("auth")
 @Tags("Authentication")
+@injectable()
 export class AuthController extends Controller {
-  private get playerRepository(): PlayerRepository {
-    return container.repositories.players;
+  constructor(
+    @inject("PlayerRepository") private playerRepository: PlayerRepository
+  ) {
+    super();
   }
 
   /**

@@ -54,8 +54,10 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
+    "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
+    "tsyringe": "^4.10.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {

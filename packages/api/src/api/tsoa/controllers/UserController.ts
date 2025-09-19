@@ -1,8 +1,10 @@
 // src/controllers/UserController.ts
 import { Controller, Get, Route, Tags } from "tsoa";
+import { injectable } from "tsyringe";
 
 @Route("users")
 @Tags("Users")
+@injectable()
 export class UserController extends Controller {
   @Get("{userId}")
   // @Security("jwt") // if you set up auth in tsoa.json
