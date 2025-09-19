@@ -9,9 +9,6 @@ import { logger } from "../../shared/utils/logger";
  * Authentication Controller
  *
  * Handles user authentication, profile management, and JWT token generation.
- * Swagger documentation is maintained in separate files for better code organization.
- *
- * @see ../docs/auth-swagger.ts for complete API documentation
  */
 
 export class AuthController {
@@ -19,7 +16,6 @@ export class AuthController {
 
   /**
    * Login with Google OAuth credentials
-   * @see ../docs/auth-swagger.ts for API documentation
    */
   async login(req: Request, res: Response): Promise<void> {
     try {
@@ -80,7 +76,6 @@ export class AuthController {
 
   /**
    * Get authenticated user's profile information
-   * @see ../docs/auth-swagger.ts for API documentation
    */
   async getProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -124,7 +119,6 @@ export class AuthController {
 
   /**
    * Update authenticated user's profile information
-   * @see ../docs/auth-swagger.ts for API documentation
    */
   async updateProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {

@@ -9,159 +9,9 @@ import {
   UpdatePlayerRequest,
 } from "../../application/dto/player-dto";
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     Player:
- *       type: object
- *       required:
- *         - name
- *         - email
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *           description: Unique identifier for the player
- *         name:
- *           type: string
- *           description: Player's full name
- *           example: "John Doe"
- *         email:
- *           type: string
- *           format: email
- *           description: Player's email address
- *           example: "john.doe@example.com"
- *         bankroll:
- *           type: number
- *           description: Player's current bankroll
- *           example: 1000.50
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: When the player was created
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: When the player was last updated
- *     CreatePlayerRequest:
- *       type: object
- *       required:
- *         - name
- *         - email
- *       properties:
- *         name:
- *           type: string
- *           description: Player's full name
- *           example: "John Doe"
- *         email:
- *           type: string
- *           format: email
- *           description: Player's email address
- *           example: "john.doe@example.com"
- *         initialBankroll:
- *           type: object
- *           properties:
- *             amount:
- *               type: number
- *               description: Initial bankroll amount
- *               example: 1000.00
- *             currency:
- *               type: string
- *               description: Currency code
- *               example: "USD"
- *     UpdatePlayerRequest:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           description: Player's full name
- *           example: "John Doe"
- *         email:
- *           type: string
- *           format: email
- *           description: Player's email address
- *           example: "john.doe@example.com"
- *     AddBankrollRequest:
- *       type: object
- *       required:
- *         - amount
- *       properties:
- *         amount:
- *           type: number
- *           description: Amount to add to bankroll
- *           example: 500.00
- *         currency:
- *           type: string
- *           description: Currency code
- *           example: "USD"
- *         reason:
- *           type: string
- *           description: Optional note about the transaction
- *           example: "Initial deposit"
- *     PlayerStats:
- *       type: object
- *       properties:
- *         playerId:
- *           type: string
- *           format: uuid
- *           description: Player's unique identifier
- *         totalSessions:
- *           type: integer
- *           description: Total number of poker sessions
- *         totalWinnings:
- *           type: number
- *           description: Total winnings across all sessions
- *         winRate:
- *           type: number
- *           description: Win rate percentage
- *         averageSession:
- *           type: number
- *           description: Average winnings per session
- */
-
 export class PlayerController {
   private playerService = container.services.players;
 
-  /**
-   * @swagger
-   * /players:
-   *   post:
-   *     summary: Create a new player
-   *     description: Add a new player to the system
-   *     tags: [Players]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/CreatePlayerRequest'
-   *     responses:
-   *       201:
-   *         description: Player created successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       400:
-   *         description: Bad request - validation failed
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async createPlayer(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, initialBankroll } = req.body;
@@ -204,53 +54,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /players/{id}:
-   *   get:
-   *     summary: Get player by ID
-   *     description: Retrieve a specific player by their unique identifier
-   *     tags: [Players]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           format: uuid
-   *         description: Player's unique identifier
-   *     responses:
-   *       200:
-   *         description: Player retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       400:
-   *         description: Bad request - player ID required
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       404:
-   *         description: Player not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async getPlayer(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -285,71 +88,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /players:
-   *   get:
-   *     summary: Get all players
-   *     description: Retrieve a list of all players in the system with pagination
-   *     tags: [Players]
-   *     parameters:
-   *       - in: query
-   *         name: page
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *           default: 1
-   *         description: Page number for pagination
-   *       - in: query
-   *         name: limit
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *           maximum: 100
-   *           default: 10
-   *         description: Number of players per page
-   *     responses:
-   *       200:
-   *         description: List of players retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   type: object
-   *                   properties:
-   *                     players:
-   *                       type: array
-   *                       items:
-   *                         $ref: '#/components/schemas/Player'
-   *                     pagination:
-   *                       type: object
-   *                       properties:
-   *                         page:
-   *                           type: integer
-   *                         limit:
-   *                           type: integer
-   *                         total:
-   *                           type: integer
-   *                         totalPages:
-   *                           type: integer
-   *       400:
-   *         description: Bad request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async getAllPlayers(req: Request, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query["page"] as string, 10) || 1;
@@ -370,59 +108,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /players/{id}:
-   *   put:
-   *     summary: Update player by ID
-   *     description: Update an existing player's information
-   *     tags: [Players]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           format: uuid
-   *         description: Player's unique identifier
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/UpdatePlayerRequest'
-   *     responses:
-   *       200:
-   *         description: Player updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       400:
-   *         description: Bad request - validation failed
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       404:
-   *         description: Player not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async updatePlayer(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -468,59 +153,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/players/{id}/bankroll:
-   *   post:
-   *     summary: Add to player's bankroll
-   *     description: Add funds to a player's bankroll
-   *     tags: [Players]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           format: uuid
-   *         description: Player's unique identifier
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/AddBankrollRequest'
-   *     responses:
-   *       200:
-   *         description: Bankroll added successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       400:
-   *         description: Bad request - validation failed
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       404:
-   *         description: Player not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async addToBankroll(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -577,57 +209,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /players/search:
-   *   get:
-   *     summary: Search players
-   *     description: Search for players by name or email
-   *     tags: [Players]
-   *     parameters:
-   *       - in: query
-   *         name: q
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Search query (name or email)
-   *     responses:
-   *       200:
-   *         description: Search results retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   type: object
-   *                   properties:
-   *                     players:
-   *                       type: array
-   *                       items:
-   *                         $ref: '#/components/schemas/Player'
-   *                     total:
-   *                       type: integer
-   *                     page:
-   *                       type: integer
-   *                     limit:
-   *                       type: integer
-   *       400:
-   *         description: Bad request - search query required
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async searchPlayers(req: Request, res: Response): Promise<void> {
     try {
       const { q } = req.query;
@@ -659,47 +240,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/players/{id}/stats:
-   *   get:
-   *     summary: Get player statistics
-   *     description: Retrieve statistics for a specific player
-   *     tags: [Players]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           format: uuid
-   *         description: Player's unique identifier
-   *     responses:
-   *       200:
-   *         description: Player statistics retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/PlayerStats'
-   *       400:
-   *         description: Bad request - player ID required
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async getPlayerStats(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -732,59 +272,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/players/{id}/bankroll:
-   *   put:
-   *     summary: Update player's bankroll
-   *     description: Update a player's bankroll amount
-   *     tags: [Players]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           format: uuid
-   *         description: Player's unique identifier
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/AddBankrollRequest'
-   *     responses:
-   *       200:
-   *         description: Bankroll updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       400:
-   *         description: Bad request - validation failed
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       404:
-   *         description: Player not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async updatePlayerBankroll(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -841,48 +328,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /players/{id}:
-   *   delete:
-   *     summary: Delete player by ID
-   *     description: Remove a player from the system
-   *     tags: [Players]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           format: uuid
-   *         description: Player's unique identifier
-   *     responses:
-   *       200:
-   *         description: Player deleted successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 message:
-   *                   type: string
-   *                   example: "Player deleted successfully"
-   *       400:
-   *         description: Bad request - player ID required
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ValidationError'
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
   async deletePlayer(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -909,35 +354,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/players/me:
-   *   get:
-   *     summary: Get current player profile
-   *     description: Retrieve the authenticated user's player profile
-   *     tags: [Players]
-   *     security:
-   *       - bearerAuth: []
-   *     responses:
-   *       200:
-   *         description: Player profile retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       401:
-   *         description: Unauthorized - authentication required
-   *       404:
-   *         description: Player profile not found
-   *       500:
-   *         description: Internal server error
-   */
   async getCurrentPlayer(
     req: AuthenticatedRequest,
     res: Response
@@ -966,35 +382,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/players/me/stats:
-   *   get:
-   *     summary: Get current player statistics
-   *     description: Retrieve statistics for the authenticated user's player
-   *     tags: [Players]
-   *     security:
-   *       - bearerAuth: []
-   *     responses:
-   *       200:
-   *         description: Player statistics retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/PlayerStats'
-   *       401:
-   *         description: Unauthorized - authentication required
-   *       404:
-   *         description: Player profile not found
-   *       500:
-   *         description: Internal server error
-   */
   async getCurrentPlayerStats(
     req: AuthenticatedRequest,
     res: Response
@@ -1030,41 +417,6 @@ export class PlayerController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/players/me/bankroll:
-   *   patch:
-   *     summary: Update current player's bankroll
-   *     description: Update the authenticated user's bankroll amount
-   *     tags: [Players]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/AddBankrollRequest'
-   *     responses:
-   *       200:
-   *         description: Bankroll updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   $ref: '#/components/schemas/Player'
-   *       401:
-   *         description: Unauthorized - authentication required
-   *       404:
-   *         description: Player profile not found
-   *       500:
-   *         description: Internal server error
-   */
   async updateCurrentPlayerBankroll(
     req: AuthenticatedRequest,
     res: Response

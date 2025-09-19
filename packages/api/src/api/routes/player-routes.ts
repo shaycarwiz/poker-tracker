@@ -15,13 +15,6 @@ import {
 const router = Router();
 const playerController = new PlayerController();
 
-/**
- * @swagger
- * tags:
- *   name: Players
- *   description: Player management endpoints
- */
-
 // Public routes (no authentication required)
 router.post(
   "/",
