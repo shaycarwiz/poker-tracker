@@ -152,3 +152,170 @@ export interface ErrorResponse {
   error: string;
   code: string;
 }
+
+// Session DTOs for TSOA
+export interface StartSessionRequest {
+  playerId: string;
+  location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  notes?: string;
+}
+
+export interface StartSessionResponse {
+  sessionId: string;
+  playerId: string;
+  location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  notes?: string;
+  status: string;
+  startedAt: Date;
+}
+
+export interface EndSessionRequest {
+  sessionId: string;
+  finalCashOut: {
+    amount: number;
+    currency: string;
+  };
+  notes?: string;
+}
+
+export interface EndSessionResponse {
+  sessionId: string;
+  playerId: string;
+  finalCashOut: {
+    amount: number;
+    currency: string;
+  };
+  profitLoss: {
+    amount: number;
+    currency: string;
+  };
+  duration: number; // in minutes
+  status: string;
+  endedAt: Date;
+}
+
+export interface AddTransactionRequest {
+  sessionId: string;
+  type: string;
+  amount: {
+    amount: number;
+    currency: string;
+  };
+  description?: string;
+}
+
+export interface AddTransactionResponse {
+  transactionId: string;
+  sessionId: string;
+  type: string;
+  amount: {
+    amount: number;
+    currency: string;
+  };
+  description?: string;
+  addedAt: Date;
+}
+
+export interface GetSessionResponse {
+  sessionId: string;
+  playerId: string;
+  location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  currentCashOut: {
+    amount: number;
+    currency: string;
+  };
+  profitLoss: {
+    amount: number;
+    currency: string;
+  };
+  status: string;
+  notes?: string;
+  transactions: {
+    id: string;
+    type: string;
+    amount: {
+      amount: number;
+      currency: string;
+    };
+    description?: string;
+    createdAt: Date;
+  }[];
+  startedAt: Date;
+  endedAt?: Date;
+  duration?: number; // in minutes
+}
+
+export interface ListSessionsRequest {
+  playerId?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export interface ListSessionsResponse {
+  sessions: GetSessionResponse[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UpdateSessionNotesRequest {
+  sessionId: string;
+  notes: string;
+}
+
+export interface UpdateSessionNotesResponse {
+  sessionId: string;
+  notes: string;
+  updatedAt: Date;
+}
+
+export interface CancelSessionRequest {
+  reason?: string;
+}
+
+export interface CancelSessionResponse {
+  sessionId: string;
+  playerId: string;
+  finalCashOut: {
+    amount: number;
+    currency: string;
+  };
+  profitLoss: {
+    amount: number;
+    currency: string;
+  };
+  duration: number; // in minutes
+  status: string;
+  endedAt: Date;
+  notes: string;
+}
