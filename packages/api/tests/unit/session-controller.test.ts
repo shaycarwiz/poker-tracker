@@ -1,5 +1,4 @@
-import { Request, Response } from "express";
-import { SessionController } from "@/api/controllers/session-controller";
+import { SessionController } from "@/api/controllers/SessionController";
 import { SessionService } from "@/application/services/session-service";
 import { config } from "@/infrastructure";
 
@@ -23,8 +22,6 @@ jest.mock("@/shared/utils/logger", () => ({
 describe("SessionController", () => {
   let sessionController: SessionController;
   let mockSessionService: jest.Mocked<SessionService>;
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
 
   beforeEach(() => {
     // Reset mocks
@@ -45,18 +42,6 @@ describe("SessionController", () => {
     container.services.sessions = mockSessionService;
 
     sessionController = new SessionController();
-
-    // Create mock request and response
-    mockRequest = {
-      body: {},
-      params: {},
-      query: {},
-    };
-
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-    };
   });
 
   describe("startSession", () => {
@@ -65,8 +50,9 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
-          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          smallBlind: 1,
+          bigBlind: 2,
+          currency: config.poker.defaultCurrency,
         },
         initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
         notes: "Test session",
@@ -87,27 +73,22 @@ describe("SessionController", () => {
         startedAt: new Date(),
       };
 
-      mockRequest.body = requestBody;
       mockSessionService.startSession.mockResolvedValue(mockSessionData);
 
-      await sessionController.startSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await sessionController.startSession(requestBody);
 
       expect(mockSessionService.startSession).toHaveBeenCalledWith({
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
-          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          smallBlind: 1,
+          bigBlind: 2,
           currency: config.poker.defaultCurrency,
         },
         initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
         notes: "Test session",
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockSessionData,
       });
@@ -115,23 +96,20 @@ describe("SessionController", () => {
 
     it("should return 400 for missing playerId", async () => {
       const requestBody = {
+        playerId: "",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
-          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          smallBlind: 1,
+          bigBlind: 2,
+          currency: config.poker.defaultCurrency,
         },
         initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.body = requestBody;
+      const result = await sessionController.startSession(requestBody);
 
-      await sessionController.startSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Player ID is required and must be a string",
       });
       expect(mockSessionService.startSession).not.toHaveBeenCalled();
@@ -140,22 +118,19 @@ describe("SessionController", () => {
     it("should return 400 for missing location", async () => {
       const requestBody = {
         playerId: "player-123",
+        location: "",
         stakes: {
-          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
-          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          smallBlind: 1,
+          bigBlind: 2,
+          currency: config.poker.defaultCurrency,
         },
         initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.body = requestBody;
+      const result = await sessionController.startSession(requestBody);
 
-      await sessionController.startSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Location is required and must be a string",
       });
       expect(mockSessionService.startSession).not.toHaveBeenCalled();
@@ -165,18 +140,14 @@ describe("SessionController", () => {
       const requestBody = {
         playerId: "player-123",
         location: "Casino Royale",
+        stakes: undefined as any,
         initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.body = requestBody;
+      const result = await sessionController.startSession(requestBody);
 
-      await sessionController.startSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Stakes with smallBlind and bigBlind are required",
       });
       expect(mockSessionService.startSession).not.toHaveBeenCalled();
@@ -187,21 +158,20 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
-          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          smallBlind: 1,
+          bigBlind: 2,
+          currency: config.poker.defaultCurrency,
         },
-        initialBuyIn: { currency: config.poker.defaultCurrency },
+        initialBuyIn: {
+          amount: undefined as any,
+          currency: config.poker.defaultCurrency,
+        },
       };
 
-      mockRequest.body = requestBody;
+      const result = await sessionController.startSession(requestBody);
 
-      await sessionController.startSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Initial buy-in amount is required and must be a number",
       });
       expect(mockSessionService.startSession).not.toHaveBeenCalled();
@@ -212,24 +182,21 @@ describe("SessionController", () => {
         playerId: "player-123",
         location: "Casino Royale",
         stakes: {
-          smallBlind: { amount: 1, currency: config.poker.defaultCurrency },
-          bigBlind: { amount: 2, currency: config.poker.defaultCurrency },
+          smallBlind: 1,
+          bigBlind: 2,
+          currency: config.poker.defaultCurrency,
         },
         initialBuyIn: { amount: 100, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.body = requestBody;
       mockSessionService.startSession.mockRejectedValue(
         new Error("Player not found")
       );
 
-      await sessionController.startSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await sessionController.startSession(requestBody);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to start session",
         message: "Player not found",
       });
@@ -254,22 +221,16 @@ describe("SessionController", () => {
         endedAt: new Date(),
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.endSession.mockResolvedValue(mockSessionData);
 
-      await sessionController.endSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await sessionController.endSession(sessionId, requestBody);
 
       expect(mockSessionService.endSession).toHaveBeenCalledWith({
         sessionId,
         finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
         notes: "Ended session",
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockSessionData,
       });
@@ -278,19 +239,16 @@ describe("SessionController", () => {
     it("should return 400 for missing finalCashOut amount", async () => {
       const sessionId = "session-123";
       const requestBody = {
-        finalCashOut: { currency: config.poker.defaultCurrency },
+        finalCashOut: {
+          amount: undefined as any,
+          currency: config.poker.defaultCurrency,
+        },
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
+      const result = await sessionController.endSession(sessionId, requestBody);
 
-      await sessionController.endSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Final cash out amount is required and must be a number",
       });
       expect(mockSessionService.endSession).not.toHaveBeenCalled();
@@ -302,17 +260,12 @@ describe("SessionController", () => {
         finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.endSession.mockRejectedValue(new Error("test error"));
 
-      await sessionController.endSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await sessionController.endSession(sessionId, requestBody);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to end session",
         message: "test error",
       });
@@ -337,13 +290,11 @@ describe("SessionController", () => {
         addedAt: new Date(),
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.addTransaction.mockResolvedValue(mockTransactionData);
 
-      await sessionController.addTransaction(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.addTransaction(
+        sessionId,
+        requestBody
       );
 
       expect(mockSessionService.addTransaction).toHaveBeenCalledWith({
@@ -352,8 +303,7 @@ describe("SessionController", () => {
         amount: { amount: 50, currency: config.poker.defaultCurrency },
         description: "Additional buy-in",
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockTransactionData,
       });
@@ -362,19 +312,17 @@ describe("SessionController", () => {
     it("should return 400 for missing type", async () => {
       const sessionId = "session-123";
       const requestBody = {
+        type: "",
         amount: { amount: 50, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
-
-      await sessionController.addTransaction(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.addTransaction(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Transaction type is required and must be a string",
       });
       expect(mockSessionService.addTransaction).not.toHaveBeenCalled();
@@ -384,18 +332,19 @@ describe("SessionController", () => {
       const sessionId = "session-123";
       const requestBody = {
         type: "BUY_IN",
+        amount: {
+          amount: undefined as any,
+          currency: config.poker.defaultCurrency,
+        },
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
-
-      await sessionController.addTransaction(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.addTransaction(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Amount is required and must be a number",
       });
       expect(mockSessionService.addTransaction).not.toHaveBeenCalled();
@@ -408,19 +357,17 @@ describe("SessionController", () => {
         amount: { amount: 50, currency: config.poker.defaultCurrency },
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.addTransaction.mockRejectedValue(
         new Error("Session not active")
       );
 
-      await sessionController.addTransaction(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.addTransaction(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to add transaction",
         message: "Session not active",
       });
@@ -450,17 +397,12 @@ describe("SessionController", () => {
         duration: undefined,
       };
 
-      mockRequest.params = { id: sessionId };
       mockSessionService.getSession.mockResolvedValue(mockSessionData);
 
-      await sessionController.getSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await sessionController.getSession(sessionId);
 
       expect(mockSessionService.getSession).toHaveBeenCalledWith(sessionId);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockSessionData,
       });
@@ -469,16 +411,12 @@ describe("SessionController", () => {
     it("should handle service errors", async () => {
       const sessionId = "session-123";
 
-      mockRequest.params = { id: sessionId };
       mockSessionService.getSession.mockRejectedValue(new Error("test error"));
 
-      await sessionController.getSession(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await sessionController.getSession(sessionId);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to get session",
         message: "test error",
       });
@@ -521,21 +459,24 @@ describe("SessionController", () => {
         limit: 10,
       };
 
-      mockRequest.query = { playerId, limit: "10", offset: "0" };
       mockSessionService.listSessions.mockResolvedValue(mockSessionData);
 
-      await sessionController.listSessions(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.listSessions(
+        playerId,
+        undefined,
+        1,
+        10
       );
 
       expect(mockSessionService.listSessions).toHaveBeenCalledWith({
         playerId,
-        limit: 10,
+        status: undefined,
         page: 1,
+        limit: 10,
+        startDate: undefined,
+        endDate: undefined,
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockSessionData,
       });
@@ -544,18 +485,19 @@ describe("SessionController", () => {
     it("should handle service errors", async () => {
       const playerId = "player-123";
 
-      mockRequest.query = { playerId };
       mockSessionService.listSessions.mockRejectedValue(
         new Error("Database error")
       );
 
-      await sessionController.listSessions(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.listSessions(
+        playerId,
+        undefined,
+        1,
+        10
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to list sessions",
         message: "Database error",
       });
@@ -579,13 +521,11 @@ describe("SessionController", () => {
         endedAt: new Date(),
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.endSession.mockResolvedValue(mockSessionData);
 
-      await sessionController.cancelSession(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.cancelSession(
+        sessionId,
+        requestBody
       );
 
       expect(mockSessionService.endSession).toHaveBeenCalledWith({
@@ -593,8 +533,7 @@ describe("SessionController", () => {
         finalCashOut: { amount: 0, currency: config.poker.defaultCurrency },
         notes: "Emergency",
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockSessionData,
       });
@@ -606,17 +545,15 @@ describe("SessionController", () => {
         reason: "Emergency",
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.endSession.mockRejectedValue(new Error("test error"));
 
-      await sessionController.cancelSession(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.cancelSession(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to cancel session",
         message: "test error",
       });
@@ -636,21 +573,18 @@ describe("SessionController", () => {
         updatedAt: new Date(),
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.updateSessionNotes.mockResolvedValue(mockResponseData);
 
-      await sessionController.updateSessionNotes(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.updateSessionNotes(
+        sessionId,
+        requestBody
       );
 
       expect(mockSessionService.updateSessionNotes).toHaveBeenCalledWith({
         sessionId,
         notes: "Updated notes",
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockResponseData,
       });
@@ -658,18 +592,15 @@ describe("SessionController", () => {
 
     it("should return 400 for missing notes", async () => {
       const sessionId = "session-123";
-      const requestBody = {};
+      const requestBody = { notes: "" };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
-
-      await sessionController.updateSessionNotes(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.updateSessionNotes(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Notes are required and must be a string",
       });
       expect(mockSessionService.updateSessionNotes).not.toHaveBeenCalled();
@@ -678,19 +609,16 @@ describe("SessionController", () => {
     it("should return 400 for invalid notes type", async () => {
       const sessionId = "session-123";
       const requestBody = {
-        notes: 123,
+        notes: 123 as any,
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
-
-      await sessionController.updateSessionNotes(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.updateSessionNotes(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Notes are required and must be a string",
       });
       expect(mockSessionService.updateSessionNotes).not.toHaveBeenCalled();
@@ -702,19 +630,17 @@ describe("SessionController", () => {
         notes: "Updated notes",
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.updateSessionNotes.mockRejectedValue(
         new Error("Session not found")
       );
 
-      await sessionController.updateSessionNotes(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.updateSessionNotes(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Session not found",
       });
     });
@@ -725,19 +651,17 @@ describe("SessionController", () => {
         notes: "Updated notes",
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.updateSessionNotes.mockRejectedValue(
         new Error("Session is not active")
       );
 
-      await sessionController.updateSessionNotes(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.updateSessionNotes(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Session is not active",
       });
     });
@@ -748,19 +672,17 @@ describe("SessionController", () => {
         notes: "Updated notes",
       };
 
-      mockRequest.params = { id: sessionId };
-      mockRequest.body = requestBody;
       mockSessionService.updateSessionNotes.mockRejectedValue(
         new Error("Database error")
       );
 
-      await sessionController.updateSessionNotes(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await sessionController.updateSessionNotes(
+        sessionId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to update session notes",
         message: "Database error",
       });
