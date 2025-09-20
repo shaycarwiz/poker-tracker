@@ -18,7 +18,9 @@
     "jest.runMode": "on-demand",
     "jest.pathToJest": "npm test --workspace=@poker-tracker/api",
     "typescript.preferences.includePackageJsonAutoImports": "on",
-    "typescript.suggest.autoImports": true
+    "typescript.suggest.autoImports": true,
+    "npm.packageManager": "npm",
+    "npm.scriptExplorerAction": "run"
   },
   "extensions": {
     "recommendations": [
@@ -27,4 +29,3 @@
     ]
   }
 }
-
