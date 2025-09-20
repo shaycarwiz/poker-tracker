@@ -1,5 +1,6 @@
 // Player application service - Orchestrates use cases
 
+import { injectable, inject } from "tsyringe";
 import { UnitOfWork } from "@/model/repositories";
 import {
   AddBankrollUseCase,
@@ -20,6 +21,7 @@ import {
   UpdatePlayerResponse,
 } from "../dto/player-dto";
 
+@injectable()
 export class PlayerService {
   private createPlayerUseCase: CreatePlayerUseCase;
   private updatePlayerUseCase: UpdatePlayerUseCase;
@@ -28,7 +30,7 @@ export class PlayerService {
   private listPlayersUseCase: ListPlayersUseCase;
   private addBankrollUseCase: AddBankrollUseCase;
 
-  constructor(unitOfWork: UnitOfWork) {
+  constructor(@inject("UnitOfWork") unitOfWork: UnitOfWork) {
     this.createPlayerUseCase = new CreatePlayerUseCase(unitOfWork);
     this.updatePlayerUseCase = new UpdatePlayerUseCase(unitOfWork);
     this.getPlayerUseCase = new GetPlayerUseCase(unitOfWork);

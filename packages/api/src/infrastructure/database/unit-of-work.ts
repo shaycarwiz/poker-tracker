@@ -1,5 +1,6 @@
 // Unit of Work implementation for managing database transactions
 
+import { injectable } from "tsyringe";
 import { UnitOfWork } from "@/model/repositories";
 import { PostgresPlayerRepository } from "./repositories/player-repository";
 import { PostgresSessionRepository } from "./repositories/session-repository";
@@ -8,6 +9,7 @@ import { DatabaseConnection } from "./connection";
 import { logger } from "@/shared/utils/logger";
 import { PoolClient } from "pg";
 
+@injectable()
 export class PostgresUnitOfWork implements UnitOfWork {
   public readonly players: PostgresPlayerRepository;
   public readonly sessions: PostgresSessionRepository;

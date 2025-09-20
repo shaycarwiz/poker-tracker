@@ -1,5 +1,6 @@
 // PostgreSQL implementation of TransactionRepository
 
+import { injectable } from "tsyringe";
 import {
   PlayerId,
   SessionId,
@@ -13,6 +14,7 @@ import { logger } from "@/shared/utils/logger";
 import { TransactionFilters } from "@/model";
 import { TransactionRow } from "../types";
 
+@injectable()
 export class PostgresTransactionRepository implements TransactionRepository {
   private db = DatabaseConnection.getInstance();
 

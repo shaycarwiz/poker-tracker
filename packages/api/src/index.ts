@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -11,13 +12,15 @@ import { notFoundHandler } from "./api/middleware/notFoundHandler";
 import { logger } from "./shared/utils/logger";
 import { config } from "./infrastructure/config";
 import { container } from "./infrastructure/container";
-import { setupSwagger } from "./infrastructure/config/swagger";
-
+import { diContainer } from "./infrastructure/di-container";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../build/swagger.json";
 // Load environment variables
 dotenv.config();
 
 // Initialize event handlers
 container.initializeEventHandlers();
+diContainer.initializeEventHandlers();
 
 const app = express();
 const PORT = config.port || 3000;
@@ -59,12 +62,24 @@ app.get("/health", (_, res) => {
   });
 });
 
-// API routes
-import { apiRoutes } from "./api/routes";
-app.use(apiRoutes);
+import path from "path";
 
-// Setup Swagger documentation
-setupSwagger(app);
+// Create a separate router for TSOA routes and mount with basePath
+
+// Swagger UI setup
+app.use(
+  "/swagger.json",
+  express.static(path.join(__dirname, "../build/swagger.json"))
+);
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    explorer: true,
+    // customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Poker Tracker API Documentation",
+  })
+);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);

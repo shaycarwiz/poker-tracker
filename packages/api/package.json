@@ -4,9 +4,9 @@
   "description": "A comprehensive poker tracking application with statistics and analytics",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run tsoa:gen && tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "dev": "npm run tsoa:gen && ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -25,7 +25,10 @@
     "check:all": "npm run type-check && npm run lint:check && npm test",
     "pre-commit": "npm run lint:staged && npm run type-check",
     "docs:serve": "npm run dev",
-    "docs:build": "npm run build"
+    "docs:build": "npm run build",
+    "tsoa:routes": "tsoa routes",
+    "tsoa:spec": "tsoa spec",
+    "tsoa:gen": "tsoa routes && tsoa spec"
   },
   "keywords": [
     "poker",
@@ -39,6 +42,8 @@
   "license": "MIT",
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -49,8 +54,10 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
-    "swagger-jsdoc": "^6.2.8",
+    "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
+    "tsoa": "^6.6.0",
+    "tsyringe": "^4.10.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {
@@ -62,8 +69,6 @@
     "@types/node": "^20.10.5",
     "@types/pg": "^8.10.9",
     "@types/supertest": "^6.0.3",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.55.0",

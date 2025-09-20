@@ -1,5 +1,6 @@
 // PostgreSQL implementation of SessionRepository
 
+import { injectable } from "tsyringe";
 import { PlayerId, Session, SessionId, Transaction } from "@/model/entities";
 import { SessionRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
@@ -10,6 +11,7 @@ import { SessionStatus } from "@/model/enums";
 import { SessionFilters } from "@/model/types";
 import { SessionRow, TransactionRow } from "../types";
 
+@injectable()
 export class PostgresSessionRepository implements SessionRepository {
   private db = DatabaseConnection.getInstance();
 

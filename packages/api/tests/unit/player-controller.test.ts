@@ -1,5 +1,4 @@
-import { Request, Response } from "express";
-import { PlayerController } from "@/api/controllers/player-controller";
+import { PlayerController } from "@/api/controllers/PlayerController";
 import { PlayerService } from "@/application/services/player-service";
 import { config } from "@/infrastructure";
 
@@ -23,8 +22,6 @@ jest.mock("@/shared/utils/logger", () => ({
 describe("PlayerController", () => {
   let playerController: PlayerController;
   let mockPlayerService: jest.Mocked<PlayerService>;
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
 
   beforeEach(() => {
     // Reset mocks
@@ -44,18 +41,6 @@ describe("PlayerController", () => {
     container.services.players = mockPlayerService;
 
     playerController = new PlayerController();
-
-    // Create mock request and response
-    mockRequest = {
-      body: {},
-      params: {},
-      query: {},
-    };
-
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-    };
   });
 
   describe("createPlayer", () => {
@@ -80,13 +65,9 @@ describe("PlayerController", () => {
         createdAt: new Date(),
       };
 
-      mockRequest.body = requestBody;
       mockPlayerService.createPlayer.mockResolvedValue(mockServiceResponse);
 
-      await playerController.createPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.createPlayer(requestBody);
 
       expect(mockPlayerService.createPlayer).toHaveBeenCalledWith({
         name: "John Doe",
@@ -96,8 +77,7 @@ describe("PlayerController", () => {
           currency: "USD",
         },
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
@@ -118,13 +98,9 @@ describe("PlayerController", () => {
         createdAt: new Date(),
       };
 
-      mockRequest.body = requestBody;
       mockPlayerService.createPlayer.mockResolvedValue(mockServiceResponse);
 
-      await playerController.createPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.createPlayer(requestBody);
 
       expect(mockPlayerService.createPlayer).toHaveBeenCalledWith({
         name: "Jane Doe",
@@ -134,8 +110,7 @@ describe("PlayerController", () => {
           currency: config.poker.defaultCurrency,
         },
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
@@ -143,18 +118,14 @@ describe("PlayerController", () => {
 
     it("should return 400 for missing name", async () => {
       const requestBody = {
+        name: "",
         email: "john@example.com",
       };
 
-      mockRequest.body = requestBody;
+      const result = await playerController.createPlayer(requestBody);
 
-      await playerController.createPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Name is required and must be a string",
       });
       expect(mockPlayerService.createPlayer).not.toHaveBeenCalled();
@@ -162,19 +133,14 @@ describe("PlayerController", () => {
 
     it("should return 400 for non-string name", async () => {
       const requestBody = {
-        name: 123,
+        name: 123 as any,
         email: "john@example.com",
       };
 
-      mockRequest.body = requestBody;
+      const result = await playerController.createPlayer(requestBody);
 
-      await playerController.createPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Name is required and must be a string",
       });
       expect(mockPlayerService.createPlayer).not.toHaveBeenCalled();
@@ -186,18 +152,14 @@ describe("PlayerController", () => {
         email: "john@example.com",
       };
 
-      mockRequest.body = requestBody;
       mockPlayerService.createPlayer.mockRejectedValue(
         new Error("Player with this email already exists")
       );
 
-      await playerController.createPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.createPlayer(requestBody);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to create player",
         message: "Player with this email already exists",
       });
@@ -225,16 +187,12 @@ describe("PlayerController", () => {
         updatedAt: new Date(),
       };
 
-      mockRequest.params = { id: playerId };
       mockPlayerService.getPlayer.mockResolvedValue(mockServiceResponse);
 
-      await playerController.getPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.getPlayer(playerId);
 
       expect(mockPlayerService.getPlayer).toHaveBeenCalledWith(playerId);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
@@ -243,18 +201,14 @@ describe("PlayerController", () => {
     it("should handle player not found", async () => {
       const playerId = "player-123";
 
-      mockRequest.params = { id: playerId };
       mockPlayerService.getPlayer.mockRejectedValue(
         new Error("Player not found")
       );
 
-      await playerController.getPlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.getPlayer(playerId);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Player not found",
       });
     });
@@ -279,21 +233,16 @@ describe("PlayerController", () => {
         updatedAt: new Date(),
       };
 
-      mockRequest.params = { id: playerId };
-      mockRequest.body = requestBody;
       mockPlayerService.updatePlayer.mockResolvedValue(mockServiceResponse);
 
-      await playerController.updatePlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.updatePlayer(playerId, requestBody);
 
       expect(mockPlayerService.updatePlayer).toHaveBeenCalledWith({
         id: playerId,
         name: "John Updated",
         email: "john.updated@example.com",
       });
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
@@ -305,19 +254,14 @@ describe("PlayerController", () => {
         name: "John Updated",
       };
 
-      mockRequest.params = { id: playerId };
-      mockRequest.body = requestBody;
       mockPlayerService.updatePlayer.mockRejectedValue(
         new Error("Player not found")
       );
 
-      await playerController.updatePlayer(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.updatePlayer(playerId, requestBody);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Player not found",
       });
     });
@@ -350,34 +294,26 @@ describe("PlayerController", () => {
         limit: 10,
       };
 
-      mockRequest.query = { limit: "10", page: "1" };
       mockPlayerService.getAllPlayers.mockResolvedValue(mockServiceResponse);
 
-      await playerController.getAllPlayers(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.getAllPlayers(1, 10);
 
       expect(mockPlayerService.getAllPlayers).toHaveBeenCalledWith(1, 10);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
     });
 
     it("should handle list players errors", async () => {
-      mockRequest.query = {};
       mockPlayerService.getAllPlayers.mockRejectedValue(
         new Error("Database error")
       );
 
-      await playerController.getAllPlayers(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      const result = await playerController.getAllPlayers(1, 10);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Failed to get players",
         message: "Database error",
       });
@@ -405,13 +341,11 @@ describe("PlayerController", () => {
         addedAt: new Date(),
       };
 
-      mockRequest.params = { id: playerId };
-      mockRequest.body = requestBody;
       mockPlayerService.addToBankroll.mockResolvedValue(mockServiceResponse);
 
-      await playerController.addToBankroll(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await playerController.addToBankroll(
+        playerId,
+        requestBody
       );
 
       expect(mockPlayerService.addToBankroll).toHaveBeenCalledWith({
@@ -422,7 +356,7 @@ describe("PlayerController", () => {
         },
         reason: undefined,
       });
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
@@ -431,19 +365,17 @@ describe("PlayerController", () => {
     it("should return 400 for missing amount", async () => {
       const playerId = "player-123";
       const requestBody = {
+        amount: undefined as any,
         currency: config.poker.defaultCurrency,
       };
 
-      mockRequest.params = { id: playerId };
-      mockRequest.body = requestBody;
-
-      await playerController.addToBankroll(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await playerController.addToBankroll(
+        playerId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Amount is required and must be a number",
       });
       expect(mockPlayerService.addToBankroll).not.toHaveBeenCalled();
@@ -452,20 +384,17 @@ describe("PlayerController", () => {
     it("should return 400 for non-number amount", async () => {
       const playerId = "player-123";
       const requestBody = {
-        amount: "invalid",
+        amount: "invalid" as any,
         currency: config.poker.defaultCurrency,
       };
 
-      mockRequest.params = { id: playerId };
-      mockRequest.body = requestBody;
-
-      await playerController.addToBankroll(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await playerController.addToBankroll(
+        playerId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Amount is required and must be a number",
       });
       expect(mockPlayerService.addToBankroll).not.toHaveBeenCalled();
@@ -478,19 +407,17 @@ describe("PlayerController", () => {
         currency: config.poker.defaultCurrency,
       };
 
-      mockRequest.params = { id: playerId };
-      mockRequest.body = requestBody;
       mockPlayerService.addToBankroll.mockRejectedValue(
         new Error("Player not found")
       );
 
-      await playerController.addToBankroll(
-        mockRequest as Request,
-        mockResponse as Response
+      const result = await playerController.addToBankroll(
+        playerId,
+        requestBody
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(result).toEqual({
+        success: false,
         error: "Player not found",
       });
     });
