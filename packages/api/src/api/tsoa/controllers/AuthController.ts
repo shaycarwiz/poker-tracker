@@ -14,44 +14,12 @@ import { JWTService } from "@/shared/utils/jwt";
 import { PlayerRepository } from "@/model/repositories";
 import { Player } from "@/model/entities";
 import logger from "@/shared/utils/logger";
-
-// DTOs for TSOA
-export interface LoginRequest {
-  googleId: string;
-  email: string;
-  name: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    currentBankroll: number;
-    totalSessions: number;
-  };
-}
-
-export interface ProfileResponse {
-  id: string;
-  name: string;
-  email: string;
-  currentBankroll: number;
-  totalSessions: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface UpdateProfileRequest {
-  name?: string;
-  email?: string;
-}
-
-export interface ErrorResponse {
-  error: string;
-  code: string;
-}
+import {
+  LoginRequest,
+  LoginResponse,
+  ProfileResponse,
+  UpdateProfileRequest,
+} from "../types";
 
 /**
  * Authentication Controller

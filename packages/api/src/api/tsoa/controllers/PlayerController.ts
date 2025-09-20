@@ -18,114 +18,22 @@ import { container } from "@/infrastructure/container";
 import { logger } from "@/shared/utils/logger";
 import { config } from "@/infrastructure/config";
 import { AuthenticatedRequest } from "@/api/middleware/auth";
-// Response models for TSOA
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
-// TSOA Request DTOs
-export interface CreatePlayerRequest {
-  name: string;
-  email?: string;
-  initialBankroll?: {
-    amount: number;
-    currency: string;
-  };
-}
-
-export interface UpdatePlayerRequest {
-  id: string;
-  name?: string;
-  email?: string;
-}
-
-export interface AddBankrollRequest {
-  playerId: string;
-  amount: {
-    amount: number;
-    currency: string;
-  };
-  reason?: string;
-}
-
-// TSOA Response DTOs
-export interface CreatePlayerResponse {
-  id: string;
-  name: string;
-  email?: string | undefined;
-  bankroll: {
-    amount: number;
-    currency: string;
-  };
-  createdAt: Date;
-}
-
-export interface GetPlayerResponse {
-  id: string;
-  name: string;
-  email?: string | undefined;
-  bankroll: {
-    amount: number;
-    currency: string;
-  };
-  totalSessions: number;
-  totalWinnings: {
-    amount: number;
-    currency: string;
-  };
-  winRate: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface UpdatePlayerResponse {
-  id: string;
-  name: string;
-  email?: string | undefined;
-  bankroll: {
-    amount: number;
-    currency: string;
-  };
-  updatedAt: Date;
-}
-
-export interface ListPlayersResponse {
-  players: GetPlayerResponse[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface AddBankrollResponse {
-  playerId: string;
-  newBankroll: {
-    amount: number;
-    currency: string;
-  };
-  addedAmount: {
-    amount: number;
-    currency: string;
-  };
-  addedAt: Date;
-}
-
-export interface PlayerStatsResponse {
-  playerId: string;
-  totalSessions: number;
-  totalWinnings: number;
-  winRate: number;
-  averageSession: number;
-}
-
-export interface SearchPlayersResponse {
-  players: GetPlayerResponse[];
-  total: number;
-  page: number;
-  limit: number;
-}
+import {
+  // Request DTOs
+  CreatePlayerRequest,
+  UpdatePlayerRequest,
+  AddBankrollRequest,
+  // Response DTOs
+  CreatePlayerResponse,
+  GetPlayerResponse,
+  UpdatePlayerResponse,
+  ListPlayersResponse,
+  AddBankrollResponse,
+  // Common types
+  ApiResponse,
+  PlayerStatsResponse,
+  SearchPlayersResponse,
+} from "../types";
 
 @Route("players")
 @Tags("Players")
