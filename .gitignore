@@ -155,3 +155,6 @@ build/
 # Docker
 .env.docker
 docker-compose.override.yml
+
+# TSOA auto-generated files
+packages/api/src/api/routes/routes.ts
