@@ -1,125 +1,115 @@
-# TODO List
+# E2E Test Scenarios for Poker Tracker
 
-## Security Issues
+## **E2E Test Scenarios for Poker Tracker**
 
-### 🚨 CRITICAL: Google OAuth Security Vulnerability
+### **1. User Authentication & Onboarding Flow**
 
-**Priority:** High  
-**Status:** In Progress  
-**Assigned:** Development Team
+- **Scenario**: New user signs up and creates their first player profile
+- **Steps**:
+  1. User visits the web app
+  2. Clicks "Sign In with Google"
+  3. Completes Google OAuth flow
+  4. System creates user account and player profile
+  5. User is redirected to dashboard
+  6. Verify user can see their profile information
 
-**Issue:** The API's `/auth/login` endpoint accepts any Google ID, email, and name without verifying that these credentials actually came from Google's OAuth service.
+### **2. Complete Poker Session Lifecycle**
 
-**Impact:**
+- **Scenario**: User starts, manages, and ends a poker session
+- **Steps**:
+  1. User logs in successfully
+  2. Navigates to "Start New Session"
+  3. Fills out session form (location, stakes, initial buy-in)
+  4. Starts the session
+  5. Adds transactions during the session (rebuys, cash-outs)
+  6. Updates session notes
+  7. Ends the session
+  8. Verifies session appears in session history
+  9. Verifies bankroll is updated correctly
 
-- Anyone can create fake user accounts by calling the API directly
-- Unauthorized access to the system
-- Data integrity issues
+### **3. Multi-Session Tracking & Analytics**
 
-**Root Cause:**
+- **Scenario**: User tracks multiple sessions and views performance analytics
+- **Steps**:
+  1. User creates and completes 3-4 different poker sessions
+  2. Sessions have different outcomes (winning, losing, break-even)
+  3. User navigates to analytics/stats page
+  4. Verifies session history shows all sessions
+  5. Verifies profit/loss calculations are correct
+  6. Verifies win rate and other statistics are accurate
+  7. Verifies bankroll tracking across sessions
 
-1. No Google Token Verification - API doesn't verify the Google OAuth token
-2. Trusts Client Data - API blindly trusts whatever the client sends
-3. Missing Server-Side Validation - No verification that the `googleId` corresponds to a real Google user
+### **4. Bankroll Management**
 
-**Steps to Reproduce:**
+- **Scenario**: User manages their bankroll across multiple sessions
+- **Steps**:
+  1. User starts with initial bankroll (e.g., $1000)
+  2. Plays multiple sessions with different buy-ins
+  3. Updates bankroll manually when needed
+  4. Verifies bankroll calculations are consistent
+  5. Verifies bankroll updates reflect in all relevant views
 
-```bash
-curl -X POST http://localhost:4000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "googleId": "fake-google-id-123",
-    "email": "fake@example.com",
-    "name": "Fake User"
-  }'
-```
+### **5. Session Management & Error Handling**
 
-**Solution Required:**
+- **Scenario**: User handles various session management scenarios
+- **Steps**:
+  1. User starts a session but cancels it before playing
+  2. User starts a session, adds transactions, then cancels
+  3. User tries to start a session with invalid data
+  4. User tries to access another user's session data
+  5. Verifies proper error messages and data protection
 
-- [ ] Add Google OAuth token verification server-side
-- [ ] Validate Google ID against Google's user info endpoint
-- [ ] Only accept authenticated Google users
-- [ ] Add proper error handling for invalid tokens
+### **6. Data Persistence & Recovery**
 
-**Files Affected:**
+- **Scenario**: User data persists across browser sessions and refreshes
+- **Steps**:
+  1. User logs in and creates sessions
+  2. User refreshes the page
+  3. User closes browser and reopens
+  4. User logs in again
+  5. Verifies all previous data is still available
+  6. Verifies session state is maintained correctly
 
-- `packages/api/src/api/tsoa/controllers/AuthController.ts`
-- `packages/web/src/lib/auth.ts`
-- Need to add Google OAuth verification service
+### **7. Cross-Platform API Integration**
 
----
+- **Scenario**: Web app properly integrates with backend API
+- **Steps**:
+  1. User performs actions in web app
+  2. Verify API calls are made correctly
+  3. Verify API responses are handled properly
+  4. Verify error states from API are displayed correctly
+  5. Verify authentication tokens are managed correctly
 
-## Features
+### **8. Performance & Load Testing**
 
-### Add Google OAuth Token Verification
+- **Scenario**: System handles multiple concurrent users
+- **Steps**:
+  1. Multiple users log in simultaneously
+  2. Users create and manage sessions concurrently
+  3. Users view analytics with large datasets
+  4. Verify system performance remains acceptable
+  5. Verify no data corruption occurs
 
-**Priority:** High  
-**Status:** Pending
+### **9. Security & Authorization**
 
-**Description:** Implement proper Google OAuth token verification to ensure only legitimate Google users can authenticate.
+- **Scenario**: User access is properly restricted and secure
+- **Steps**:
+  1. User logs in and accesses their data
+  2. User tries to access another user's data via URL manipulation
+  3. User's session expires and they try to perform actions
+  4. User logs out and tries to access protected pages
+  5. Verify proper access control and error handling
 
-**Tasks:**
+### **10. Mobile Responsiveness**
 
-- [ ] Create Google OAuth verification service
-- [ ] Update AuthController to verify Google tokens
-- [ ] Add proper error handling
-- [ ] Write unit tests for verification logic
-- [ ] Update API documentation
-
----
-
-## Bug Fixes
-
-### Fix Authentication Flow
-
-**Priority:** High  
-**Status:** Pending
-
-**Description:** The current authentication flow has a security vulnerability where unauthenticated Google IDs can login.
-
-**Tasks:**
-
-- [ ] Investigate current Google OAuth implementation
-- [ ] Implement proper validation
-- [ ] Test authentication flow
-- [ ] Update security documentation
-
----
-
-## Technical Debt
-
-### Improve Error Handling
-
-**Priority:** Medium  
-**Status:** Pending
-
-**Description:** Add better error handling and logging throughout the authentication system.
-
-**Tasks:**
-
-- [ ] Add comprehensive error logging
-- [ ] Improve error messages for users
-- [ ] Add monitoring and alerting
-- [ ] Update error documentation
-
----
-
-## Documentation
-
-### Update Security Documentation
-
-**Priority:** Medium  
-**Status:** Pending
-
-**Description:** Update security documentation to reflect proper OAuth implementation.
-
-**Tasks:**
-
-- [ ] Update GOOGLE_OAUTH_SETUP.md
-- [ ] Add security best practices
-- [ ] Document token verification process
-- [ ] Add troubleshooting guide for OAuth issues
+- **Scenario**: Application works correctly on mobile devices
+- **Steps**:
+  1. User accesses app on mobile browser
+  2. User performs all major functions on mobile
+  3. User views analytics and reports on mobile
+  4. Verify UI is responsive and functional
+  5. Verify touch interactions work properly
 
 ---
 
-_Last Updated: $(date)_
+These scenarios cover the core functionality of your poker tracker application, including authentication, session management, data persistence, analytics, security, and cross-platform compatibility. Each scenario tests multiple components working together in realistic user workflows.
