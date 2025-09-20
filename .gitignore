@@ -151,3 +151,7 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+
+# Docker
+.env.docker
+docker-compose.override.yml
