@@ -62,12 +62,7 @@ app.get("/health", (_, res) => {
   });
 });
 
-// API routes
-import { apiRoutes } from "./api/routes";
-
 import path from "path";
-
-app.use(apiRoutes);
 
 // Create a separate router for TSOA routes and mount with basePath
 

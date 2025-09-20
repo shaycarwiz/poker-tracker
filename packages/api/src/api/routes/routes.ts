@@ -13,7 +13,7 @@ import { PlayerController } from './../controllers/PlayerController';
 import { AuthController } from './../controllers/AuthController';
 import { expressAuthentication } from './../authentication';
 // @ts-ignore - no great way to install types from subpackage
-import { iocContainer } from './../tsoa-container';
+import { iocContainer } from './../container';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';
 

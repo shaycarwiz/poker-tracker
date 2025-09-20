@@ -1,7 +1,7 @@
 // src/authentication.ts
 import type { Request } from "express";
 import jwt from "jsonwebtoken";
-import { logger } from "../../shared/utils/logger";
+import { logger } from "@/shared/utils/logger";
 
 export async function expressAuthentication(
   request: Request,
