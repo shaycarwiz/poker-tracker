@@ -1,4 +1,5 @@
 import { config } from "dotenv";
+import "reflect-metadata";
 
 // Load test environment variables
 config({ path: ".env.test" });
