@@ -2,12 +2,13 @@
 import "reflect-metadata";
 import { diContainer } from "@/infrastructure/di-container";
 import { AuthController } from "./controllers/AuthController";
-import { UserController } from "./controllers/UserController";
+
 import { TestController } from "./controllers/TestController";
+import { PlayerController } from "./controllers/PlayerController";
 
 // Register TSOA controllers in the DI container
 diContainer.container.registerSingleton(AuthController, AuthController);
-diContainer.container.registerSingleton(UserController, UserController);
+diContainer.container.registerSingleton(PlayerController, PlayerController);
 diContainer.container.registerSingleton(TestController, TestController);
 
 // TSOA container resolver function
