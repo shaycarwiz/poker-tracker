@@ -1,4 +1,4 @@
-import api from "../api";
+import apiClient, { playerApi, sessionApi, statisticsApi } from "../api-client";
 
 // Mock axios
 jest.mock("axios", () => ({
@@ -6,6 +6,7 @@ jest.mock("axios", () => ({
     get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
+    patch: jest.fn(),
     delete: jest.fn(),
     interceptors: {
       request: { use: jest.fn() },
@@ -14,25 +15,53 @@ jest.mock("axios", () => ({
   })),
 }));
 
+// Mock next-auth
+jest.mock("next-auth/react", () => ({
+  getSession: jest.fn(() => Promise.resolve({ backendToken: "mock-token" })),
+}));
+
 describe("API Client", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("should be defined", () => {
-    expect(api).toBeDefined();
+    expect(apiClient).toBeDefined();
   });
 
   it("should have axios instance", () => {
-    expect(api).toHaveProperty("get");
-    expect(api).toHaveProperty("post");
-    expect(api).toHaveProperty("put");
-    expect(api).toHaveProperty("delete");
+    expect(apiClient).toHaveProperty("get");
+    expect(apiClient).toHaveProperty("post");
+    expect(apiClient).toHaveProperty("put");
+    expect(apiClient).toHaveProperty("patch");
+    expect(apiClient).toHaveProperty("delete");
   });
 
   it("should have request and response interceptors", () => {
-    expect(api.interceptors).toBeDefined();
-    expect(api.interceptors.request).toBeDefined();
-    expect(api.interceptors.response).toBeDefined();
+    expect(apiClient.interceptors).toBeDefined();
+    expect(apiClient.interceptors.request).toBeDefined();
+    expect(apiClient.interceptors.response).toBeDefined();
+  });
+
+  it("should export playerApi", () => {
+    expect(playerApi).toBeDefined();
+    expect(playerApi.getMe).toBeDefined();
+    expect(playerApi.getStats).toBeDefined();
+    expect(playerApi.updateBankroll).toBeDefined();
+  });
+
+  it("should export sessionApi", () => {
+    expect(sessionApi).toBeDefined();
+    expect(sessionApi.getAll).toBeDefined();
+    expect(sessionApi.getById).toBeDefined();
+    expect(sessionApi.create).toBeDefined();
+    expect(sessionApi.update).toBeDefined();
+    expect(sessionApi.delete).toBeDefined();
+  });
+
+  it("should export statisticsApi", () => {
+    expect(statisticsApi).toBeDefined();
+    expect(statisticsApi.getOverall).toBeDefined();
+    expect(statisticsApi.getMonthly).toBeDefined();
   });
 });

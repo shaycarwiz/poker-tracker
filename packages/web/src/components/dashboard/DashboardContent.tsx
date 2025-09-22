@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { QuickActions } from './QuickActions';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { playerApi } from '@/lib/api-client';
 
 interface PlayerData {
   id: string;
@@ -64,9 +65,7 @@ export function DashboardContent() {
 }
 
 const fetchMe = async () => {
-  const response = await fetch('/api/players/me');
-  const data = await response.json();
-  return data;
+  return await playerApi.getMe();
 };
 
 const useDashboardData = () => {
