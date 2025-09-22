@@ -29,7 +29,10 @@ export async function expressAuthentication(
         throw error;
       }
 
-      const decoded = jwt.verify(token, secret) as any;
+      const decoded = jwt.verify(token, secret, {
+        issuer: "poker-tracker-api",
+        audience: "poker-tracker-web",
+      }) as any;
 
       // Return user information from the JWT payload
       return {
