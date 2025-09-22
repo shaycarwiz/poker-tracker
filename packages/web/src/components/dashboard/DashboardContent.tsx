@@ -2,10 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { StatsCards } from './StatsCards';
-import { RecentSessions } from './RecentSessions';
 import { QuickActions } from './QuickActions';
-import { PerformanceCharts } from './PerformanceCharts';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 
@@ -27,46 +24,8 @@ interface PlayerData {
   updatedAt: string;
 }
 
-interface PlayerStats {
-  playerId: string;
-  totalSessions: number;
-  totalWinnings: number;
-  winRate: number;
-  averageSession: number;
-}
-
-interface Session {
-  sessionId: string;
-  playerId: string;
-  location: string;
-  stakes: {
-    smallBlind: number;
-    bigBlind: number;
-    currency: string;
-  };
-  initialBuyIn: {
-    amount: number;
-    currency: string;
-  };
-  currentCashOut?: {
-    amount: number;
-    currency: string;
-  };
-  profitLoss: {
-    amount: number;
-    currency: string;
-  };
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  transactions: any[];
-  startedAt: string;
-  endedAt?: string;
-  duration?: number;
-}
-
 export function DashboardContent() {
-  const { playerData, playerStats, recentSessions, loading, error } =
-    useDashboardData();
+  const { playerData, loading, error } = useDashboardData();
 
   if (loading) {
     return (
@@ -96,56 +55,23 @@ export function DashboardContent() {
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="mb-8">
-        <StatsCards playerData={playerData} playerStats={playerStats} />
-      </div>
-
       {/* Quick Actions */}
       <div className="mb-8">
         <QuickActions />
       </div>
-
-      {/* Recent Sessions and Charts */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <RecentSessions sessions={recentSessions} />
-        <PerformanceCharts
-          sessions={recentSessions}
-          playerStats={playerStats}
-        />
-      </div>
     </div>
   );
 }
-const emptyPromise = () => new Promise<Response>(() => ({ ok: false }));
 
-const fetchMe = async () => await fetch('/api/players/me');
-const fetchMeStats = emptyPromise; //async () => await fetch('/api/players/me/stats');
-const fetchMeSessions = emptyPromise; // async () => await fetch('/api/sessions/player/me');
-
-const fetchData = async () => {
-  const [playerResponse, statsResponse, sessionsResponse] = await Promise.all([
-    fetchMe(),
-    fetchMeStats(),
-    fetchMeSessions(),
-  ]);
-
-  if (!playerResponse.ok || !statsResponse.ok || !sessionsResponse.ok) {
-    throw new Error('Failed to fetch dashboard data');
-  }
-
-  const playerData = await playerResponse.json();
-  const statsData = await statsResponse.json();
-  const sessionsData = await sessionsResponse.json();
-
-  return { playerData, statsData, sessionsData };
+const fetchMe = async () => {
+  const response = await fetch('/api/players/me');
+  const data = await response.json();
+  return data;
 };
 
 const useDashboardData = () => {
   const { data: session } = useSession();
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
-  const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
-  const [recentSessions, setRecentSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -158,19 +84,10 @@ const useDashboardData = () => {
         setError(null);
 
         // Fetch player data and stats in parallel
-        const { playerData, statsData, sessionsData } = await fetchData();
+        const playerData = await fetchMe();
 
         if (playerData.success) {
           setPlayerData(playerData.data);
-        }
-
-        if (statsData.success) {
-          setPlayerStats(statsData.data);
-        }
-
-        if (sessionsData.success) {
-          // Get only the most recent 5 sessions
-          setRecentSessions(sessionsData.data.sessions.slice(0, 5));
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -184,5 +101,5 @@ const useDashboardData = () => {
 
     fetchDashboardData();
   }, [session?.backendToken]);
-  return { playerData, playerStats, recentSessions, loading, error };
+  return { playerData, loading, error };
 };
