@@ -65,76 +65,8 @@ interface Session {
 }
 
 export function DashboardContent() {
-  const { data: session } = useSession();
-  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
-  const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
-  const [recentSessions, setRecentSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!session?.backendToken) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch player data and stats in parallel
-        const [playerResponse, statsResponse, sessionsResponse] =
-          await Promise.all([
-            fetch('/api/players/me', {
-              headers: {
-                Authorization: `Bearer ${session.backendToken}`,
-                'Content-Type': 'application/json',
-              },
-            }),
-            fetch('/api/players/me/stats', {
-              headers: {
-                Authorization: `Bearer ${session.backendToken}`,
-                'Content-Type': 'application/json',
-              },
-            }),
-            fetch('/api/sessions/player/me', {
-              headers: {
-                Authorization: `Bearer ${session.backendToken}`,
-                'Content-Type': 'application/json',
-              },
-            }),
-          ]);
-
-        if (!playerResponse.ok || !statsResponse.ok || !sessionsResponse.ok) {
-          throw new Error('Failed to fetch dashboard data');
-        }
-
-        const playerData = await playerResponse.json();
-        const statsData = await statsResponse.json();
-        const sessionsData = await sessionsResponse.json();
-
-        if (playerData.success) {
-          setPlayerData(playerData.data);
-        }
-
-        if (statsData.success) {
-          setPlayerStats(statsData.data);
-        }
-
-        if (sessionsData.success) {
-          // Get only the most recent 5 sessions
-          setRecentSessions(sessionsData.data.sessions.slice(0, 5));
-        }
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to load dashboard data'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [session?.backendToken]);
+  const { playerData, playerStats, recentSessions, loading, error } =
+    useDashboardData();
 
   if (loading) {
     return (
@@ -185,3 +117,72 @@ export function DashboardContent() {
     </div>
   );
 }
+const emptyPromise = () => new Promise<Response>(() => ({ ok: false }));
+
+const fetchMe = async () => await fetch('/api/players/me');
+const fetchMeStats = emptyPromise; //async () => await fetch('/api/players/me/stats');
+const fetchMeSessions = emptyPromise; // async () => await fetch('/api/sessions/player/me');
+
+const fetchData = async () => {
+  const [playerResponse, statsResponse, sessionsResponse] = await Promise.all([
+    fetchMe(),
+    fetchMeStats(),
+    fetchMeSessions(),
+  ]);
+
+  if (!playerResponse.ok || !statsResponse.ok || !sessionsResponse.ok) {
+    throw new Error('Failed to fetch dashboard data');
+  }
+
+  const playerData = await playerResponse.json();
+  const statsData = await statsResponse.json();
+  const sessionsData = await sessionsResponse.json();
+
+  return { playerData, statsData, sessionsData };
+};
+
+const useDashboardData = () => {
+  const { data: session } = useSession();
+  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
+  const [recentSessions, setRecentSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!session?.backendToken) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch player data and stats in parallel
+        const { playerData, statsData, sessionsData } = await fetchData();
+
+        if (playerData.success) {
+          setPlayerData(playerData.data);
+        }
+
+        if (statsData.success) {
+          setPlayerStats(statsData.data);
+        }
+
+        if (sessionsData.success) {
+          // Get only the most recent 5 sessions
+          setRecentSessions(sessionsData.data.sessions.slice(0, 5));
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError(
+          err instanceof Error ? err.message : 'Failed to load dashboard data'
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [session?.backendToken]);
+  return { playerData, playerStats, recentSessions, loading, error };
+};
