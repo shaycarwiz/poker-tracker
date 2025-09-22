@@ -5,6 +5,5 @@
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
   "less.lint.unknownAtRules": "ignore",
-  "npm.packageManager": "npm",
-  "npm.autoDetect": "on"
+  "npm.packageManager": "npm"
 }
