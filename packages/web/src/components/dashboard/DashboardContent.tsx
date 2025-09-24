@@ -3,9 +3,12 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { QuickActions } from './QuickActions';
+import { StatsCards } from './StatsCards';
+import { RecentSessions } from './RecentSessions';
+import { PerformanceCharts } from './PerformanceCharts';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { playerApi } from '@/lib/api-client';
+import { playerApi, sessionApi } from '@/lib/api-client';
 
 interface PlayerData {
   id: string;
@@ -25,8 +28,46 @@ interface PlayerData {
   updatedAt: string;
 }
 
+interface PlayerStats {
+  playerId: string;
+  totalSessions: number;
+  totalWinnings: number;
+  winRate: number;
+  averageSession: number;
+}
+
+interface Session {
+  sessionId: string;
+  playerId: string;
+  location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  currentCashOut?: {
+    amount: number;
+    currency: string;
+  };
+  profitLoss: {
+    amount: number;
+    currency: string;
+  };
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  notes?: string;
+  transactions: any[];
+  startedAt: string;
+  endedAt?: string;
+  duration?: number;
+}
+
 export function DashboardContent() {
-  const { playerData, loading, error } = useDashboardData();
+  const { playerData, playerStats, sessions, loading, error } =
+    useDashboardData();
 
   if (loading) {
     return (
@@ -60,6 +101,49 @@ export function DashboardContent() {
       <div className="mb-8">
         <QuickActions />
       </div>
+
+      {/* Basic Stats Cards */}
+      <div className="mb-8">
+        <StatsCards playerData={playerData} playerStats={playerStats} />
+      </div>
+
+      {/* Recent Sessions */}
+      <div className="mb-8">
+        <RecentSessions sessions={sessions} />
+      </div>
+
+      {/* Performance Charts */}
+      <div className="mb-8">
+        <PerformanceCharts sessions={sessions} playerStats={playerStats} />
+      </div>
+
+      {/* Quick Link to Detailed Statistics */}
+      <div className="mb-8">
+        <div className="rounded-lg bg-blue-50 p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="text-2xl">📊</div>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-blue-900">
+                Want more detailed statistics?
+              </h3>
+              <p className="mt-1 text-sm text-blue-700">
+                View comprehensive performance metrics, monthly breakdowns, and
+                detailed analytics.
+              </p>
+              <div className="mt-3">
+                <a
+                  href="/statistics"
+                  className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  View Detailed Statistics
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -71,6 +155,8 @@ const fetchMe = async () => {
 const useDashboardData = () => {
   const { data: session } = useSession();
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,11 +168,24 @@ const useDashboardData = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch player data and stats in parallel
-        const playerData = await fetchMe();
+        // Fetch all data in parallel
+        const [playerDataResponse, playerStatsResponse, sessionsResponse] =
+          await Promise.all([
+            fetchMe(),
+            playerApi.getStats(),
+            sessionApi.getAll(1, 10),
+          ]);
 
-        if (playerData.success) {
-          setPlayerData(playerData.data);
+        if (playerDataResponse.success) {
+          setPlayerData(playerDataResponse.data);
+        }
+
+        if (playerStatsResponse.success) {
+          setPlayerStats(playerStatsResponse.data);
+        }
+
+        if (sessionsResponse.success) {
+          setSessions(sessionsResponse.data.sessions || []);
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -100,5 +199,6 @@ const useDashboardData = () => {
 
     fetchDashboardData();
   }, [session?.backendToken]);
-  return { playerData, loading, error };
+
+  return { playerData, playerStats, sessions, loading, error };
 };
