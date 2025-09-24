@@ -6,7 +6,6 @@ import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
-
 import { errorHandler } from "./api/middleware/errorHandler";
 import { notFoundHandler } from "./api/middleware/notFoundHandler";
 import { logger } from "./shared/utils/logger";
@@ -15,6 +14,9 @@ import { container } from "./infrastructure/container";
 import { diContainer } from "./infrastructure/di-container";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../build/swagger.json";
+import path from "path";
+import { RegisterRoutes } from "./api/routes/routes";
+
 // Load environment variables
 dotenv.config();
 
@@ -62,9 +64,10 @@ app.get("/health", (_, res) => {
   });
 });
 
-import path from "path";
-
-// Create a separate router for TSOA routes and mount with basePath
+// Register TSOA routes
+const router = express.Router();
+RegisterRoutes(router);
+app.use("/api/v1", router);
 
 // Swagger UI setup
 app.use(

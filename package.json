@@ -30,7 +30,16 @@
     "check:all": "npm run type-check && npm run lint:check && npm test",
     "pre-commit": "npm run lint:fix && npm run type-check",
     "docs:serve": "npm run dev",
-    "docs:build": "npm run build"
+    "docs:build": "npm run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:restart": "docker-compose restart",
+    "docker:logs": "docker-compose logs",
+    "docker:logs:postgres": "docker-compose logs postgres",
+    "docker:logs:pgadmin": "docker-compose logs pgadmin",
+    "docker:ps": "docker-compose ps",
+    "docker:clean": "docker-compose down -v",
+    "docker:dev": "docker-compose up -d && npm run dev:all"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -1,16 +1,72 @@
 export interface Session {
-  id: string;
-  date: string;
-  duration: number; // in minutes
-  buyIn: number;
-  cashOut: number;
-  profit: number;
-  gameType: GameType;
-  stakes: string;
+  sessionId: string;
+  playerId: string;
   location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  currentCashOut?: {
+    amount: number;
+    currency: string;
+  };
+  profitLoss?: {
+    amount: number;
+    currency: string;
+  };
+  status: string;
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  transactions: {
+    id: string;
+    type: string;
+    amount: {
+      amount: number;
+      currency: string;
+    };
+    description?: string;
+    createdAt: Date;
+  }[];
+  startedAt: Date;
+  endedAt?: Date;
+  duration?: number; // in minutes
+}
+
+export interface StartSessionRequest {
+  playerId: string;
+  location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  notes?: string;
+}
+
+export interface StartSessionResponse {
+  sessionId: string;
+  playerId: string;
+  location: string;
+  stakes: {
+    smallBlind: number;
+    bigBlind: number;
+    currency: string;
+  };
+  initialBuyIn: {
+    amount: number;
+    currency: string;
+  };
+  notes?: string;
+  status: string;
+  startedAt: Date;
 }
 
 export interface Player {
@@ -41,7 +97,7 @@ export interface MonthlyStats {
   winRate: number;
 }
 
-export type GameType = "NLH" | "PLO" | "PLO5" | "Stud" | "Razz" | "Mixed";
+export type GameType = 'NLH' | 'PLO' | 'PLO5' | 'Stud' | 'Razz' | 'Mixed';
 
 export interface ApiResponse<T> {
   data: T;
