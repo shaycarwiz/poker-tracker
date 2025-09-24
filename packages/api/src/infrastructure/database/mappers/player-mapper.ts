@@ -13,7 +13,7 @@ export class PlayerMapper {
       row.name,
       row.email || undefined,
       row.google_id || undefined,
-      new Money(row.current_bankroll, row.currency),
+      new Money(Number(row.current_bankroll), row.currency),
       row.total_sessions,
       new Date(row.created_at),
       new Date(row.updated_at)
@@ -26,7 +26,7 @@ export class PlayerMapper {
       name: player.name,
       email: player.email || null,
       google_id: player.googleId || null,
-      current_bankroll: player.currentBankroll.amount,
+      current_bankroll: player.currentBankroll.amount.toString(),
       currency: player.currentBankroll.currency,
       total_sessions: player.totalSessions,
       created_at: player.createdAt,

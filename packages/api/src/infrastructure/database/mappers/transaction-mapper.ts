@@ -16,23 +16,23 @@ export class TransactionMapper {
       new SessionId(row.session_id),
       new PlayerId(row.player_id),
       row.type as TransactionType,
-      new Money(row.amount, row.currency),
+      new Money(Number(row.amount), row.currency),
       new Date(row.timestamp),
       row.description || undefined,
-      row.notes || undefined,
+      row.notes || undefined
     );
   }
 
   static toPersistence(
     transaction: Transaction,
-    createdAt: Date = new Date(),
+    createdAt: Date = new Date()
   ): TransactionRow {
     return {
       id: transaction.id.value,
       session_id: transaction.sessionId.value,
       player_id: transaction.playerId.value,
       type: transaction.type,
-      amount: transaction.amount.amount,
+      amount: transaction.amount.amount.toString(),
       currency: transaction.amount.currency,
       timestamp: transaction.timestamp,
       description: transaction.description || null,

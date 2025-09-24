@@ -6,6 +6,7 @@ import { SessionRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { SessionMapper } from "../mappers/session-mapper";
 import { TransactionMapper } from "../mappers/transaction-mapper";
+import { PostgresTransactionRepository } from "./transaction-repository";
 import { logger } from "@/shared/utils/logger";
 import { SessionStatus } from "@/model/enums";
 import { SessionFilters } from "@/model/types";
@@ -199,6 +200,7 @@ export class PostgresSessionRepository implements SessionRepository {
     try {
       const data = SessionMapper.toPersistence(session);
 
+      // Save the session data
       await this.db.query(
         `
         INSERT INTO sessions (id, player_id, location, small_blind, big_blind, ante, currency, start_time, end_time, status, notes, created_at, updated_at)
@@ -231,6 +233,12 @@ export class PostgresSessionRepository implements SessionRepository {
           data.updated_at,
         ]
       );
+
+      // Save all transactions for this session
+      const transactionRepository = new PostgresTransactionRepository();
+      for (const transaction of session.transactions) {
+        await transactionRepository.save(transaction);
+      }
     } catch (error) {
       logger.error("Error saving session", {
         sessionId: session.id.value,

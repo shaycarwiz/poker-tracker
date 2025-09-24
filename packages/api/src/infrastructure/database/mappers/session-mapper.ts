@@ -14,9 +14,9 @@ export class SessionMapper {
       new PlayerId(row.player_id),
       row.location,
       new Stakes(
-        new Money(row.small_blind, row.currency),
-        new Money(row.big_blind, row.currency),
-        row.ante ? new Money(row.ante, row.currency) : undefined
+        new Money(Number(row.small_blind), row.currency),
+        new Money(Number(row.big_blind), row.currency),
+        row.ante ? new Money(Number(row.ante), row.currency) : undefined
       ),
       new Date(row.start_time),
       row.end_time ? new Date(row.end_time) : undefined,
@@ -33,9 +33,9 @@ export class SessionMapper {
       id: session.id.value,
       player_id: session.playerId.value,
       location: session.location,
-      small_blind: session.stakes.smallBlind.amount,
-      big_blind: session.stakes.bigBlind.amount,
-      ante: session.stakes.ante?.amount || null,
+      small_blind: session.stakes.smallBlind.amount.toString(),
+      big_blind: session.stakes.bigBlind.amount.toString(),
+      ante: session.stakes.ante?.amount.toString() || null,
       currency: session.stakes.bigBlind.currency,
       start_time: session.startTime,
       end_time: session.endTime || null,

@@ -5,7 +5,7 @@ export interface PlayerRow {
   name: string;
   email: string | null;
   google_id: string | null;
-  current_bankroll: number; // DECIMAL(15,2)
+  current_bankroll: string; // DECIMAL(15,2) - PostgreSQL returns as string
   currency: string; // VARCHAR(3)
   total_sessions: number;
   created_at: Date;
@@ -16,9 +16,9 @@ export interface SessionRow {
   id: string; // UUID
   player_id: string; // UUID, references players(id)
   location: string;
-  small_blind: number; // DECIMAL(15,2)
-  big_blind: number; // DECIMAL(15,2)
-  ante: number | null; // DECIMAL(15,2)
+  small_blind: string; // DECIMAL(15,2) - PostgreSQL returns as string
+  big_blind: string; // DECIMAL(15,2) - PostgreSQL returns as string
+  ante: string | null; // DECIMAL(15,2) - PostgreSQL returns as string
   currency: string; // VARCHAR(3)
   start_time: Date;
   end_time: Date | null;
@@ -41,7 +41,7 @@ export interface TransactionRow {
     | "rakeback"
     | "bonus"
     | "other";
-  amount: number; // DECIMAL(15,2)
+  amount: string; // DECIMAL(15,2) - PostgreSQL returns as string
   currency: string; // VARCHAR(3)
   timestamp: Date;
   description: string | null;

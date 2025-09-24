@@ -256,13 +256,19 @@ export class Session extends AggregateRoot {
         (t) =>
           t.type === TransactionType.BUY_IN || t.type === TransactionType.REBUY
       )
-      .reduce((sum, t) => sum.add(t.amount), new Money(0));
+      .reduce(
+        (sum, t) => sum.add(t.amount),
+        new Money(0, this._stakes.bigBlind.currency)
+      );
   }
 
   get totalCashOut(): Money {
     return this._transactions
       .filter((t) => t.type === TransactionType.CASH_OUT)
-      .reduce((sum, t) => sum.add(t.amount), new Money(0));
+      .reduce(
+        (sum, t) => sum.add(t.amount),
+        new Money(0, this._stakes.bigBlind.currency)
+      );
   }
 
   get netResult(): Money {
