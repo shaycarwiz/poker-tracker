@@ -126,7 +126,10 @@ describe("PlayerController", () => {
 
       expect(result).toEqual({
         success: false,
-        error: "Name is required and must be a string",
+        error: "VALIDATION_NAME_REQUIRED",
+        code: "VALIDATION_NAME_REQUIRED",
+        statusCode: 400,
+        details: undefined,
       });
       expect(mockPlayerService.createPlayer).not.toHaveBeenCalled();
     });
@@ -141,7 +144,10 @@ describe("PlayerController", () => {
 
       expect(result).toEqual({
         success: false,
-        error: "Name is required and must be a string",
+        error: "VALIDATION_NAME_REQUIRED",
+        code: "VALIDATION_NAME_REQUIRED",
+        statusCode: 400,
+        details: undefined,
       });
       expect(mockPlayerService.createPlayer).not.toHaveBeenCalled();
     });
@@ -160,8 +166,10 @@ describe("PlayerController", () => {
 
       expect(result).toEqual({
         success: false,
-        error: "Failed to create player",
-        message: "Player with this email already exists",
+        error: "API_CREATE_PLAYER_FAILED",
+        code: "API_CREATE_PLAYER_FAILED",
+        statusCode: 500,
+        details: undefined,
       });
     });
   });
@@ -209,7 +217,10 @@ describe("PlayerController", () => {
 
       expect(result).toEqual({
         success: false,
-        error: "Player not found",
+        error: "BUSINESS_PLAYER_NOT_FOUND",
+        code: "BUSINESS_PLAYER_NOT_FOUND",
+        statusCode: 404,
+        details: undefined,
       });
     });
   });

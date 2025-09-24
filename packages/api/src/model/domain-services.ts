@@ -4,6 +4,7 @@ import { Player, Session } from "./entities";
 import { PlayerStats } from "./aggregates";
 import { Duration, Money } from "./value-objects";
 import { SessionStatus } from "./enums";
+import { BusinessError, API_ERROR_CODES } from "../shared";
 
 export class PlayerStatsService {
   calculateStats(player: Player, sessions: Session[]): PlayerStats {
@@ -21,7 +22,7 @@ export class PlayerStatsService {
 
     const currency = completedSessions?.[0]?.stakes.bigBlind.currency;
     if (!currency) {
-      throw new Error("Currency not found");
+      throw new BusinessError(API_ERROR_CODES.BUSINESS_CURRENCY_NOT_FOUND);
     }
 
     const totalBuyIn = completedSessions.reduce(

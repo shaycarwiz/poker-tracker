@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { DashboardContent } from '../DashboardContent';
 import { SessionProvider } from 'next-auth/react';
+import { playerApi, sessionApi } from '@/lib/api-client';
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({
@@ -11,22 +12,37 @@ jest.mock('next-auth/react', () => ({
     },
     status: 'authenticated',
   }),
+  getSession: jest.fn(() =>
+    Promise.resolve({
+      backendToken: 'mock-token',
+      user: { name: 'Test User' },
+    })
+  ),
   SessionProvider: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
 }));
 
-// Mock fetch
-global.fetch = jest.fn();
+// Mock API client
+jest.mock('@/lib/api-client', () => ({
+  playerApi: {
+    getMe: jest.fn(),
+    getStats: jest.fn(),
+  },
+  sessionApi: {
+    getAll: jest.fn(),
+  },
+}));
 
 describe('DashboardContent', () => {
   beforeEach(() => {
-    (global.fetch as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   it('renders loading state initially', () => {
-    (global.fetch as jest.Mock).mockImplementation(
-      () => new Promise(() => {}) // Never resolves to keep loading state
+    // Mock API calls to never resolve to keep loading state
+    (playerApi.getMe as jest.Mock).mockImplementation(
+      () => new Promise(() => {}) // Never resolves
     );
 
     render(
@@ -35,11 +51,13 @@ describe('DashboardContent', () => {
       </SessionProvider>
     );
 
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
   it('renders error state when API fails', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new Error('API Error'));
+    (playerApi.getMe as jest.Mock).mockRejectedValue(
+      new Error('Network Error')
+    );
 
     render(
       <SessionProvider session={null}>
@@ -49,7 +67,7 @@ describe('DashboardContent', () => {
 
     // Wait for error state
     await screen.findByText('Error');
-    expect(screen.getByText('API Error')).toBeInTheDocument();
+    expect(screen.getByText('Network Error')).toBeInTheDocument();
   });
 
   it('renders dashboard content when data loads successfully', async () => {
@@ -88,20 +106,18 @@ describe('DashboardContent', () => {
       },
     ];
 
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ success: true, data: mockPlayerData }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ success: true, data: mockStats }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({ success: true, data: { sessions: mockSessions } }),
-      });
+    (playerApi.getMe as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockPlayerData,
+    });
+    (playerApi.getStats as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockStats,
+    });
+    (sessionApi.getAll as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { sessions: mockSessions },
+    });
 
     render(
       <SessionProvider session={null}>

@@ -19,6 +19,14 @@ import { logger } from "@/shared/utils/logger";
 import { config } from "@/infrastructure/config";
 import { AuthenticatedRequest } from "@/api/middleware/auth";
 import {
+  createErrorResponse,
+  createSuccessResponse,
+  handleUnknownError,
+  DomainError,
+  API_ERROR_CODES,
+  APIErrorCode,
+} from "@/shared";
+import {
   // Request DTOs
   CreatePlayerRequest,
   UpdatePlayerRequest,
@@ -41,6 +49,23 @@ import {
 export class PlayerController extends Controller {
   private playerService = container.services.players;
 
+  /**
+   * Helper method to handle errors and return standardized responses
+   */
+  private handleError(
+    error: unknown,
+    fallbackCode: APIErrorCode
+  ): ApiResponse<any> {
+    if (error instanceof DomainError) {
+      this.setStatus(error.statusCode);
+      return createErrorResponse(error.code, error.statusCode);
+    }
+
+    const errorResponse = handleUnknownError(error, fallbackCode);
+    this.setStatus(errorResponse.statusCode);
+    return errorResponse;
+  }
+
   @Post("/")
   @Example<CreatePlayerRequest>({
     name: "John Doe",
@@ -58,10 +83,10 @@ export class PlayerController extends Controller {
 
       if (!name || typeof name !== "string") {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Name is required and must be a string",
-        };
+        return createErrorResponse(
+          API_ERROR_CODES.VALIDATION_NAME_REQUIRED,
+          400
+        );
       }
 
       const request: CreatePlayerRequest = {
@@ -69,30 +94,22 @@ export class PlayerController extends Controller {
         email,
         initialBankroll: initialBankroll
           ? {
-            amount: initialBankroll.amount,
-            currency:
-              initialBankroll.currency || config.poker.defaultCurrency,
-          }
+              amount: initialBankroll.amount,
+              currency:
+                initialBankroll.currency || config.poker.defaultCurrency,
+            }
           : {
-            amount: 0,
-            currency: config.poker.defaultCurrency,
-          },
+              amount: 0,
+              currency: config.poker.defaultCurrency,
+            },
       };
 
       const response = await this.playerService.createPlayer(request);
       this.setStatus(201);
-      return {
-        success: true,
-        data: response,
-      };
+      return createSuccessResponse(response);
     } catch (error) {
       logger.error("Error creating player", { error, body });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to create player",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      return this.handleError(error, API_ERROR_CODES.API_CREATE_PLAYER_FAILED);
     }
   }
 
@@ -266,33 +283,17 @@ export class PlayerController extends Controller {
     try {
       if (!id) {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
+        return createErrorResponse(
+          API_ERROR_CODES.VALIDATION_PLAYER_ID_REQUIRED,
+          400
+        );
       }
 
       const response = await this.playerService.getPlayer(id);
-
-      return {
-        success: true,
-        data: response,
-      };
+      return createSuccessResponse(response);
     } catch (error) {
       logger.error("Error getting player", { error, id });
-      if (error instanceof Error && error.message === "Player not found") {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player not found",
-        };
-      }
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get player",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      return this.handleError(error, API_ERROR_CODES.API_GET_PLAYER_FAILED);
     }
   }
 
@@ -598,5 +599,4 @@ export class PlayerController extends Controller {
       };
     }
   }
-
 }

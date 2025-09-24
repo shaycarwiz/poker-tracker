@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { SignInButton } from '@/components/auth/SignInButton';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,7 +50,8 @@ export function Header() {
             </Link>
           ))}
         </div>
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+        <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:gap-4">
+          <LanguageToggle />
           <SignInButton className="text-sm font-semibold leading-6" />
         </div>
       </nav>
@@ -87,7 +89,8 @@ export function Header() {
                   ))}
                 </div>
                 <div className="py-6">
-                  <div className="-mx-3 block rounded-lg px-3 py-2.5">
+                  <div className="-mx-3 block space-y-2 rounded-lg px-3 py-2.5">
+                    <LanguageToggle className="w-full" />
                     <SignInButton className="w-full text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" />
                   </div>
                 </div>

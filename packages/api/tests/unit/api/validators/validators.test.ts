@@ -513,7 +513,11 @@ describe("Session Validators", () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Player ID is required and must be a non-empty string",
+        success: false,
+        error: "VALIDATION_PLAYER_ID_REQUIRED",
+        code: "VALIDATION_PLAYER_ID_REQUIRED",
+        statusCode: 400,
+        details: undefined,
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -536,7 +540,11 @@ describe("Session Validators", () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Location is required and must be a non-empty string",
+        success: false,
+        error: "VALIDATION_LOCATION_REQUIRED",
+        code: "VALIDATION_LOCATION_REQUIRED",
+        statusCode: 400,
+        details: undefined,
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -556,7 +564,11 @@ describe("Session Validators", () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Stakes with smallBlind and bigBlind are required",
+        success: false,
+        error: "VALIDATION_STAKES_REQUIRED",
+        code: "VALIDATION_STAKES_REQUIRED",
+        statusCode: 400,
+        details: undefined,
       });
       expect(mockNext).not.toHaveBeenCalled();
     });

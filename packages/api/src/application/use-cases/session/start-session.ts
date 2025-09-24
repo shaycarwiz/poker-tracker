@@ -8,6 +8,7 @@ import {
   StartSessionResponse,
 } from "../../dto/session-dto";
 import { BaseUseCase } from "../base-use-case";
+import { BusinessError, API_ERROR_CODES } from "../../../shared";
 
 export class StartSessionUseCase extends BaseUseCase {
   async execute(request: StartSessionRequest): Promise<StartSessionResponse> {
@@ -20,16 +21,18 @@ export class StartSessionUseCase extends BaseUseCase {
           await this.unitOfWork.sessions.findActiveByPlayerId(playerId);
 
         if (activeSession) {
-          throw new Error("Player already has an active session");
+          throw new BusinessError(
+            API_ERROR_CODES.BUSINESS_ACTIVE_SESSION_EXISTS
+          );
         }
 
         const stakes = new Stakes(
           new Money(request.stakes.smallBlind, request.stakes.currency),
-          new Money(request.stakes.bigBlind, request.stakes.currency),
+          new Money(request.stakes.bigBlind, request.stakes.currency)
         );
         const initialBuyIn = new Money(
           request.initialBuyIn.amount,
-          request.initialBuyIn.currency,
+          request.initialBuyIn.currency
         );
 
         const session = Session.start(
@@ -37,7 +40,7 @@ export class StartSessionUseCase extends BaseUseCase {
           request.location,
           stakes,
           initialBuyIn,
-          request.notes,
+          request.notes
         );
 
         await this.unitOfWork.sessions.save(session);
@@ -71,7 +74,7 @@ export class StartSessionUseCase extends BaseUseCase {
         };
       },
       "StartSessionUseCase",
-      { request },
+      { request }
     );
   }
 }

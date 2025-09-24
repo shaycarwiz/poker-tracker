@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
+import { createErrorResponse, API_ERROR_CODES } from "../../shared";
 
 export const validateLoginRequest = [
   body("googleId")
@@ -24,11 +25,11 @@ export const validateLoginRequest = [
   (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: "Validation failed",
-        code: "VALIDATION_ERROR",
-        details: errors.array(),
-      });
+      return res.status(400).json(
+        createErrorResponse(API_ERROR_CODES.VALIDATION_NAME_REQUIRED, 400, {
+          details: errors.array(),
+        })
+      );
     }
     return next();
   },
@@ -51,11 +52,11 @@ export const validateUpdateProfileRequest = [
   (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: "Validation failed",
-        code: "VALIDATION_ERROR",
-        details: errors.array(),
-      });
+      return res.status(400).json(
+        createErrorResponse(API_ERROR_CODES.VALIDATION_EMAIL_INVALID, 400, {
+          details: errors.array(),
+        })
+      );
     }
     return next();
   },

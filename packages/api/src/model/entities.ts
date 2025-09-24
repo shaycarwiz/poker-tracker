@@ -8,11 +8,13 @@ import {
   SessionStartedEvent,
   TransactionAddedEvent,
 } from "./events";
+import { ValidationError, BusinessError, API_ERROR_CODES } from "../shared";
 
 // ID Value Objects
 export class PlayerId {
   constructor(public readonly value: string) {
-    if (!value) throw new Error("PlayerId cannot be empty");
+    if (!value)
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_PLAYER_ID_REQUIRED);
   }
 
   static generate(): PlayerId {
@@ -26,7 +28,8 @@ export class PlayerId {
 
 export class SessionId {
   constructor(public readonly value: string) {
-    if (!value) throw new Error("SessionId cannot be empty");
+    if (!value)
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_SESSION_ID_REQUIRED);
   }
 
   static generate(): SessionId {
@@ -40,7 +43,10 @@ export class SessionId {
 
 export class TransactionId {
   constructor(public readonly value: string) {
-    if (!value) throw new Error("TransactionId cannot be empty");
+    if (!value)
+      throw new ValidationError(
+        API_ERROR_CODES.VALIDATION_TRANSACTION_ID_REQUIRED
+      );
   }
 
   static generate(): TransactionId {
@@ -125,14 +131,15 @@ export class Player extends AggregateRoot {
   }
 
   updateName(name: string): void {
-    if (!name.trim()) throw new Error("Player name cannot be empty");
+    if (!name.trim())
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_NAME_REQUIRED);
     this._name = name.trim();
     this._updatedAt = new Date();
   }
 
   updateEmail(email: string): void {
     if (email && !this.isValidEmail(email)) {
-      throw new Error("Invalid email format");
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_EMAIL_INVALID);
     }
     this._email = email;
     this._updatedAt = new Date();
@@ -140,7 +147,9 @@ export class Player extends AggregateRoot {
 
   linkGoogleAccount(googleId: string): void {
     if (this._googleId) {
-      throw new Error("Player already has a Google account linked");
+      throw new BusinessError(
+        API_ERROR_CODES.AUTH_GOOGLE_ACCOUNT_ALREADY_LINKED
+      );
     }
     this._googleId = googleId;
     this._updatedAt = new Date();
@@ -307,7 +316,9 @@ export class Session extends AggregateRoot {
     notes?: string
   ): void {
     if (this._status !== SessionStatus.ACTIVE) {
-      throw new Error("Cannot add transactions to inactive session");
+      throw new BusinessError(
+        API_ERROR_CODES.BUSINESS_CANNOT_ADD_TRANSACTION_INACTIVE
+      );
     }
 
     const transaction = new Transaction(
@@ -338,7 +349,9 @@ export class Session extends AggregateRoot {
 
   end(finalCashOut: Money, notes?: string): void {
     if (this._status !== SessionStatus.ACTIVE) {
-      throw new Error("Cannot end inactive session");
+      throw new BusinessError(
+        API_ERROR_CODES.BUSINESS_CANNOT_END_INACTIVE_SESSION
+      );
     }
 
     // Add cash-out transaction before changing status
@@ -372,7 +385,9 @@ export class Session extends AggregateRoot {
 
   cancel(reason?: string): void {
     if (this._status !== SessionStatus.ACTIVE) {
-      throw new Error("Cannot cancel inactive session");
+      throw new BusinessError(
+        API_ERROR_CODES.BUSINESS_CANNOT_CANCEL_INACTIVE_SESSION
+      );
     }
 
     this._status = SessionStatus.CANCELLED;
@@ -388,7 +403,8 @@ export class Session extends AggregateRoot {
   }
 
   updateLocation(location: string): void {
-    if (!location.trim()) throw new Error("Location cannot be empty");
+    if (!location.trim())
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_LOCATION_REQUIRED);
     this._location = location.trim();
     this._updatedAt = new Date();
   }
@@ -411,7 +427,7 @@ export class Transaction {
     public readonly notes?: string
   ) {
     if (amount.amount <= 0) {
-      throw new Error("Transaction amount must be positive");
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_AMOUNT_POSITIVE);
     }
   }
 }

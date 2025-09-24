@@ -10,7 +10,7 @@ describe("ID Value Objects", () => {
     });
 
     it("should throw error for empty value", () => {
-      expect(() => new PlayerId("")).toThrow("PlayerId cannot be empty");
+      expect(() => new PlayerId("")).toThrow("VALIDATION_PLAYER_ID_REQUIRED");
     });
 
     it("should generate unique ID", () => {
@@ -36,7 +36,7 @@ describe("ID Value Objects", () => {
     });
 
     it("should throw error for empty value", () => {
-      expect(() => new SessionId("")).toThrow("SessionId cannot be empty");
+      expect(() => new SessionId("")).toThrow("VALIDATION_SESSION_ID_REQUIRED");
     });
 
     it("should generate unique ID", () => {
@@ -54,7 +54,7 @@ describe("ID Value Objects", () => {
 
     it("should throw error for empty value", () => {
       expect(() => new TransactionId("")).toThrow(
-        "TransactionId cannot be empty"
+        "VALIDATION_TRANSACTION_ID_REQUIRED"
       );
     });
 

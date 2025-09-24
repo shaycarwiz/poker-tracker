@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { TransactionType } from "../../model/enums";
+import { createErrorResponse, API_ERROR_CODES } from "../../shared";
 
 export const validateStartSession = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { playerId, location, stakes, initialBuyIn, notes } = req.body;
 
@@ -14,10 +15,11 @@ export const validateStartSession = (
     typeof playerId !== "string" ||
     playerId.trim().length === 0
   ) {
-    res.status(400).json({
-      error: "Player ID is required and must be a non-empty string",
-    });
-
+    res
+      .status(400)
+      .json(
+        createErrorResponse(API_ERROR_CODES.VALIDATION_PLAYER_ID_REQUIRED, 400)
+      );
     return;
   }
 
@@ -27,19 +29,21 @@ export const validateStartSession = (
     typeof location !== "string" ||
     location.trim().length === 0
   ) {
-    res.status(400).json({
-      error: "Location is required and must be a non-empty string",
-    });
-
+    res
+      .status(400)
+      .json(
+        createErrorResponse(API_ERROR_CODES.VALIDATION_LOCATION_REQUIRED, 400)
+      );
     return;
   }
 
   // Validate stakes
   if (!stakes || !stakes.smallBlind || !stakes.bigBlind) {
-    res.status(400).json({
-      error: "Stakes with smallBlind and bigBlind are required",
-    });
-
+    res
+      .status(400)
+      .json(
+        createErrorResponse(API_ERROR_CODES.VALIDATION_STAKES_REQUIRED, 400)
+      );
     return;
   }
 
@@ -104,7 +108,7 @@ export const validateStartSession = (
 export const validateEndSession = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { finalCashOut, notes } = req.body;
 
@@ -138,7 +142,7 @@ export const validateEndSession = (
 export const validateAddTransaction = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { type, amount, description, notes } = req.body;
 
@@ -190,7 +194,7 @@ export const validateAddTransaction = (
 export const validateSessionId = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { id } = req.params;
 
@@ -208,7 +212,7 @@ export const validateSessionId = (
 export const validatePlayerId = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { playerId } = req.params;
 
@@ -230,7 +234,7 @@ export const validatePlayerId = (
 export const validateUpdateNotes = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { notes } = req.body;
 
@@ -248,7 +252,7 @@ export const validateUpdateNotes = (
 export const validateCancelSession = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void => {
   const { reason } = req.body;
 
