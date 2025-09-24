@@ -95,6 +95,8 @@ npm run dev
 
 The server will start on `http://localhost:3000`
 
+**Note**: This is part of a monorepo. The web application runs on port 3000 by default, so make sure to configure the API port appropriately if running both simultaneously.
+
 ### Available Scripts
 
 - `npm run dev` - Start development server with hot reload
@@ -145,7 +147,6 @@ The server will start on `http://localhost:3000`
 ### ✅ Implemented Features
 
 - **Domain Model**: Complete implementation of poker domain entities
-
   - `Player` entity with bankroll management
   - `Session` entity with transaction tracking
   - `Transaction` entity for buy-ins, rebuys, and cash-outs
@@ -153,7 +154,6 @@ The server will start on `http://localhost:3000`
   - Domain services for statistics calculation
 
 - **Data Access Layer**: Full database implementation
-
   - Repository pattern with interfaces
   - Unit of Work pattern for transactions
   - PostgreSQL adapter with connection pooling
@@ -161,13 +161,11 @@ The server will start on `http://localhost:3000`
   - Data mappers for domain objects
 
 - **Application Services**: Business logic layer
-
   - `PlayerService` for player management
   - `SessionService` for session tracking
   - Comprehensive error handling and logging
 
 - **API Layer**: Complete REST API implementation
-
   - Player management endpoints (CRUD operations)
   - Session tracking endpoints (start, end, transactions)
   - Request validation and error handling

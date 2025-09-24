@@ -7,6 +7,7 @@ A comprehensive poker tracking application with a monorepo architecture.
 This monorepo contains:
 
 - **`packages/api`** - Express.js REST API with comprehensive poker domain logic
+- **`packages/web`** - Next.js web application for poker session tracking and analytics
 
 ## Quick Start
 
@@ -33,8 +34,13 @@ npm install
 3. Set up environment variables:
 
 ```bash
+# API environment
 cp packages/api/env.example packages/api/.env
 # Edit packages/api/.env with your configuration
+
+# Web environment
+cp packages/web/env.example packages/web/.env.local
+# Edit packages/web/.env.local with your configuration
 ```
 
 4. Run database migrations:
@@ -45,25 +51,34 @@ npm run migrate:run
 
 ### Development
 
-Start the API in development mode:
+Start both API and web application:
 
 ```bash
-npm run dev
+# Start both API and web app
+npm run dev:all
+
+# Or start them separately
+npm run dev          # API only
+npm run dev:web      # Web app only
 ```
 
 ### Available Scripts
 
 - `npm run dev` - Start API in development mode
-- `npm run build` - Build the API
+- `npm run dev:web` - Start web app in development mode
+- `npm run dev:all` - Start both API and web app
+- `npm run build` - Build both API and web app
 - `npm run start` - Start the production API
-- `npm run test` - Run tests
-- `npm run lint` - Lint code
-- `npm run type-check` - Run TypeScript type checking
+- `npm run start:web` - Start the production web app
+- `npm run test` - Run tests for both packages
+- `npm run lint` - Lint code for both packages
+- `npm run type-check` - Run TypeScript type checking for both packages
 
-## API Documentation
+## Documentation
 
-See the API package README for detailed documentation:
-[packages/api/README.md](packages/api/README.md)
+- **API Documentation**: [packages/api/README.md](packages/api/README.md)
+- **Web Application**: [packages/web/README.md](packages/web/README.md)
+- **API Endpoints**: Available at `http://localhost:3000/docs` when running
 
 ## Contributing
 

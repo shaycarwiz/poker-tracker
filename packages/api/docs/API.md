@@ -10,13 +10,15 @@ The Poker Tracker API provides endpoints for managing players, poker sessions, a
 http://localhost:3000/api/v1
 ```
 
+**Note**: The API runs on port 3000 by default. If you're running the web application, make sure to update the `NEXT_PUBLIC_API_URL` environment variable in the web package to match this port.
+
 ## Authentication
 
 The API uses JWT (JSON Web Token) authentication with Google OAuth integration. Most endpoints require authentication via Bearer token in the Authorization header.
 
 ### Getting Started
 
-1. **Login**: Use the `/api/auth/login` endpoint with Google OAuth credentials to obtain a JWT token
+1. **Login**: Use the `/api/v1/auth/login` endpoint with Google OAuth credentials to obtain a JWT token
 2. **Include Token**: Add the token to the Authorization header: `Authorization: Bearer <your-jwt-token>`
 3. **Access Protected Endpoints**: Use the token to access protected resources
 
@@ -24,7 +26,7 @@ The API uses JWT (JSON Web Token) authentication with Google OAuth integration. 
 
 #### Login
 
-**POST** `/api/auth/login`
+**POST** `/api/v1/auth/login`
 
 Authenticate with Google OAuth and receive a JWT token.
 
@@ -55,7 +57,7 @@ Authenticate with Google OAuth and receive a JWT token.
 
 #### Get Profile
 
-**GET** `/api/auth/profile`
+**GET** `/api/v1/auth/profile`
 
 Retrieve the authenticated user's profile information.
 
@@ -79,7 +81,7 @@ Retrieve the authenticated user's profile information.
 
 #### Update Profile
 
-**PUT** `/api/auth/profile`
+**PUT** `/api/v1/auth/profile`
 
 Update the authenticated user's profile information.
 
@@ -133,7 +135,7 @@ Error responses:
 
 ### Create Player
 
-**POST** `/players`
+**POST** `/api/v1/players`
 
 Creates a new player.
 
@@ -170,7 +172,7 @@ Creates a new player.
 
 ### Get All Players
 
-**GET** `/players`
+**GET** `/api/v1/players`
 
 Retrieves all players.
 
@@ -208,7 +210,7 @@ Retrieves all players.
 
 ### Get Player by ID
 
-**GET** `/players/:id`
+**GET** `/api/v1/players/:id`
 
 Retrieves a specific player by ID.
 
@@ -276,7 +278,7 @@ Searches for players by name.
 
 ### Update Player Bankroll
 
-**PATCH** `/players/:id/bankroll`
+**PATCH** `/api/v1/players/:id/bankroll`
 
 Updates a player's bankroll.
 
@@ -311,7 +313,7 @@ Updates a player's bankroll.
 
 ### Get Player Statistics
 
-**GET** `/players/:id/stats`
+**GET** `/api/v1/players/:id/stats`
 
 Retrieves detailed statistics for a player.
 
@@ -332,7 +334,7 @@ Retrieves detailed statistics for a player.
 
 ### Delete Player
 
-**DELETE** `/players/:id`
+**DELETE** `/api/v1/players/:id`
 
 Deletes a player (only if they have no active sessions).
 
@@ -351,7 +353,7 @@ Deletes a player (only if they have no active sessions).
 
 ### Start Session
 
-**POST** `/sessions`
+**POST** `/api/v1/sessions`
 
 Starts a new poker session.
 
@@ -406,7 +408,7 @@ Starts a new poker session.
 
 ### Get Session by ID
 
-**GET** `/sessions/:id`
+**GET** `/api/v1/sessions/:id`
 
 Retrieves a specific session by ID.
 
@@ -459,7 +461,7 @@ Retrieves a specific session by ID.
 
 ### End Session
 
-**POST** `/sessions/:id/end`
+**POST** `/api/v1/sessions/:id/end`
 
 Ends an active session.
 
@@ -500,7 +502,7 @@ Ends an active session.
 
 ### Add Transaction
 
-**POST** `/sessions/:id/transactions`
+**POST** `/api/v1/sessions/:id/transactions`
 
 Adds a transaction to an active session.
 
@@ -545,7 +547,7 @@ Adds a transaction to an active session.
 
 ### Cancel Session
 
-**POST** `/sessions/:id/cancel`
+**POST** `/api/v1/sessions/:id/cancel`
 
 Cancels an active session.
 
@@ -570,7 +572,7 @@ Cancels an active session.
 
 ### Update Session Notes
 
-**PATCH** `/sessions/:id/notes`
+**PATCH** `/api/v1/sessions/:id/notes`
 
 Updates session notes.
 
@@ -595,7 +597,7 @@ Updates session notes.
 
 ### Get Player Sessions
 
-**GET** `/sessions/player/:playerId`
+**GET** `/api/v1/sessions/player/:playerId`
 
 Retrieves all sessions for a specific player.
 
@@ -644,7 +646,7 @@ Retrieves all sessions for a specific player.
 
 ### Get Active Session
 
-**GET** `/sessions/player/:playerId/active`
+**GET** `/api/v1/sessions/player/:playerId/active`
 
 Retrieves the active session for a specific player.
 

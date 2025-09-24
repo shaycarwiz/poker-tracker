@@ -44,9 +44,11 @@ A modern Next.js web application for tracking poker sessions and analyzing perfo
 
 3. Update environment variables in `.env.local`:
 
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:4000
-   ```
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+**Note**: The API runs on port 3000 by default. Make sure this matches your API server configuration.
 
 4. Start the development server:
 
@@ -90,7 +92,7 @@ src/
 
 ## API Integration
 
-The web app integrates with the Poker Tracker API. Make sure the API server is running on the configured port (default: 3001).
+The web app integrates with the Poker Tracker API. Make sure the API server is running on the configured port (default: 3000).
 
 ## Deployment
 
