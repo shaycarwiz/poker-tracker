@@ -4,12 +4,13 @@ import type {
   ApiResponse,
   PaginatedResponse,
   Session,
+  StartSessionRequest,
+  StartSessionResponse,
   Statistics,
 } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
-
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 // Create axios instance
 const apiClient = axios.create({
@@ -65,8 +66,10 @@ export const playerApi = {
 
 // Session API
 export const sessionApi = {
-  getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Session>> => {
-    const response = await apiClient.get(`/sessions?page=${page}&limit=${limit}`);
+  getAll: async (page = 1, limit = 10): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get(
+      `/sessions?page=${page}&limit=${limit}`
+    );
     return response.data;
   },
 
@@ -75,23 +78,58 @@ export const sessionApi = {
     return response.data;
   },
 
-  create: async (
-    session: Omit<Session, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<ApiResponse<Session>> => {
-    const response = await apiClient.post('/sessions', session);
+  start: async (
+    sessionData: StartSessionRequest
+  ): Promise<ApiResponse<StartSessionResponse>> => {
+    const response = await apiClient.post('/sessions', sessionData);
     return response.data;
   },
 
-  update: async (
+  end: async (
     id: string,
-    session: Partial<Session>
-  ): Promise<ApiResponse<Session>> => {
-    const response = await apiClient.put(`/sessions/${id}`, session);
+    finalCashOut: { amount: number; currency?: string },
+    notes?: string
+  ): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post(`/sessions/${id}/end`, {
+      finalCashOut,
+      notes,
+    });
     return response.data;
   },
 
-  delete: async (id: string): Promise<ApiResponse<void>> => {
-    const response = await apiClient.delete(`/sessions/${id}`);
+  addTransaction: async (
+    id: string,
+    type: string,
+    amount: { amount: number; currency?: string },
+    description?: string
+  ): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post(`/sessions/${id}/transactions`, {
+      type,
+      amount,
+      notes: description,
+    });
+    return response.data;
+  },
+
+  updateNotes: async (id: string, notes: string): Promise<ApiResponse<any>> => {
+    const response = await apiClient.patch(`/sessions/${id}/notes`, { notes });
+    return response.data;
+  },
+
+  cancel: async (id: string, reason?: string): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post(`/sessions/${id}/cancel`, { reason });
+    return response.data;
+  },
+
+  getPlayerSessions: async (playerId: string): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get(`/sessions/player/${playerId}`);
+    return response.data;
+  },
+
+  getActiveSession: async (
+    playerId: string
+  ): Promise<ApiResponse<Session | null>> => {
+    const response = await apiClient.get(`/sessions/player/${playerId}/active`);
     return response.data;
   },
 };
