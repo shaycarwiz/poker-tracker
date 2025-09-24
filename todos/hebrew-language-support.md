@@ -122,36 +122,113 @@ const LanguageToggle = () => {
 
 ### Backend (API)
 
-#### 1. **Localized Error Messages**
+#### 1. **Error Code System for Localization**
+
+The backend uses a centralized error code system that enables frontend localization. Instead of sending human-readable error messages, the API returns standardized error codes that the frontend can translate.
 
 ```typescript
-// Error message localization
-const getLocalizedMessage = (error: string, language: string) => {
-  const messages = {
-    en: {
-      INVALID_CREDENTIALS: "Invalid credentials",
-      SESSION_NOT_FOUND: "Session not found",
-    },
-    he: {
-      INVALID_CREDENTIALS: "פרטי התחברות לא תקינים",
-      SESSION_NOT_FOUND: "המשחק לא נמצא",
-    },
-  };
+// Current error code structure (from /packages/api/src/shared/error-codes.ts)
+export const API_ERROR_CODES = {
+  // Authentication & Authorization
+  AUTH_INVALID_TOKEN: "AUTH_INVALID_TOKEN",
+  AUTH_TOKEN_EXPIRED: "AUTH_TOKEN_EXPIRED",
+  AUTH_PLAYER_NOT_FOUND: "AUTH_PLAYER_NOT_FOUND",
 
-  return messages[language]?.[error] || messages.en[error];
+  // Validation Errors
+  VALIDATION_GOOGLE_ID_REQUIRED: "VALIDATION_GOOGLE_ID_REQUIRED",
+  VALIDATION_EMAIL_INVALID: "VALIDATION_EMAIL_INVALID",
+  VALIDATION_NAME_REQUIRED: "VALIDATION_NAME_REQUIRED",
+
+  // Business Logic Errors
+  BUSINESS_PLAYER_NOT_FOUND: "BUSINESS_PLAYER_NOT_FOUND",
+  BUSINESS_SESSION_NOT_FOUND: "BUSINESS_SESSION_NOT_FOUND",
+  BUSINESS_ACTIVE_SESSION_EXISTS: "BUSINESS_ACTIVE_SESSION_EXISTS",
+
+  // Database Operation Errors
+  DATABASE_PLAYER_SAVE_FAILED: "DATABASE_PLAYER_SAVE_FAILED",
+  DATABASE_SESSION_FIND_FAILED: "DATABASE_SESSION_FIND_FAILED",
+
+  // System Errors
+  SYSTEM_RATE_LIMIT_EXCEEDED: "SYSTEM_RATE_LIMIT_EXCEEDED",
+  SYSTEM_INTERNAL_ERROR: "SYSTEM_INTERNAL_ERROR",
+} as const;
+```
+
+#### 2. **Standardized Error Response Structure**
+
+```typescript
+// Current API error response format
+export interface APIErrorResponse {
+  success: false;
+  error: string;        // Error code for frontend localization
+  code: APIErrorCode;   // Specific error code
+  statusCode: number;   // HTTP status code
+  details?: Record<string, any>; // Additional error details
+}
+
+// Example error response
+{
+  "success": false,
+  "error": "VALIDATION_NAME_REQUIRED",
+  "code": "VALIDATION_NAME_REQUIRED",
+  "statusCode": 400,
+  "details": {
+    "field": "name",
+    "value": ""
+  }
+}
+```
+
+#### 3. **Frontend Localization Mapping**
+
+The frontend will need to map these error codes to Hebrew translations:
+
+```typescript
+// Frontend error code to Hebrew translation mapping
+const errorTranslations = {
+  he: {
+    AUTH_INVALID_TOKEN: "אסימון לא תקין",
+    AUTH_TOKEN_EXPIRED: "אסימון פג תוקף",
+    AUTH_PLAYER_NOT_FOUND: "שחקן לא נמצא",
+    VALIDATION_NAME_REQUIRED: "שם שחקן נדרש",
+    VALIDATION_EMAIL_INVALID: "כתובת אימייל לא תקינה",
+    BUSINESS_SESSION_NOT_FOUND: "המשחק לא נמצא",
+    BUSINESS_ACTIVE_SESSION_EXISTS: "קיים משחק פעיל",
+    DATABASE_PLAYER_SAVE_FAILED: "שגיאה בשמירת שחקן",
+    SYSTEM_INTERNAL_ERROR: "שגיאה פנימית בשרת",
+  },
+  en: {
+    AUTH_INVALID_TOKEN: "Invalid token",
+    AUTH_TOKEN_EXPIRED: "Token expired",
+    AUTH_PLAYER_NOT_FOUND: "Player not found",
+    VALIDATION_NAME_REQUIRED: "Player name is required",
+    VALIDATION_EMAIL_INVALID: "Invalid email address",
+    BUSINESS_SESSION_NOT_FOUND: "Session not found",
+    BUSINESS_ACTIVE_SESSION_EXISTS: "Active session exists",
+    DATABASE_PLAYER_SAVE_FAILED: "Failed to save player",
+    SYSTEM_INTERNAL_ERROR: "Internal server error",
+  },
 };
 ```
 
-#### 2. **Hebrew Date Formatting**
+#### 4. **Hebrew Date Formatting (Frontend Implementation)**
 
 ```typescript
-// Date formatting for Hebrew locale
+// Date formatting for Hebrew locale (implemented in frontend)
 const formatDateHebrew = (date: Date) => {
   return new Intl.DateTimeFormat("he-IL", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(date);
+};
+
+// Number formatting for Hebrew locale
+const formatCurrencyHebrew = (amount: number, currency: string = "ILS") => {
+  return new Intl.NumberFormat("he-IL", {
+    style: "currency",
+    currency: currency,
+  }).format(amount);
 };
 ```
 
@@ -193,13 +270,26 @@ const formatDateHebrew = (date: Date) => {
   - Cash-out → משיכת כסף
   - Add Transaction → הוסף עסקה
 
-### 5. **Error Messages**
+### 5. **Error Messages (Error Code Mapping)**
 
-- **Common Errors**
-  - "Invalid session data" → "נתוני משחק לא תקינים"
-  - "Session not found" → "המשחק לא נמצא"
-  - "Insufficient funds" → "אין מספיק כסף"
-  - "Network error" → "שגיאת רשת"
+- **Authentication Errors**
+  - `AUTH_INVALID_TOKEN` → "אסימון לא תקין"
+  - `AUTH_TOKEN_EXPIRED` → "אסימון פג תוקף"
+  - `AUTH_PLAYER_NOT_FOUND` → "שחקן לא נמצא"
+
+- **Validation Errors**
+  - `VALIDATION_NAME_REQUIRED` → "שם שחקן נדרש"
+  - `VALIDATION_EMAIL_INVALID` → "כתובת אימייל לא תקינה"
+  - `VALIDATION_STAKES_REQUIRED` → "הימורים נדרשים"
+
+- **Business Logic Errors**
+  - `BUSINESS_SESSION_NOT_FOUND` → "המשחק לא נמצא"
+  - `BUSINESS_ACTIVE_SESSION_EXISTS` → "קיים משחק פעיל"
+  - `BUSINESS_CANNOT_ADD_TRANSACTION_INACTIVE` → "לא ניתן להוסיף עסקה למשחק לא פעיל"
+
+- **System Errors**
+  - `SYSTEM_INTERNAL_ERROR` → "שגיאה פנימית בשרת"
+  - `SYSTEM_RATE_LIMIT_EXCEEDED` → "חרגת ממגבלת הבקשות"
 
 ## Testing Scenarios
 
@@ -236,14 +326,18 @@ const formatDateHebrew = (date: Date) => {
 ### Environment Variables
 
 ```env
-# Language support
+# Language support (Frontend configuration)
 DEFAULT_LANGUAGE=en
 SUPPORTED_LANGUAGES=en,he
 RTL_LANGUAGES=he
 
-# Hebrew-specific settings
+# Hebrew-specific settings (Frontend)
 HEBREW_DATE_FORMAT=DD/MM/YYYY
 HEBREW_CURRENCY_SYMBOL=₪
+
+# Backend API configuration (already implemented)
+NODE_ENV=development
+PORT=4000
 ```
 
 ### Frontend Configuration
@@ -261,37 +355,63 @@ const i18nConfig = {
 };
 ```
 
+## Current Implementation Status
+
+### ✅ Backend (API) - Complete
+
+- **Error Code System**: Centralized error codes implemented in `/packages/api/src/shared/error-codes.ts`
+- **Error Response Structure**: Standardized API error responses with error codes
+- **Error Handling**: Domain error classes and error handling middleware
+- **API Response Types**: TypeScript interfaces for all API responses
+
+### ❌ Frontend (Web App) - Pending
+
+- **RTL Support**: Not implemented
+- **Internationalization**: Not implemented
+- **Error Code Mapping**: Not implemented
+- **Hebrew Fonts**: Not implemented
+- **Language Toggle**: Not implemented
+
 ## Implementation Priority
 
-### Phase 1: RTL Foundation (Week 1)
+### Phase 1: Frontend Error Code Integration (Week 1)
+
+- Create error code mapping system in frontend
+- Implement error message localization
+- Update API client to handle error codes
+- Test error message display in Hebrew
+
+### Phase 2: RTL Foundation (Week 2)
 
 - Implement RTL CSS framework
-- Set up internationalization infrastructure
+- Set up internationalization infrastructure (react-i18next)
 - Add language toggle component
 - Test basic RTL layout
 
-### Phase 2: Content Translation (Week 2)
+### Phase 3: Content Translation (Week 3)
 
 - Translate core UI elements
-- Localize error messages
-- Implement Hebrew date formatting
+- Implement Hebrew date and number formatting
 - Add Hebrew font support
+- Localize form labels and placeholders
 
-### Phase 3: Advanced Features (Week 3)
+### Phase 4: Advanced Features & Testing (Week 4)
 
 - Implement bidirectional text support
 - Add cultural adaptations
-- Test mixed content scenarios
-- Polish user experience
-
-### Phase 4: Testing & Polish (Week 4)
-
 - Comprehensive RTL testing
-- Cross-browser compatibility
-- Performance optimization
-- User acceptance testing
+- Cross-browser compatibility testing
 
 ## Success Criteria
+
+### Backend (Already Complete)
+
+- [x] Centralized error code system implemented
+- [x] Standardized API error response structure
+- [x] Error handling middleware with proper error codes
+- [x] TypeScript interfaces for all API responses
+
+### Frontend (To Be Implemented)
 
 - [ ] All UI elements properly mirrored for RTL
 - [ ] Hebrew text renders correctly with proper fonts
@@ -300,16 +420,27 @@ const i18nConfig = {
 - [ ] Language switching works seamlessly
 - [ ] Mixed Hebrew/English content displays correctly
 - [ ] Form inputs handle Hebrew text properly
-- [ ] Error messages appear in Hebrew
+- [ ] Error messages appear in Hebrew using error code mapping
 - [ ] Responsive design works in RTL mode
+- [ ] API error codes properly mapped to Hebrew translations
 
 ## Related Files
 
+### Frontend (Web App)
+
 - `/packages/web/src/lib/i18n.ts` - Internationalization setup
-- `/packages/web/src/locales/` - Translation files
-- `/packages/web/src/styles/rtl.css` - RTL-specific styles
-- `/packages/web/src/components/LanguageToggle.tsx` - Language selector
-- `/packages/api/src/shared/localization/` - Backend localization
+- `/packages/web/src/locales/` - Translation files (to be created)
+- `/packages/web/src/styles/rtl.css` - RTL-specific styles (to be created)
+- `/packages/web/src/components/LanguageToggle.tsx` - Language selector (to be created)
+- `/packages/web/src/lib/error-codes.ts` - Frontend error code mapping (to be created)
+
+### Backend (API) - Already Implemented
+
+- `/packages/api/src/shared/error-codes.ts` - Centralized error codes
+- `/packages/api/src/shared/error-helpers.ts` - Error response helpers
+- `/packages/api/src/shared/errors/domain-error.ts` - Domain error classes
+- `/packages/api/src/api/middleware/errorHandler.ts` - Error handling middleware
+- `/packages/api/src/api/types.ts` - API response types
 
 ## Dependencies
 
@@ -320,8 +451,7 @@ const i18nConfig = {
 
 ---
 
-**Status**: Pending Implementation  
+**Status**: Backend Complete, Frontend Pending  
 **Priority**: Medium  
-**Estimated Effort**: 3-4 weeks  
-**Dependencies**: UI framework completion, content translation
-
+**Estimated Effort**: 3-4 weeks (Frontend only)  
+**Dependencies**: Frontend internationalization setup, content translation, RTL CSS framework
