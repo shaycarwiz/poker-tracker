@@ -7,27 +7,25 @@ import { SessionRow } from "../types";
 
 export class SessionMapper {
   static toDomain(row: SessionRow, transactions: Transaction[] = []): Session {
-    const session = Object.create(Session.prototype);
-
-    Object.assign(session, {
-      id: new SessionId(row.id),
-      playerId: new PlayerId(row.player_id),
-      _location: row.location,
-      _stakes: new Stakes(
+    // Create Session instance directly using constructor
+    // This ensures proper initialization of the domain object
+    return new Session(
+      new SessionId(row.id),
+      new PlayerId(row.player_id),
+      row.location,
+      new Stakes(
         new Money(row.small_blind, row.currency),
         new Money(row.big_blind, row.currency),
-        row.ante ? new Money(row.ante, row.currency) : undefined,
+        row.ante ? new Money(row.ante, row.currency) : undefined
       ),
-      _startTime: new Date(row.start_time),
-      _endTime: row.end_time ? new Date(row.end_time) : undefined,
-      _status: row.status as SessionStatus,
-      _transactions: transactions,
-      _notes: row.notes,
-      _createdAt: new Date(row.created_at),
-      _updatedAt: new Date(row.updated_at),
-    });
-
-    return session;
+      new Date(row.start_time),
+      row.end_time ? new Date(row.end_time) : undefined,
+      row.status as SessionStatus,
+      transactions,
+      row.notes || undefined,
+      new Date(row.created_at),
+      new Date(row.updated_at)
+    );
   }
 
   static toPersistence(session: Session): SessionRow {

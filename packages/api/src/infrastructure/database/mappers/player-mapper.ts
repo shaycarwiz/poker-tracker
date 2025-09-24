@@ -6,21 +6,18 @@ import { PlayerRow } from "../types";
 
 export class PlayerMapper {
   static toDomain(row: PlayerRow): Player {
-    // Create a new Player instance using the private constructor approach
-    const player = Object.create(Player.prototype);
-
-    Object.assign(player, {
-      id: new PlayerId(row.id),
-      _name: row.name,
-      _email: row.email,
-      _googleId: row.google_id,
-      _currentBankroll: new Money(row.current_bankroll, row.currency),
-      _totalSessions: row.total_sessions,
-      _createdAt: new Date(row.created_at),
-      _updatedAt: new Date(row.updated_at),
-    });
-
-    return player;
+    // Create Player instance directly using constructor
+    // This ensures proper initialization of the domain object
+    return new Player(
+      new PlayerId(row.id),
+      row.name,
+      row.email || undefined,
+      row.google_id || undefined,
+      new Money(row.current_bankroll, row.currency),
+      row.total_sessions,
+      new Date(row.created_at),
+      new Date(row.updated_at)
+    );
   }
 
   static toPersistence(player: Player): PlayerRow {

@@ -54,7 +54,7 @@ export class TransactionId {
 
 // Main Entities
 export class Player extends AggregateRoot {
-  private constructor(
+  constructor(
     public readonly id: PlayerId,
     private _name: string,
     private _email?: string,
@@ -164,7 +164,7 @@ export class Player extends AggregateRoot {
 }
 
 export class Session extends AggregateRoot {
-  private constructor(
+  constructor(
     public readonly id: SessionId,
     public readonly playerId: PlayerId,
     private _location: string,
