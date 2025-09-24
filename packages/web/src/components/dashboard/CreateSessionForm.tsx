@@ -96,7 +96,7 @@ export function CreateSessionForm() {
 
     try {
       const sessionData: StartSessionRequest = {
-        playerId: session.user.id,
+        playerId: session.userId!,
         location: formData.location.trim(),
         stakes: {
           smallBlind: Number(formData.smallBlind),
