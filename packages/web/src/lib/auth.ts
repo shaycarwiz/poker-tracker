@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken as string;
         session.backendToken = token.backendToken as string;
         session.userId = token.userId as string;
-        session.user.id = token.userId as string;
+        session.user.id = token.googleId as string;
       }
       return session;
     },
