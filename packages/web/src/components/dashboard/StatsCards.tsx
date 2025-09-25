@@ -1,5 +1,9 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useCurrencyFormatting } from '@/lib/currency';
+
 interface PlayerData {
   id: string;
   name: string;
@@ -32,12 +36,11 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ playerData, playerStats }: StatsCardsProps) {
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
+  const { t } = useTranslation();
+  const { preferences } = useUserPreferences();
+  const { formatCurrency } = useCurrencyFormatting(
+    preferences?.defaultCurrency || 'ILS'
+  );
 
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
@@ -45,19 +48,19 @@ export function StatsCards({ playerData, playerStats }: StatsCardsProps) {
 
   const stats = [
     {
-      name: 'Current Bankroll',
+      name: t('dashboard.currentBankroll'),
       value: playerData
         ? formatCurrency(
             playerData.bankroll.amount,
             playerData.bankroll.currency
           )
-        : '$0.00',
+        : formatCurrency(0),
       change: '+0%',
       changeType: 'neutral' as const,
       icon: '💰',
     },
     {
-      name: 'Total Sessions',
+      name: t('dashboard.totalSessions'),
       value: playerStats?.totalSessions.toString() || '0',
       change: '+0',
       changeType: 'neutral' as const,
@@ -76,7 +79,7 @@ export function StatsCards({ playerData, playerStats }: StatsCardsProps) {
       icon: '📈',
     },
     {
-      name: 'Win Rate',
+      name: t('dashboard.winRate'),
       value: playerStats ? formatPercentage(playerStats.winRate) : '0.0%',
       change: '+0%',
       changeType: 'neutral' as const,

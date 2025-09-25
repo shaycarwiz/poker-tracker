@@ -137,6 +137,26 @@ export const playerApi = {
     const response = await apiClient.patch('/players/me/bankroll', { amount });
     return response.data;
   },
+
+  getPreferences: async (): Promise<
+    ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
+  > => {
+    const response = await apiClient.get('/players/me/preferences');
+    return response.data;
+  },
+
+  updatePreferences: async (preferences: {
+    preferredLanguage?: string;
+    defaultCurrency?: string;
+  }): Promise<
+    ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
+  > => {
+    const response = await apiClient.put(
+      '/players/me/preferences',
+      preferences
+    );
+    return response.data;
+  },
 };
 
 // Session API

@@ -67,6 +67,7 @@ export class Player extends AggregateRoot {
     private _googleId?: string,
     private _currentBankroll: Money = new Money(0),
     private _totalSessions: number = 0,
+    private _preferredLanguage: string = "he",
     private _createdAt: Date = new Date(),
     private _updatedAt: Date = new Date()
   ) {
@@ -130,6 +131,10 @@ export class Player extends AggregateRoot {
     return this._updatedAt;
   }
 
+  get preferredLanguage(): string {
+    return this._preferredLanguage;
+  }
+
   updateName(name: string): void {
     if (!name.trim())
       throw new ValidationError(API_ERROR_CODES.VALIDATION_NAME_REQUIRED);
@@ -162,6 +167,17 @@ export class Player extends AggregateRoot {
 
   incrementSessionCount(): void {
     this._totalSessions++;
+    this._updatedAt = new Date();
+  }
+
+  updatePreferredLanguage(language: string): void {
+    const supportedLanguages = ["he", "en", "es", "fr"];
+    if (!supportedLanguages.includes(language)) {
+      throw new ValidationError(
+        API_ERROR_CODES.VALIDATION_LANGUAGE_NOT_SUPPORTED
+      );
+    }
+    this._preferredLanguage = language;
     this._updatedAt = new Date();
   }
 

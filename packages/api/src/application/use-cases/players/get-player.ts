@@ -35,12 +35,13 @@ export class GetPlayerUseCase extends BaseUseCase {
             currency: stats.netProfit.currency,
           },
           winRate: stats.winRate,
+          preferredLanguage: player.preferredLanguage,
           createdAt: player.createdAt,
           updatedAt: player.updatedAt,
         };
       },
       "GetPlayerUseCase",
-      { playerId },
+      { playerId }
     );
   }
 }

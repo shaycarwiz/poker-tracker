@@ -206,6 +206,113 @@ export class PlayerController extends Controller {
     }
   }
 
+  @Get("/me/preferences")
+  @Security("jwt")
+  public async getCurrentPlayerPreferences(
+    @Request() req: AuthenticatedRequest
+  ): Promise<
+    ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
+  > {
+    try {
+      if (!req.user) {
+        this.setStatus(401);
+        return {
+          success: false,
+          error: "Authentication required",
+        };
+      }
+
+      // Fetch player by email from the authenticated user
+      const player = await this.playerService.getPlayerByEmail(req.user.email);
+
+      if (!player) {
+        this.setStatus(404);
+        return {
+          success: false,
+          error: "Player profile not found",
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          preferredLanguage: player.preferredLanguage,
+          defaultCurrency: player.bankroll.currency,
+        },
+      };
+    } catch (error) {
+      logger.error("Error getting current player preferences", {
+        error,
+        userId: req.user?.googleId,
+      });
+      this.setStatus(500);
+      return {
+        success: false,
+        error: "Failed to get player preferences",
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  @Put("/me/preferences")
+  @Security("jwt")
+  @Example<{ preferredLanguage?: string; defaultCurrency?: string }>({
+    preferredLanguage: "en",
+    defaultCurrency: "USD",
+  })
+  public async updateCurrentPlayerPreferences(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { preferredLanguage?: string; defaultCurrency?: string }
+  ): Promise<
+    ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
+  > {
+    try {
+      if (!req.user) {
+        this.setStatus(401);
+        return {
+          success: false,
+          error: "Authentication required",
+        };
+      }
+
+      // Fetch player by email from the authenticated user
+      const player = await this.playerService.getPlayerByEmail(req.user.email);
+
+      if (!player) {
+        this.setStatus(404);
+        return {
+          success: false,
+          error: "Player profile not found",
+        };
+      }
+
+      const { preferredLanguage, defaultCurrency } = body;
+
+      const response = await this.playerService.updatePlayerPreferences({
+        email: req.user.email,
+        preferredLanguage,
+        defaultCurrency,
+      });
+
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      logger.error("Error updating current player preferences", {
+        error,
+        userId: req.user?.googleId,
+        body,
+      });
+      this.setStatus(500);
+      return {
+        success: false,
+        error: "Failed to update player preferences",
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
   @Put("/me/bankroll")
   @Security("jwt")
   @Example<{ amount: number; currency?: string }>({

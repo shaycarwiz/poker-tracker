@@ -138,5 +138,29 @@
     "english": "English",
     "hebrew": "עברית",
     "switchLanguage": "החלף שפה"
+  },
+  "preferences": {
+    "title": "העדפות משתמש",
+    "language": "שפה",
+    "currency": "מטבע ברירת מחדל",
+    "save": "שמור העדפות",
+    "saved": "ההעדפות נשמרו בהצלחה",
+    "error": "נכשל בשמירת ההעדפות",
+    "loading": "שומר העדפות...",
+    "selectLanguage": "בחר את השפה המועדפת עליך",
+    "selectCurrency": "בחר את המטבע ברירת המחדל",
+    "supportedLanguages": {
+      "he": "עברית",
+      "en": "English",
+      "es": "Español (ספרדית)",
+      "fr": "Français (צרפתית)"
+    },
+    "supportedCurrencies": {
+      "ILS": "שקל ישראלי (₪)",
+      "USD": "דולר אמריקני ($)",
+      "EUR": "יורו (€)",
+      "GBP": "לירה שטרלינג (£)",
+      "CAD": "דולר קנדי (C$)"
+    }
   }
 }

@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { UserPreferencesProvider } from '@/contexts/UserPreferencesContext';
 import { I18nProvider } from '@/components/providers/I18nProvider';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -31,9 +32,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <I18nProvider>
           <LanguageProvider>
-            <SessionProvider>
-              <div className="min-h-screen bg-gray-50">{children}</div>
-            </SessionProvider>
+            <UserPreferencesProvider>
+              <SessionProvider>
+                <div className="min-h-screen bg-gray-50">{children}</div>
+              </SessionProvider>
+            </UserPreferencesProvider>
           </LanguageProvider>
         </I18nProvider>
       </body>

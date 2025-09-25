@@ -138,5 +138,29 @@
     "english": "English",
     "hebrew": "עברית",
     "switchLanguage": "Switch Language"
+  },
+  "preferences": {
+    "title": "User Preferences",
+    "language": "Language",
+    "currency": "Default Currency",
+    "save": "Save Preferences",
+    "saved": "Preferences saved successfully",
+    "error": "Failed to save preferences",
+    "loading": "Saving preferences...",
+    "selectLanguage": "Select your preferred language",
+    "selectCurrency": "Select your default currency",
+    "supportedLanguages": {
+      "he": "Hebrew (עברית)",
+      "en": "English",
+      "es": "Spanish (Español)",
+      "fr": "French (Français)"
+    },
+    "supportedCurrencies": {
+      "ILS": "Israeli Shekel (₪)",
+      "USD": "US Dollar ($)",
+      "EUR": "Euro (€)",
+      "GBP": "British Pound (£)",
+      "CAD": "Canadian Dollar (C$)"
+    }
   }
 }

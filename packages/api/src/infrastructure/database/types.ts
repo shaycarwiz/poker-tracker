@@ -8,6 +8,7 @@ export interface PlayerRow {
   current_bankroll: string; // DECIMAL(15,2) - PostgreSQL returns as string
   currency: string; // VARCHAR(3)
   total_sessions: number;
+  preferred_language: string; // VARCHAR(5)
   created_at: Date;
   updated_at: Date;
 }

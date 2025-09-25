@@ -9,6 +9,7 @@ import {
   GetPlayerByEmailUseCase,
   ListPlayersUseCase,
   UpdatePlayerUseCase,
+  UpdatePlayerPreferencesUseCase,
 } from "../use-cases/players";
 import {
   AddBankrollRequest,
@@ -20,6 +21,10 @@ import {
   UpdatePlayerRequest,
   UpdatePlayerResponse,
 } from "../dto/player-dto";
+import {
+  UpdatePlayerPreferencesRequest,
+  UpdatePlayerPreferencesResponse,
+} from "../use-cases/players/update-player-preferences";
 
 @injectable()
 export class PlayerService {
@@ -29,6 +34,7 @@ export class PlayerService {
   private getPlayerByEmailUseCase: GetPlayerByEmailUseCase;
   private listPlayersUseCase: ListPlayersUseCase;
   private addBankrollUseCase: AddBankrollUseCase;
+  private updatePlayerPreferencesUseCase: UpdatePlayerPreferencesUseCase;
 
   constructor(@inject("UnitOfWork") unitOfWork: UnitOfWork) {
     this.createPlayerUseCase = new CreatePlayerUseCase(unitOfWork);
@@ -37,6 +43,9 @@ export class PlayerService {
     this.getPlayerByEmailUseCase = new GetPlayerByEmailUseCase(unitOfWork);
     this.listPlayersUseCase = new ListPlayersUseCase(unitOfWork);
     this.addBankrollUseCase = new AddBankrollUseCase(unitOfWork);
+    this.updatePlayerPreferencesUseCase = new UpdatePlayerPreferencesUseCase(
+      unitOfWork
+    );
   }
 
   async createPlayer(
@@ -70,5 +79,11 @@ export class PlayerService {
 
   async getPlayerByEmail(email: string): Promise<GetPlayerResponse> {
     return await this.getPlayerByEmailUseCase.execute(email);
+  }
+
+  async updatePlayerPreferences(
+    request: UpdatePlayerPreferencesRequest
+  ): Promise<UpdatePlayerPreferencesResponse> {
+    return await this.updatePlayerPreferencesUseCase.execute(request);
   }
 }

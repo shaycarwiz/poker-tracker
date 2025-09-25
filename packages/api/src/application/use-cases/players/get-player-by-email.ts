@@ -26,6 +26,7 @@ export class GetPlayerByEmailUseCase {
         currency: player.currentBankroll.currency,
       },
       winRate: 0, // TODO: Calculate from sessions
+      preferredLanguage: player.preferredLanguage,
       createdAt: player.createdAt,
       updatedAt: player.updatedAt,
     };

@@ -7,3 +7,4 @@ export { GetPlayerByEmailUseCase } from "./get-player-by-email";
 export { ListPlayersUseCase } from "./list-players";
 export { AddBankrollUseCase } from "./add-bankroll";
 export { DeletePlayerUseCase } from "./delete-player";
+export { UpdatePlayerPreferencesUseCase } from "./update-player-preferences";

@@ -51,6 +51,7 @@ export interface GetPlayerResponse {
     currency: string;
   };
   winRate: number;
+  preferredLanguage: string;
   createdAt: Date;
   updatedAt: Date;
 }
