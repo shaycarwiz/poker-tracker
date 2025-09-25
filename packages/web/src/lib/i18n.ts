@@ -23,7 +23,8 @@ i18n
     resources,
     lng: 'en', // default language
     fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    debug:
+      process.env.NODE_ENV === 'development' && typeof window !== 'undefined',
 
     interpolation: {
       escapeValue: false, // React already does escaping
