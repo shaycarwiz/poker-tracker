@@ -191,6 +191,7 @@ describe("PlayerController", () => {
           currency: config.poker.defaultCurrency,
         },
         winRate: 0.6,
+        preferredLanguage: "he",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -296,6 +297,7 @@ describe("PlayerController", () => {
               currency: config.poker.defaultCurrency,
             },
             winRate: 0,
+            preferredLanguage: "he",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
