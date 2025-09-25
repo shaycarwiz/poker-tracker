@@ -9,6 +9,8 @@ import { PerformanceCharts } from './PerformanceCharts';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { playerApi, sessionApi } from '@/lib/api-client';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PlayerData {
   id: string;
@@ -154,6 +156,8 @@ const fetchMe = async () => {
 
 const useDashboardData = () => {
   const { data: session } = useSession();
+  const { language } = useLanguage();
+  const { handleError, handleApiError } = useErrorHandler(language);
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -178,20 +182,27 @@ const useDashboardData = () => {
 
         if (playerDataResponse.success) {
           setPlayerData(playerDataResponse.data);
+        } else {
+          setError(handleApiError(playerDataResponse));
+          return;
         }
 
         if (playerStatsResponse.success) {
           setPlayerStats(playerStatsResponse.data);
+        } else {
+          setError(handleApiError(playerStatsResponse));
+          return;
         }
 
         if (sessionsResponse.success) {
           setSessions(sessionsResponse.data.sessions || []);
+        } else {
+          setError(handleApiError(sessionsResponse));
+          return;
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to load dashboard data'
-        );
+        setError(handleError(err));
       } finally {
         setLoading(false);
       }

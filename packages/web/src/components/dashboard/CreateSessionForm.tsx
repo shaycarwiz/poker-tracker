@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { sessionApi } from '@/lib/api-client';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { StartSessionRequest } from '@/types';
 
 interface FormData {
@@ -23,6 +25,8 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
 export function CreateSessionForm() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { language } = useLanguage();
+  const { handleError, handleApiError } = useErrorHandler(language);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -115,11 +119,11 @@ export function CreateSessionForm() {
       if (response.success) {
         router.push(`/sessions/${response.data.sessionId}`);
       } else {
-        setError('Failed to start session');
+        setError(handleApiError(response));
       }
     } catch (err) {
       console.error('Error starting session:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start session');
+      setError(handleError(err));
     } finally {
       setLoading(false);
     }
