@@ -1,5 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
+import { tokenManager } from './token-manager';
+import { authErrorHandler } from './auth-error-handler';
 import type {
   ApiResponse,
   PaginatedResponse,
@@ -20,12 +22,26 @@ const apiClient = axios.create({
   },
 });
 
+// Request queue for handling concurrent requests during token refresh
+const requestQueue: Array<{
+  resolve: (value: any) => void;
+  reject: (error: any) => void;
+  config: AxiosRequestConfig;
+}> = [];
+
+let isRefreshing = false;
+
 // Add request interceptor to include backend auth token
 apiClient.interceptors.request.use(
   async (config) => {
-    const session = await getSession();
-    if (session?.backendToken) {
-      config.headers.Authorization = `Bearer ${session.backendToken}`;
+    // Skip token addition for refresh endpoint to avoid infinite loops
+    if (config.url?.includes('/auth/refresh')) {
+      return config;
+    }
+
+    const token = await tokenManager.getValidToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -34,14 +50,73 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor for automatic token refresh
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      window.location.href = '/auth/signin';
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If refresh is in progress, queue the request
+        return new Promise((resolve, reject) => {
+          requestQueue.push({
+            resolve,
+            reject,
+            config: originalRequest,
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newToken = await tokenManager.refreshToken();
+
+        if (newToken) {
+          // Process queued requests
+          requestQueue.forEach(({ resolve, config }) => {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${newToken}`;
+            resolve(apiClient(config));
+          });
+          requestQueue.length = 0;
+
+          // Retry original request
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(originalRequest);
+        } else {
+          // Refresh failed, handle error appropriately
+          const authError = authErrorHandler.handleAuthError(error);
+          await authErrorHandler.handleTokenRefreshFailure(authError);
+          return Promise.reject(error);
+        }
+      } catch (refreshError) {
+        // Clear queue and handle refresh failure
+        const authError = authErrorHandler.handleAuthError(
+          refreshError as AxiosError
+        );
+        requestQueue.forEach(({ reject }) => {
+          reject(refreshError);
+        });
+        requestQueue.length = 0;
+        await authErrorHandler.handleTokenRefreshFailure(authError);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
+    // Handle other types of errors
+    if (authErrorHandler.isAuthError(error)) {
+      const authError = authErrorHandler.handleAuthError(error);
+      console.error('Authentication error:', authError);
+    }
+
     return Promise.reject(error);
   }
 );

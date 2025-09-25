@@ -34,8 +34,10 @@ export const authOptions: NextAuthOptions = {
 
           if (response.ok) {
             const data = await response.json();
-            // Store the backend JWT token
+            // Store the backend JWT tokens
             token.backendToken = data.token;
+            token.refreshToken = data.refreshToken;
+            token.tokenExpiresAt = Date.now() + data.expiresIn * 1000;
             token.userId = data.user.id;
           }
         } catch (error) {
@@ -49,6 +51,8 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.accessToken = token.accessToken as string;
         session.backendToken = token.backendToken as string;
+        session.refreshToken = token.refreshToken as string;
+        session.tokenExpiresAt = token.tokenExpiresAt as number;
         session.userId = token.userId as string;
         session.user.id = token.googleId as string;
       }
@@ -70,6 +74,8 @@ declare module 'next-auth' {
   interface Session {
     accessToken?: string; // Google OAuth token
     backendToken?: string; // Backend API JWT token
+    refreshToken?: string; // Backend refresh token
+    tokenExpiresAt?: number; // Token expiration timestamp
     userId?: string; // Backend user ID
     user: {
       id: string;
@@ -85,6 +91,8 @@ declare module 'next-auth/jwt' {
     accessToken?: string; // Google OAuth token
     googleId?: string; // Google user ID
     backendToken?: string; // Backend API JWT token
+    refreshToken?: string; // Backend refresh token
+    tokenExpiresAt?: number; // Token expiration timestamp
     userId?: string; // Backend user ID
   }
 }

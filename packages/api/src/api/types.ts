@@ -124,6 +124,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  refreshToken: string;
+  expiresIn: number;
   user: {
     id: string;
     name: string;
@@ -131,6 +133,16 @@ export interface LoginResponse {
     currentBankroll: number;
     totalSessions: number;
   };
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
 }
 
 export interface ProfileResponse {
