@@ -139,6 +139,10 @@
     "hebrew": "עברית",
     "switchLanguage": "Switch Language"
   },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account preferences and settings"
+  },
   "preferences": {
     "title": "User Preferences",
     "language": "Language",

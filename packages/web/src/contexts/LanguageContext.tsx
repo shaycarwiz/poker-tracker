@@ -48,6 +48,24 @@ export function LanguageProvider({
     }
   }, [i18n, isClient]);
 
+  // Listen for language changes from i18n and update our state
+  useEffect(() => {
+    if (isClient && i18n) {
+      const handleLanguageChange = (lng: string) => {
+        const newLanguage = lng as SupportedLanguage;
+        if (newLanguage === 'en' || newLanguage === 'he') {
+          setLanguageState(newLanguage);
+        }
+      };
+
+      i18n.on('languageChanged', handleLanguageChange);
+
+      return () => {
+        i18n.off('languageChanged', handleLanguageChange);
+      };
+    }
+  }, [i18n, isClient]);
+
   // Save language to i18n and update document direction
   const setLanguage = (newLanguage: SupportedLanguage) => {
     setLanguageState(newLanguage);

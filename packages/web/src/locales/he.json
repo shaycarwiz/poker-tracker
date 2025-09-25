@@ -70,7 +70,6 @@
     "addTransaction": "הוסף עסקה",
     "transactionType": "סוג עסקה",
     "amount": "סכום",
-    "notes": "הערות",
     "profitLoss": "רווח/הפסד",
     "duration": "משך זמן",
     "startedAt": "התחיל ב",
@@ -138,6 +137,10 @@
     "english": "English",
     "hebrew": "עברית",
     "switchLanguage": "החלף שפה"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "description": "נהל את העדפות החשבון וההגדרות שלך"
   },
   "preferences": {
     "title": "העדפות משתמש",
