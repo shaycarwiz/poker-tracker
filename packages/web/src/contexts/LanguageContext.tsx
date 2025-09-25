@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SupportedLanguage } from '@/lib/error-codes';
 
 interface LanguageContextType {
@@ -24,32 +25,51 @@ export function LanguageProvider({
 }: LanguageProviderProps) {
   const [language, setLanguageState] =
     useState<SupportedLanguage>(defaultLanguage);
+  const [isClient, setIsClient] = useState(false);
 
-  // Load language from localStorage on mount
+  // Only use useTranslation on the client side
+  const { i18n } = useTranslation();
+
+  // Track if we're on the client side
   useEffect(() => {
-    const savedLanguage = localStorage.getItem(
-      'poker-tracker-language'
-    ) as SupportedLanguage;
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'he')) {
-      setLanguageState(savedLanguage);
-    }
+    setIsClient(true);
   }, []);
 
-  // Save language to localStorage and update document direction
+  // Load language from i18n on mount (client side only)
+  useEffect(() => {
+    if (isClient && i18n) {
+      const currentLanguage = i18n.language as SupportedLanguage;
+      if (
+        currentLanguage &&
+        (currentLanguage === 'en' || currentLanguage === 'he')
+      ) {
+        setLanguageState(currentLanguage);
+      }
+    }
+  }, [i18n, isClient]);
+
+  // Save language to i18n and update document direction
   const setLanguage = (newLanguage: SupportedLanguage) => {
     setLanguageState(newLanguage);
-    localStorage.setItem('poker-tracker-language', newLanguage);
 
-    // Update document direction for RTL support
-    document.documentElement.dir = newLanguage === 'he' ? 'rtl' : 'ltr';
-    document.documentElement.lang = newLanguage;
+    if (isClient && i18n) {
+      i18n.changeLanguage(newLanguage);
+    }
+
+    // Update document direction for RTL support (client side only)
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = newLanguage === 'he' ? 'rtl' : 'ltr';
+      document.documentElement.lang = newLanguage;
+    }
   };
 
-  // Update document direction when language changes
+  // Update document direction when language changes (client side only)
   useEffect(() => {
-    document.documentElement.dir = language === 'he' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-  }, [language]);
+    if (isClient && typeof document !== 'undefined') {
+      document.documentElement.dir = language === 'he' ? 'rtl' : 'ltr';
+      document.documentElement.lang = language;
+    }
+  }, [language, isClient]);
 
   const isRTL = language === 'he';
 

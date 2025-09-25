@@ -3,17 +3,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import { SignInButton } from '@/components/auth/SignInButton';
 import { LanguageToggle } from '@/components/LanguageToggle';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Sessions', href: '/sessions' },
-    { name: 'Statistics', href: '/statistics' },
-    { name: 'Settings', href: '/settings' },
+    { name: t('navigation.dashboard'), href: '/dashboard' },
+    { name: t('navigation.sessions'), href: '/sessions' },
+    { name: t('navigation.statistics'), href: '/statistics' },
+    { name: t('navigation.settings'), href: '/settings' },
   ];
 
   return (

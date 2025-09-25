@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { QuickActions } from './QuickActions';
 import { StatsCards } from './StatsCards';
 import { RecentSessions } from './RecentSessions';
@@ -68,6 +69,7 @@ interface Session {
 }
 
 export function DashboardContent() {
+  const { t } = useTranslation();
   const { playerData, playerStats, sessions, loading, error } =
     useDashboardData();
 
@@ -92,11 +94,9 @@ export function DashboardContent() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {playerData?.name || 'Player'}!
+          {t('dashboard.title', { name: playerData?.name || 'Player' })}
         </h1>
-        <p className="mt-2 text-gray-600">
-          Here's your poker performance overview
-        </p>
+        <p className="mt-2 text-gray-600">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* Quick Actions */}
