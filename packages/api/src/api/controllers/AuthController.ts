@@ -19,6 +19,8 @@ import {
   LoginResponse,
   ProfileResponse,
   UpdateProfileRequest,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
 } from "../types";
 
 /**
@@ -89,15 +91,17 @@ export class AuthController extends Controller {
         }
       }
 
-      // Generate JWT token
-      const token = JWTService.generateToken({
+      // Generate JWT token pair
+      const tokenPair = JWTService.generateTokenPair({
         googleId: player.googleId!,
         email: player.email!,
         name: player.name,
       });
 
       return {
-        token,
+        token: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+        expiresIn: tokenPair.expiresIn,
         user: {
           id: player.id.value,
           name: player.name,
@@ -219,6 +223,64 @@ export class AuthController extends Controller {
       };
     } catch (error) {
       logger.error(`Update profile error: ${error}`);
+      this.setStatus(500);
+      throw new Error("Internal server error");
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  @Post("refresh")
+  public async refreshToken(
+    @Body() body: RefreshTokenRequest
+  ): Promise<RefreshTokenResponse> {
+    try {
+      const { refreshToken } = body;
+
+      if (
+        !refreshToken ||
+        typeof refreshToken !== "string" ||
+        refreshToken.trim() === ""
+      ) {
+        this.setStatus(400);
+        throw new Error("Refresh token is required");
+      }
+
+      // Verify refresh token
+      const refreshPayload = JWTService.verifyRefreshToken(refreshToken);
+
+      // Find player by Google ID
+      const player = await this.playerRepository.findByGoogleId(
+        refreshPayload.googleId
+      );
+
+      if (!player) {
+        this.setStatus(404);
+        throw new Error("Player not found");
+      }
+
+      // Generate new token pair (refresh token rotation)
+      const tokenPair = JWTService.generateTokenPair({
+        googleId: player.googleId!,
+        email: player.email!,
+        name: player.name,
+      });
+
+      return {
+        accessToken: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+        expiresIn: tokenPair.expiresIn,
+      };
+    } catch (error) {
+      logger.error(`Token refresh error: ${error}`);
+      if (
+        error instanceof Error &&
+        error.message.includes("Invalid refresh token")
+      ) {
+        this.setStatus(401);
+        throw new Error("Invalid or expired refresh token");
+      }
       this.setStatus(500);
       throw new Error("Internal server error");
     }

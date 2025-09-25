@@ -49,10 +49,19 @@ export const authenticateToken = (
     next();
   } catch (error) {
     logger.warn(`JWT verification failed: ${error}`);
-    res.status(403).json({
-      error: "Invalid or expired token",
-      code: "INVALID_TOKEN",
-    });
+
+    // Check if it's a token expiration error
+    if (error instanceof Error && error.name === "TokenExpiredError") {
+      res.status(401).json({
+        error: "Token has expired",
+        code: "TOKEN_EXPIRED",
+      });
+    } else {
+      res.status(403).json({
+        error: "Invalid token",
+        code: "INVALID_TOKEN",
+      });
+    }
   }
 };
 
