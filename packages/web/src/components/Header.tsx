@@ -1,20 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import { SignInButton } from '@/components/auth/SignInButton';
 import { LanguageToggle } from '@/components/LanguageToggle';
 
+// Default navigation items for SSR
+const defaultNavigation = [
+  { name: 'Dashboard', href: '/dashboard' },
+  { name: 'Sessions', href: '/sessions' },
+  { name: 'Statistics', href: '/statistics' },
+  { name: 'Settings', href: '/settings' },
+];
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const { t } = useTranslation();
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Sessions', href: '/sessions' },
-    { name: 'Statistics', href: '/statistics' },
-    { name: 'Settings', href: '/settings' },
-  ];
+  // Track hydration state
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Use translated navigation only after hydration
+  const navigation = isHydrated
+    ? [
+        { name: t('navigation.dashboard'), href: '/dashboard' },
+        { name: t('navigation.sessions'), href: '/sessions' },
+        { name: t('navigation.statistics'), href: '/statistics' },
+        { name: t('navigation.settings'), href: '/settings' },
+      ]
+    : defaultNavigation;
 
   return (
     <header className="bg-white shadow-sm">

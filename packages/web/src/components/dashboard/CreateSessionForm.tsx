@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { sessionApi } from '@/lib/api-client';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { StartSessionRequest } from '@/types';
 
 interface FormData {
@@ -23,6 +26,9 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
 export function CreateSessionForm() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const { handleError, handleApiError } = useErrorHandler(language);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -48,31 +54,31 @@ export function CreateSessionForm() {
 
   const validateForm = (): string | null => {
     if (!formData.location.trim()) {
-      return 'Location is required';
+      return t('forms.validation.required');
     }
     if (
       !formData.smallBlind ||
       isNaN(Number(formData.smallBlind)) ||
       Number(formData.smallBlind) <= 0
     ) {
-      return 'Small blind must be a positive number';
+      return t('forms.validation.positiveNumber');
     }
     if (
       !formData.bigBlind ||
       isNaN(Number(formData.bigBlind)) ||
       Number(formData.bigBlind) <= 0
     ) {
-      return 'Big blind must be a positive number';
+      return t('forms.validation.positiveNumber');
     }
     if (Number(formData.bigBlind) <= Number(formData.smallBlind)) {
-      return 'Big blind must be greater than small blind';
+      return t('forms.validation.bigBlindGreater');
     }
     if (
       !formData.initialBuyIn ||
       isNaN(Number(formData.initialBuyIn)) ||
       Number(formData.initialBuyIn) <= 0
     ) {
-      return 'Initial buy-in must be a positive number';
+      return t('forms.validation.positiveNumber');
     }
     return null;
   };
@@ -115,11 +121,11 @@ export function CreateSessionForm() {
       if (response.success) {
         router.push(`/sessions/${response.data.sessionId}`);
       } else {
-        setError('Failed to start session');
+        setError(handleApiError(response));
       }
     } catch (err) {
       console.error('Error starting session:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start session');
+      setError(handleError(err));
     } finally {
       setLoading(false);
     }
@@ -131,10 +137,10 @@ export function CreateSessionForm() {
         <div className="px-4 py-5 sm:p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              Start New Session
+              {t('sessions.startNewSession')}
             </h2>
             <p className="mt-2 text-gray-600">
-              Enter the details for your new poker session
+              {t('sessions.startNewSessionDescription')}
             </p>
           </div>
 
@@ -151,7 +157,7 @@ export function CreateSessionForm() {
                 htmlFor="location"
                 className="block text-sm font-medium text-gray-700"
               >
-                Location *
+                {t('sessions.location')} *
               </label>
               <input
                 type="text"
@@ -159,7 +165,7 @@ export function CreateSessionForm() {
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                placeholder="e.g., Casino Royale, Home Game, Online"
+                placeholder={t('sessions.locationPlaceholder')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 required
               />
@@ -172,7 +178,7 @@ export function CreateSessionForm() {
                   htmlFor="smallBlind"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Small Blind *
+                  {t('sessions.smallBlind')} *
                 </label>
                 <input
                   type="number"
@@ -192,7 +198,7 @@ export function CreateSessionForm() {
                   htmlFor="bigBlind"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Big Blind *
+                  {t('sessions.bigBlind')} *
                 </label>
                 <input
                   type="number"
@@ -216,7 +222,7 @@ export function CreateSessionForm() {
                   htmlFor="currency"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Currency *
+                  {t('sessions.currency')} *
                 </label>
                 <select
                   id="currency"
@@ -238,7 +244,7 @@ export function CreateSessionForm() {
                   htmlFor="initialBuyIn"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Initial Buy-in *
+                  {t('sessions.initialBuyIn')} *
                 </label>
                 <input
                   type="number"
@@ -261,7 +267,7 @@ export function CreateSessionForm() {
                 htmlFor="notes"
                 className="block text-sm font-medium text-gray-700"
               >
-                Notes (Optional)
+                {t('sessions.notes')} ({t('common.optional')})
               </label>
               <textarea
                 id="notes"
@@ -269,7 +275,7 @@ export function CreateSessionForm() {
                 value={formData.notes}
                 onChange={handleInputChange}
                 rows={3}
-                placeholder="Any additional notes about this session..."
+                placeholder={t('sessions.notesPlaceholder')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
@@ -282,7 +288,7 @@ export function CreateSessionForm() {
                 onClick={() => router.back()}
                 disabled={loading}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -292,10 +298,10 @@ export function CreateSessionForm() {
                 {loading ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
-                    Starting Session...
+                    {t('sessions.startingSession')}
                   </>
                 ) : (
-                  'Start Session'
+                  t('sessions.startSession')
                 )}
               </Button>
             </div>

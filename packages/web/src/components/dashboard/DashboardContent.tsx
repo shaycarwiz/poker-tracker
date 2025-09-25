@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { QuickActions } from './QuickActions';
 import { StatsCards } from './StatsCards';
 import { RecentSessions } from './RecentSessions';
@@ -9,6 +10,8 @@ import { PerformanceCharts } from './PerformanceCharts';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { playerApi, sessionApi } from '@/lib/api-client';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PlayerData {
   id: string;
@@ -66,6 +69,7 @@ interface Session {
 }
 
 export function DashboardContent() {
+  const { t } = useTranslation();
   const { playerData, playerStats, sessions, loading, error } =
     useDashboardData();
 
@@ -90,11 +94,9 @@ export function DashboardContent() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {playerData?.name || 'Player'}!
+          {t('dashboard.title', { name: playerData?.name || 'Player' })}
         </h1>
-        <p className="mt-2 text-gray-600">
-          Here's your poker performance overview
-        </p>
+        <p className="mt-2 text-gray-600">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* Quick Actions */}
@@ -154,6 +156,8 @@ const fetchMe = async () => {
 
 const useDashboardData = () => {
   const { data: session } = useSession();
+  const { language } = useLanguage();
+  const { handleError, handleApiError } = useErrorHandler(language);
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -178,20 +182,27 @@ const useDashboardData = () => {
 
         if (playerDataResponse.success) {
           setPlayerData(playerDataResponse.data);
+        } else {
+          setError(handleApiError(playerDataResponse));
+          return;
         }
 
         if (playerStatsResponse.success) {
           setPlayerStats(playerStatsResponse.data);
+        } else {
+          setError(handleApiError(playerStatsResponse));
+          return;
         }
 
         if (sessionsResponse.success) {
           setSessions(sessionsResponse.data.sessions || []);
+        } else {
+          setError(handleApiError(sessionsResponse));
+          return;
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to load dashboard data'
-        );
+        setError(handleError(err));
       } finally {
         setLoading(false);
       }

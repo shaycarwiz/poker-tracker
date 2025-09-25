@@ -1,0 +1,142 @@
+{
+  "common": {
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "cancel": "ביטול",
+    "save": "שמור",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "close": "סגור",
+    "back": "חזור",
+    "next": "הבא",
+    "previous": "הקודם",
+    "submit": "שלח",
+    "confirm": "אשר",
+    "yes": "כן",
+    "no": "לא",
+    "required": "נדרש",
+    "optional": "אופציונלי"
+  },
+  "navigation": {
+    "dashboard": "לוח בקרה",
+    "sessions": "משחקים",
+    "statistics": "סטטיסטיקות",
+    "settings": "הגדרות",
+    "signIn": "התחברות",
+    "signOut": "התנתקות",
+    "profile": "פרופיל"
+  },
+  "dashboard": {
+    "title": "ברוך הבא, {{name}}!",
+    "subtitle": "הנה סקירת הביצועים שלך בפוקר",
+    "quickActions": "פעולות מהירות",
+    "recentSessions": "משחקים אחרונים",
+    "performanceCharts": "תרשימי ביצועים",
+    "detailedStats": "רוצה סטטיסטיקות מפורטות יותר?",
+    "detailedStatsDescription": "צפה במדדי ביצועים מקיפים, פירוקים חודשיים ואנליטיקה מפורטת.",
+    "viewDetailedStats": "צפה בסטטיסטיקות מפורטות",
+    "currentBankroll": "בנקול נוכחי",
+    "totalSessions": "סך משחקים",
+    "winRate": "אחוז זכיות",
+    "totalWinnings": "סך זכיות",
+    "averageSession": "משחק ממוצע",
+    "noStatisticsAvailable": "אין סטטיסטיקות זמינות"
+  },
+  "sessions": {
+    "title": "משחקי פוקר",
+    "newSession": "משחק חדש",
+    "activeSession": "משחק פעיל",
+    "completedSessions": "משחקים שהושלמו",
+    "noSessions": "לא נמצאו משחקים",
+    "startNewSession": "התחל משחק חדש",
+    "startNewSessionDescription": "הזן את הפרטים למשחק הפוקר החדש שלך",
+    "location": "מיקום",
+    "locationPlaceholder": "למשל, קזינו רויאל, משחק ביתי, אונליין",
+    "stakes": "הימורים",
+    "smallBlind": "עיוורון קטן",
+    "bigBlind": "עיוורון גדול",
+    "currency": "מטבע",
+    "initialBuyIn": "רכישת כניסה ראשונית",
+    "notes": "הערות",
+    "notesPlaceholder": "הערות נוספות על המשחק הזה...",
+    "startSession": "התחל משחק",
+    "startingSession": "מתחיל משחק...",
+    "endSession": "סיים משחק",
+    "endingSession": "מסיים משחק...",
+    "cancelSession": "בטל משחק",
+    "cancelingSession": "מבטל משחק...",
+    "addTransaction": "הוסף עסקה",
+    "transactionType": "סוג עסקה",
+    "amount": "סכום",
+    "notes": "הערות",
+    "profitLoss": "רווח/הפסד",
+    "duration": "משך זמן",
+    "startedAt": "התחיל ב",
+    "endedAt": "סיים ב",
+    "status": {
+      "active": "פעיל",
+      "completed": "הושלם",
+      "cancelled": "בוטל"
+    },
+    "transactionTypes": {
+      "buyIn": "רכישת כניסה",
+      "rebuy": "רכישה חוזרת",
+      "cashOut": "משיכת כסף"
+    }
+  },
+  "statistics": {
+    "title": "סטטיסטיקות",
+    "overview": "סקירה כללית",
+    "performance": "ביצועים",
+    "sessions": "משחקים",
+    "winnings": "זכיות",
+    "winRate": "אחוז זכיות",
+    "averageSession": "משחק ממוצע",
+    "totalSessions": "סך משחקים",
+    "totalWinnings": "סך זכיות",
+    "bestSession": "המשחק הטוב ביותר",
+    "worstSession": "המשחק הגרוע ביותר",
+    "longestSession": "המשחק הארוך ביותר",
+    "shortestSession": "המשחק הקצר ביותר",
+    "monthlyBreakdown": "פירוק חודשי",
+    "yearlyBreakdown": "פירוק שנתי",
+    "noDataAvailable": "אין נתונים זמינים"
+  },
+  "forms": {
+    "validation": {
+      "required": "שדה זה נדרש",
+      "email": "אנא הזן כתובת אימייל תקינה",
+      "number": "אנא הזן מספר תקין",
+      "positiveNumber": "אנא הזן מספר חיובי",
+      "minLength": "חייב להיות לפחות {{min}} תווים",
+      "maxLength": "חייב להיות לא יותר מ-{{max}} תווים",
+      "bigBlindGreater": "עיוורון גדול חייב להיות גדול מעיוורון קטן"
+    }
+  },
+  "errors": {
+    "networkError": "שגיאת רשת. אנא בדוק את החיבור שלך.",
+    "serverError": "שגיאת שרת. אנא נסה שוב מאוחר יותר.",
+    "unauthorized": "אינך מורשה לבצע פעולה זו.",
+    "forbidden": "גישה נדחתה. אין לך הרשאה לבצע פעולה זו.",
+    "notFound": "המשאב המבוקש לא נמצא.",
+    "rateLimited": "יותר מדי בקשות. אנא נסה שוב מאוחר יותר.",
+    "sessionExpired": "הפגישה שלך פגה. אנא התחבר שוב.",
+    "unknownError": "אירעה שגיאה לא צפויה."
+  },
+  "auth": {
+    "signIn": "התחברות",
+    "signOut": "התנתקות",
+    "signInWithGoogle": "התחבר עם Google",
+    "welcome": "ברוך הבא ל-Poker Tracker",
+    "welcomeDescription": "עקוב אחר משחקי הפוקר שלך ונתח את הביצועים שלך",
+    "signInRequired": "אנא התחבר כדי להמשיך",
+    "signInRequiredDescription": "אתה צריך להיות מחובר כדי לגשת לעמוד זה"
+  },
+  "language": {
+    "english": "English",
+    "hebrew": "עברית",
+    "switchLanguage": "החלף שפה"
+  }
+}
