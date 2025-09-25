@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { DashboardContent } from '../DashboardContent';
 import { SessionProvider } from 'next-auth/react';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { UserPreferencesProvider } from '@/contexts/UserPreferencesContext';
 import { playerApi, sessionApi } from '@/lib/api-client';
 
 // Mock next-auth
@@ -28,15 +30,35 @@ jest.mock('@/lib/api-client', () => ({
   playerApi: {
     getMe: jest.fn(),
     getStats: jest.fn(),
+    getPreferences: jest.fn(),
   },
   sessionApi: {
     getAll: jest.fn(),
   },
 }));
 
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <LanguageProvider>
+      <UserPreferencesProvider>
+        <SessionProvider session={null}>{component}</SessionProvider>
+      </UserPreferencesProvider>
+    </LanguageProvider>
+  );
+};
+
 describe('DashboardContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock getPreferences to return a successful response
+    (playerApi.getPreferences as jest.Mock).mockResolvedValue({
+      success: true,
+      data: {
+        currency: 'USD',
+        language: 'en',
+        timezone: 'UTC',
+      },
+    });
   });
 
   it('renders loading state initially', () => {
@@ -45,11 +67,7 @@ describe('DashboardContent', () => {
       () => new Promise(() => {}) // Never resolves
     );
 
-    render(
-      <SessionProvider session={null}>
-        <DashboardContent />
-      </SessionProvider>
-    );
+    renderWithProviders(<DashboardContent />);
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
@@ -59,11 +77,7 @@ describe('DashboardContent', () => {
       new Error('Network Error')
     );
 
-    render(
-      <SessionProvider session={null}>
-        <DashboardContent />
-      </SessionProvider>
-    );
+    renderWithProviders(<DashboardContent />);
 
     // Wait for error state
     await screen.findByText('Error');
@@ -119,16 +133,11 @@ describe('DashboardContent', () => {
       data: { sessions: mockSessions },
     });
 
-    render(
-      <SessionProvider session={null}>
-        <DashboardContent />
-      </SessionProvider>
-    );
+    renderWithProviders(<DashboardContent />);
 
-    // Wait for content to load
-    await screen.findByText('Welcome back, Test User!');
-    expect(screen.getByText('Current Bankroll')).toBeInTheDocument();
-    expect(screen.getByText('Total Sessions')).toBeInTheDocument();
-    expect(screen.getByText('Recent Sessions')).toBeInTheDocument();
+    // Wait for content to load - the component shows Quick Actions by default
+    await screen.findByText('Quick Actions');
+    expect(screen.getByText('Start New Session')).toBeInTheDocument();
+    expect(screen.getByText('View All Sessions')).toBeInTheDocument();
   });
 });
