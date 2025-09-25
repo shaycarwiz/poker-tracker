@@ -2,74 +2,66 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Jest Tests",
+      "name": "Attach by Process ID",
+      "processId": "${command:PickProcess}",
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
+    {
+      "name": "Debug All (API + Web)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "program": "${workspaceFolder}/node_modules/.bin/concurrently",
       "args": [
-        "--runInBand",
-        "--no-cache",
-        "--no-coverage"
+        "\"npm run dev --workspace=@poker-tracker/api\"",
+        "\"npm run dev --workspace=@poker-tracker/web\""
       ],
+      "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
-      "windows": {
-        "program": "${workspaceFolder}/node_modules/jest/bin/jest.js"
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "presentation": {
+        "group": "Poker Tracker",
+        "order": 1
       }
     },
     {
-      "name": "Debug Current Jest Test",
+      "name": "Debug API Only",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": [
-        "--runInBand",
-        "--no-cache",
-        "--no-coverage",
-        "${relativeFile}"
-      ],
+      "program": "${workspaceFolder}/packages/api/src/index.ts",
+      "cwd": "${workspaceFolder}/packages/api",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
-      "windows": {
-        "program": "${workspaceFolder}/node_modules/jest/bin/jest.js"
-      }
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "presentation": {
+        "group": "Poker Tracker",
+        "order": 2
+      },
+      "runtimeArgs": ["-r", "ts-node/register"]
     },
     {
-      "name": "Debug API Tests",
+      "name": "Debug Web Only",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": [
-        "--runInBand",
-        "--no-cache",
-        "--no-coverage",
-        "packages/api"
-      ],
+      "program": "${workspaceFolder}/packages/web/node_modules/.bin/next",
+      "args": ["dev"],
+      "cwd": "${workspaceFolder}/packages/web",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
-      "windows": {
-        "program": "${workspaceFolder}/node_modules/jest/bin/jest.js"
-      }
-    },
-    {
-      "name": "Debug Web Tests",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": [
-        "--runInBand",
-        "--no-cache",
-        "--no-coverage",
-        "packages/web"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
-      "windows": {
-        "program": "${workspaceFolder}/node_modules/jest/bin/jest.js"
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "presentation": {
+        "group": "Poker Tracker",
+        "order": 3
       }
     }
   ]
