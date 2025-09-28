@@ -1,42 +1,96 @@
-import Link from "next/link";
+'use client';
 
-const navigation = {
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+
+const getNavigation = (t: (key: string) => string) => ({
   main: [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Sessions", href: "/sessions" },
-    { name: "Statistics", href: "/statistics" },
-    { name: "Settings", href: "/settings" },
+    { name: t('navigation.dashboard'), href: '/dashboard' },
+    { name: t('navigation.sessions'), href: '/sessions' },
+    { name: t('navigation.statistics'), href: '/statistics' },
+    { name: t('navigation.settings'), href: '/settings' },
   ],
   support: [
-    { name: "Help Center", href: "/help" },
-    { name: "Documentation", href: "/docs" },
-    { name: "Contact", href: "/contact" },
+    { name: t('landing.footer.support.helpCenter'), href: '/help' },
+    { name: t('landing.footer.support.documentation'), href: '/docs' },
+    { name: t('landing.footer.support.contact'), href: '/contact' },
   ],
   legal: [
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
+    { name: t('landing.footer.legal.privacyPolicy'), href: '/privacy' },
+    { name: t('landing.footer.legal.termsOfService'), href: '/terms' },
+    { name: t('landing.footer.legal.cookiePolicy'), href: '/cookies' },
   ],
-};
+});
 
 export function Footer() {
+  const { t } = useTranslation();
+  const navigation = getNavigation(t);
+
   return (
     <footer className="bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        <div className="flex justify-center space-x-6 md:order-2">
-          {navigation.main.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              {item.name}
-            </Link>
-          ))}
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          {/* Main Navigation */}
+          <div>
+            <h3 className="text-sm font-semibold leading-6 text-gray-900">
+              {t('landing.footer.navigation')}
+            </h3>
+            <ul className="mt-6 space-y-4">
+              {navigation.main.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm leading-6 text-gray-600 hover:text-gray-900"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h3 className="text-sm font-semibold leading-6 text-gray-900">
+              {t('landing.footer.support.title')}
+            </h3>
+            <ul className="mt-6 space-y-4">
+              {navigation.support.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm leading-6 text-gray-600 hover:text-gray-900"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-sm font-semibold leading-6 text-gray-900">
+              {t('landing.footer.legal.title')}
+            </h3>
+            <ul className="mt-6 space-y-4">
+              {navigation.legal.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm leading-6 text-gray-600 hover:text-gray-900"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <div className="mt-8 md:order-1 md:mt-0">
+
+        <div className="mt-8 border-t border-gray-200 pt-8">
           <p className="text-center text-xs leading-5 text-gray-500">
-            &copy; 2024 Poker Tracker. All rights reserved.
+            {t('landing.footer.copyright')}
           </p>
         </div>
       </div>

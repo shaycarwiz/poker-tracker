@@ -50,6 +50,9 @@ export const initializeI18n = (language: string = 'en') => {
       react: {
         useSuspense: false,
       },
+
+      // Add server-side rendering support
+      initImmediate: false,
     });
 };
 

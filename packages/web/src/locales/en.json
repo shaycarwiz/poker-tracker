@@ -42,7 +42,22 @@
     "winRate": "Win Rate",
     "totalWinnings": "Total Winnings",
     "averageSession": "Average Session",
-    "noStatisticsAvailable": "No statistics available"
+    "noStatisticsAvailable": "No statistics available",
+    "stats": {
+      "totalSessions": "Total Sessions",
+      "winRate": "Win Rate",
+      "totalProfitLoss": "Total Profit/Loss",
+      "totalHours": "Total Hours",
+      "averageSessionDuration": "Average Session Duration",
+      "averageProfitPerSession": "Average Profit per Session",
+      "averageSessionValue": "Average Session Value",
+      "bestSession": "Best Session",
+      "worstSession": "Worst Session",
+      "recentMonthlyPerformance": "Recent Monthly Performance",
+      "sessions": "Sessions:",
+      "profit": "Profit:",
+      "winRateLabel": "Win Rate:"
+    }
   },
   "sessions": {
     "title": "Poker Sessions",
@@ -165,5 +180,66 @@
       "GBP": "British Pound (£)",
       "CAD": "Canadian Dollar (C$)"
     }
+  },
+  "landing": {
+    "hero": {
+      "tagline": "Track your poker sessions with precision.",
+      "learnMore": "Learn more",
+      "title": "Master Your Poker Game",
+      "description": "Track every session, analyze your performance, and improve your poker skills with comprehensive statistics and insights.",
+      "getStarted": "Get started",
+      "viewDemo": "View demo"
+    },
+    "features": {
+      "subtitle": "Everything you need",
+      "title": "Comprehensive poker tracking",
+      "description": "Track every aspect of your poker game with our comprehensive suite of tools designed for serious players.",
+      "sessionTracking": {
+        "name": "Session Tracking",
+        "description": "Record every poker session with detailed information about stakes, duration, and outcomes."
+      },
+      "performanceAnalytics": {
+        "name": "Performance Analytics",
+        "description": "Analyze your performance with comprehensive statistics and visualizations."
+      },
+      "profitTracking": {
+        "name": "Profit Tracking",
+        "description": "Monitor your winnings and losses across different games and time periods."
+      },
+      "detailedReports": {
+        "name": "Detailed Reports",
+        "description": "Generate detailed reports to understand your strengths and areas for improvement."
+      },
+      "achievementSystem": {
+        "name": "Achievement System",
+        "description": "Track milestones and achievements to stay motivated in your poker journey."
+      },
+      "multiPlayerSupport": {
+        "name": "Multi-Player Support",
+        "description": "Track multiple players and compare performance across different accounts."
+      }
+    },
+    "footer": {
+      "navigation": "Navigation",
+      "support": {
+        "title": "Support",
+        "helpCenter": "Help Center",
+        "documentation": "Documentation",
+        "contact": "Contact"
+      },
+      "legal": {
+        "title": "Legal",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "cookiePolicy": "Cookie Policy"
+      },
+      "copyright": "© 2024 Poker Tracker. All rights reserved."
+    }
+  },
+  "ui": {
+    "loading": "Loading",
+    "openMainMenu": "Open main menu",
+    "closeMenu": "Close menu",
+    "brandName": "Poker Tracker"
   }
 }
