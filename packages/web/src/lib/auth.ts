@@ -39,6 +39,33 @@ export const authOptions: NextAuthOptions = {
             token.refreshToken = data.refreshToken;
             token.tokenExpiresAt = Date.now() + data.expiresIn * 1000;
             token.userId = data.user.id;
+
+            // Fetch user preferences and store in token
+            try {
+              const preferencesResponse = await fetch(
+                `${process.env.BACKEND_API_URL}/players/me/preferences`,
+                {
+                  method: 'GET',
+                  headers: {
+                    Authorization: `Bearer ${data.token}`,
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
+
+              if (preferencesResponse.ok) {
+                const preferencesData = await preferencesResponse.json();
+                if (preferencesData.success && preferencesData.data) {
+                  token.userPreferences = preferencesData.data;
+                }
+              }
+            } catch (prefError) {
+              console.error(
+                'Failed to fetch user preferences during login:',
+                prefError
+              );
+              // Don't fail the login if preferences can't be fetched
+            }
           }
         } catch (error) {
           console.error('Failed to register user with backend:', error);
@@ -55,6 +82,9 @@ export const authOptions: NextAuthOptions = {
         session.tokenExpiresAt = token.tokenExpiresAt as number;
         session.userId = token.userId as string;
         session.user.id = token.googleId as string;
+        session.userPreferences = token.userPreferences as
+          | { preferredLanguage: string; defaultCurrency: string }
+          | undefined;
       }
       return session;
     },
@@ -77,6 +107,7 @@ declare module 'next-auth' {
     refreshToken?: string; // Backend refresh token
     tokenExpiresAt?: number; // Token expiration timestamp
     userId?: string; // Backend user ID
+    userPreferences?: { preferredLanguage: string; defaultCurrency: string }; // User preferences
     user: {
       id: string;
       name?: string | null;
@@ -94,5 +125,6 @@ declare module 'next-auth/jwt' {
     refreshToken?: string; // Backend refresh token
     tokenExpiresAt?: number; // Token expiration timestamp
     userId?: string; // Backend user ID
+    userPreferences?: { preferredLanguage: string; defaultCurrency: string }; // User preferences
   }
 }

@@ -21,7 +21,7 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({
   children,
-  defaultLanguage = 'en',
+  defaultLanguage = 'he', // Default to Hebrew as per the database migration
 }: LanguageProviderProps) {
   const [language, setLanguageState] =
     useState<SupportedLanguage>(defaultLanguage);

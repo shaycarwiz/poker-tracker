@@ -32,11 +32,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <I18nProvider>
           <LanguageProvider>
-            <UserPreferencesProvider>
-              <SessionProvider>
+            <SessionProvider>
+              <UserPreferencesProvider>
                 <div className="min-h-screen bg-gray-50">{children}</div>
-              </SessionProvider>
-            </UserPreferencesProvider>
+              </UserPreferencesProvider>
+            </SessionProvider>
           </LanguageProvider>
         </I18nProvider>
       </body>

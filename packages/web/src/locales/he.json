@@ -42,7 +42,22 @@
     "winRate": "אחוז זכיות",
     "totalWinnings": "סך זכיות",
     "averageSession": "משחק ממוצע",
-    "noStatisticsAvailable": "אין סטטיסטיקות זמינות"
+    "noStatisticsAvailable": "אין סטטיסטיקות זמינות",
+    "stats": {
+      "totalSessions": "סך משחקים",
+      "winRate": "אחוז זכיות",
+      "totalProfitLoss": "סך רווח/הפסד",
+      "totalHours": "סך שעות",
+      "averageSessionDuration": "משך משחק ממוצע",
+      "averageProfitPerSession": "רווח ממוצע למשחק",
+      "averageSessionValue": "ערך משחק ממוצע",
+      "bestSession": "המשחק הטוב ביותר",
+      "worstSession": "המשחק הגרוע ביותר",
+      "recentMonthlyPerformance": "ביצועים חודשיים אחרונים",
+      "sessions": "משחקים:",
+      "profit": "רווח:",
+      "winRateLabel": "אחוז זכיות:"
+    }
   },
   "sessions": {
     "title": "משחקי פוקר",
@@ -165,5 +180,66 @@
       "GBP": "לירה שטרלינג (£)",
       "CAD": "דולר קנדי (C$)"
     }
+  },
+  "landing": {
+    "hero": {
+      "tagline": "עקוב אחר משחקי הפוקר שלך בדיוק.",
+      "learnMore": "למד עוד",
+      "title": "שלוט במשחק הפוקר שלך",
+      "description": "עקוב אחר כל משחק, נתח את הביצועים שלך, ושפר את כישורי הפוקר שלך עם סטטיסטיקות ותובנות מקיפות.",
+      "getStarted": "התחל",
+      "viewDemo": "צפה בהדגמה"
+    },
+    "features": {
+      "subtitle": "כל מה שאתה צריך",
+      "title": "מעקב פוקר מקיף",
+      "description": "עקוב אחר כל היבט של משחק הפוקר שלך עם סדרת הכלים המקיפה שלנו המיועדת לשחקנים רציניים.",
+      "sessionTracking": {
+        "name": "מעקב משחקים",
+        "description": "רשום כל משחק פוקר עם מידע מפורט על הימורים, משך זמן ותוצאות."
+      },
+      "performanceAnalytics": {
+        "name": "אנליטיקת ביצועים",
+        "description": "נתח את הביצועים שלך עם סטטיסטיקות ותצוגות ויזואליות מקיפות."
+      },
+      "profitTracking": {
+        "name": "מעקב רווחים",
+        "description": "עקוב אחר הזכיות וההפסדים שלך במשחקים שונים ותקופות זמן."
+      },
+      "detailedReports": {
+        "name": "דוחות מפורטים",
+        "description": "צור דוחות מפורטים כדי להבין את החוזקות והאזורים לשיפור שלך."
+      },
+      "achievementSystem": {
+        "name": "מערכת הישגים",
+        "description": "עקוב אחר אבני דרך והישגים כדי להישאר מוטיבציה במסע הפוקר שלך."
+      },
+      "multiPlayerSupport": {
+        "name": "תמיכה במספר שחקנים",
+        "description": "עקוב אחר מספר שחקנים והשווה ביצועים בין חשבונות שונים."
+      }
+    },
+    "footer": {
+      "navigation": "ניווט",
+      "support": {
+        "title": "תמיכה",
+        "helpCenter": "מרכז עזרה",
+        "documentation": "תיעוד",
+        "contact": "צור קשר"
+      },
+      "legal": {
+        "title": "משפטי",
+        "privacyPolicy": "מדיניות פרטיות",
+        "termsOfService": "תנאי שירות",
+        "cookiePolicy": "מדיניות עוגיות"
+      },
+      "copyright": "© 2024 Poker Tracker. כל הזכויות שמורות."
+    }
+  },
+  "ui": {
+    "loading": "טוען",
+    "openMainMenu": "פתח תפריט ראשי",
+    "closeMenu": "סגור תפריט",
+    "brandName": "Poker Tracker"
   }
 }

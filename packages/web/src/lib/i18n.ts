@@ -50,11 +50,14 @@ export const initializeI18n = (language: string = 'en') => {
       react: {
         useSuspense: false,
       },
+
+      // Add server-side rendering support
+      initImmediate: false,
     });
 };
 
 // Initialize with default language for server-side rendering
-initializeI18n('en');
+initializeI18n('he');
 
 // Only add client-side specific features when in browser
 if (typeof window !== 'undefined') {

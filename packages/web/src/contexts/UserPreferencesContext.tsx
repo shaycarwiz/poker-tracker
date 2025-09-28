@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import { useLanguage } from './LanguageContext';
 import { playerApi } from '@/lib/api-client';
 
@@ -36,12 +37,19 @@ interface UserPreferencesProviderProps {
 export function UserPreferencesProvider({
   children,
 }: UserPreferencesProviderProps) {
+  const { data: session, status } = useSession();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { setLanguage } = useLanguage();
 
   const loadPreferences = async () => {
+    // Only load preferences if user is authenticated
+    if (status !== 'authenticated' || !session?.backendToken) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -91,10 +99,25 @@ export function UserPreferencesProvider({
     await loadPreferences();
   };
 
-  // Load preferences on mount
+  // Load preferences when user becomes authenticated or when session changes
   useEffect(() => {
-    loadPreferences();
-  }, []);
+    if (status === 'authenticated' && session?.userPreferences) {
+      // Use preferences from session immediately
+      setPreferences(session.userPreferences);
+      if (session.userPreferences.preferredLanguage) {
+        setLanguage(session.userPreferences.preferredLanguage as any);
+      }
+      setIsLoading(false);
+    } else if (status === 'authenticated' && session?.backendToken) {
+      // Load preferences from API if not in session
+      loadPreferences();
+    } else if (status === 'unauthenticated') {
+      // Clear preferences when user logs out
+      setPreferences(null);
+      setError(null);
+      setIsLoading(false);
+    }
+  }, [status, session?.userPreferences, session?.backendToken]);
 
   const value = {
     preferences,
