@@ -6,6 +6,11 @@ import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { Button } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import {
+  SUPPORTED_CURRENCIES,
+  getCurrencyName,
+  getCurrencySymbol,
+} from '@/lib/currency';
 
 interface UserPreferencesProps {
   className?: string;
@@ -23,13 +28,11 @@ const SUPPORTED_LANGUAGES = [
   { code: 'fr', name: 'French (Français)' },
 ];
 
-const SUPPORTED_CURRENCIES = [
-  { code: 'ILS', name: 'Israeli Shekel (₪)' },
-  { code: 'USD', name: 'US Dollar ($)' },
-  { code: 'EUR', name: 'Euro (€)' },
-  { code: 'GBP', name: 'British Pound (£)' },
-  { code: 'CAD', name: 'Canadian Dollar (C$)' },
-];
+// Use centralized currency configuration
+const CURRENCY_OPTIONS = SUPPORTED_CURRENCIES.map((code) => ({
+  code,
+  name: `${getCurrencyName(code)} (${getCurrencySymbol(code)})`,
+}));
 
 export function UserPreferences({ className = '' }: UserPreferencesProps) {
   const { t } = useTranslation();
@@ -177,7 +180,7 @@ export function UserPreferences({ className = '' }: UserPreferencesProps) {
             onChange={(e) => handleCurrencyChange(e.target.value)}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           >
-            {SUPPORTED_CURRENCIES.map((currency) => (
+            {CURRENCY_OPTIONS.map((currency) => (
               <option key={currency.code} value={currency.code}>
                 {currency.name}
               </option>

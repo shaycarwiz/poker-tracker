@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCurrencyPreferenceWithUtils } from '@/hooks/useCurrencyPreference';
+import { SUPPORTED_CURRENCIES } from '@/lib/currency';
 import type { Session } from '@/types';
 
 interface EndSessionModalProps {
@@ -21,11 +23,23 @@ export function EndSessionModal({
   loading,
   session,
 }: EndSessionModalProps) {
+  const { defaultCurrency, supportedCurrencies } =
+    useCurrencyPreferenceWithUtils();
   const [formData, setFormData] = useState({
     finalCashOut: '',
-    currency: session.initialBuyIn.currency || 'USD',
+    currency: session.initialBuyIn.currency || defaultCurrency,
     notes: '',
   });
+
+  // Update form data when default currency changes (only if no session currency)
+  useEffect(() => {
+    if (!session.initialBuyIn.currency) {
+      setFormData((prev) => ({
+        ...prev,
+        currency: defaultCurrency,
+      }));
+    }
+  }, [defaultCurrency, session.initialBuyIn.currency]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +59,7 @@ export function EndSessionModal({
     // Reset form
     setFormData({
       finalCashOut: '',
-      currency: session.initialBuyIn.currency || 'USD',
+      currency: session.initialBuyIn.currency || defaultCurrency,
       notes: '',
     });
   };
@@ -54,7 +68,7 @@ export function EndSessionModal({
     if (!loading) {
       setFormData({
         finalCashOut: '',
-        currency: session.initialBuyIn.currency || 'USD',
+        currency: session.initialBuyIn.currency || defaultCurrency,
         notes: '',
       });
       onClose();
@@ -174,10 +188,11 @@ export function EndSessionModal({
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         disabled={loading}
                       >
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                        <option value="CAD">CAD</option>
+                        {supportedCurrencies.map((currency) => (
+                          <option key={currency} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

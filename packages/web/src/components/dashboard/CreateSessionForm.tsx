@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,8 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { sessionApi } from '@/lib/api-client';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrencyPreferenceWithUtils } from '@/hooks/useCurrencyPreference';
+import { SUPPORTED_CURRENCIES } from '@/lib/currency';
 import type { StartSessionRequest } from '@/types';
 
 interface FormData {
@@ -21,24 +23,32 @@ interface FormData {
   notes: string;
 }
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
-
 export function CreateSessionForm() {
   const { data: session } = useSession();
   const router = useRouter();
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { handleError, handleApiError } = useErrorHandler(language);
+  const { defaultCurrency, supportedCurrencies } =
+    useCurrencyPreferenceWithUtils();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     location: '',
     smallBlind: '',
     bigBlind: '',
-    currency: 'USD',
+    currency: defaultCurrency,
     initialBuyIn: '',
     notes: '',
   });
+
+  // Update form data when default currency changes
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      currency: defaultCurrency,
+    }));
+  }, [defaultCurrency]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -232,7 +242,7 @@ export function CreateSessionForm() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   required
                 >
-                  {CURRENCIES.map((currency) => (
+                  {supportedCurrencies.map((currency) => (
                     <option key={currency} value={currency}>
                       {currency}
                     </option>

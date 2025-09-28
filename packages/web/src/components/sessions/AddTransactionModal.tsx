@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCurrencyPreferenceWithUtils } from '@/hooks/useCurrencyPreference';
+import { SUPPORTED_CURRENCIES } from '@/lib/currency';
 
 const TRANSACTION_TYPES = [
   { value: 'buy_in', label: 'Buy In' },
@@ -30,12 +32,22 @@ export function AddTransactionModal({
   onAddTransaction,
   loading,
 }: AddTransactionModalProps) {
+  const { defaultCurrency, supportedCurrencies } =
+    useCurrencyPreferenceWithUtils();
   const [formData, setFormData] = useState({
     type: 'buy_in',
     amount: '',
-    currency: 'USD',
+    currency: defaultCurrency,
     description: '',
   });
+
+  // Update form data when default currency changes
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      currency: defaultCurrency,
+    }));
+  }, [defaultCurrency]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +69,7 @@ export function AddTransactionModal({
     setFormData({
       type: 'buy_in',
       amount: '',
-      currency: 'USD',
+      currency: defaultCurrency,
       description: '',
     });
   };
@@ -67,7 +79,7 @@ export function AddTransactionModal({
       setFormData({
         type: 'buy_in',
         amount: '',
-        currency: 'USD',
+        currency: defaultCurrency,
         description: '',
       });
       onClose();
@@ -165,10 +177,11 @@ export function AddTransactionModal({
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         disabled={loading}
                       >
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                        <option value="CAD">CAD</option>
+                        {supportedCurrencies.map((currency) => (
+                          <option key={currency} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
