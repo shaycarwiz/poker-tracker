@@ -10,7 +10,9 @@ interface LanguageContextType {
   isRTL: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
 
 interface LanguageProviderProps {
   children: React.ReactNode;
@@ -19,7 +21,7 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({
   children,
-  defaultLanguage = 'en',
+  defaultLanguage = 'he', // Default to Hebrew as per the database migration
 }: LanguageProviderProps) {
   const [language, setLanguageState] =
     useState<SupportedLanguage>(defaultLanguage);
