@@ -1,37 +1,39 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export function QuickActions() {
+  const { t } = useTranslation();
+
   const actions = [
     {
-      name: 'Start New Session',
-      description: 'Begin tracking a new poker session',
+      id: 'startNewSession',
+      name: t('dashboard.actions.startNewSession'),
+      description: t('dashboard.actions.startNewSessionDescription'),
       href: '/sessions/new',
       icon: '🎯',
-      color: 'bg-blue-600 hover:bg-blue-700',
     },
     {
-      name: 'View All Sessions',
-      description: 'See your complete session history',
+      id: 'viewAllSessions',
+      name: t('dashboard.actions.viewAllSessions'),
+      description: t('dashboard.actions.viewAllSessionsDescription'),
       href: '/sessions',
       icon: '📊',
-      color: 'bg-green-600 hover:bg-green-700',
     },
     {
-      name: 'Update Bankroll',
-      description: 'Add or adjust your current bankroll',
+      id: 'updateBankroll',
+      name: t('dashboard.actions.updateBankroll'),
+      description: t('dashboard.actions.updateBankrollDescription'),
       href: '/settings',
       icon: '💰',
-      color: 'bg-purple-600 hover:bg-purple-700',
     },
     {
-      name: 'View Statistics',
-      description: 'Analyze your poker performance',
+      id: 'viewStatistics',
+      name: t('dashboard.actions.viewStatistics'),
+      description: t('dashboard.actions.viewStatisticsDescription'),
       href: '/statistics',
       icon: '📈',
-      color: 'bg-orange-600 hover:bg-orange-700',
     },
   ];
 
@@ -39,11 +41,11 @@ export function QuickActions() {
     <div className="rounded-lg bg-white shadow">
       <div className="px-4 py-5 sm:p-6">
         <h3 className="mb-4 text-lg font-medium text-gray-900">
-          Quick Actions
+          {t('dashboard.quickActions')}
         </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {actions.map((action) => (
-            <Link key={action.name} href={action.href}>
+            <Link key={action.id} href={action.href}>
               <div className="group relative">
                 <div className="flex items-center rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300">
                   <div className="flex-shrink-0">

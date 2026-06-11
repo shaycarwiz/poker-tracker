@@ -1,10 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { playerApi, statisticsApi } from '@/lib/api-client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useCurrencyFormatting } from '@/lib/currency';
+import type { MonthlyStats, Session, Statistics } from '@/types';
 
 interface PlayerStats {
   playerId: string;
@@ -12,18 +16,6 @@ interface PlayerStats {
   totalWinnings: number;
   winRate: number;
   averageSession: number;
-}
-
-interface OverallStats {
-  totalSessions: number;
-  totalHours: number;
-  totalProfit: number;
-  winRate: number;
-  averageSessionDuration: number;
-  averageProfit: number;
-  bestSession: any;
-  worstSession: any;
-  monthlyStats: any[];
 }
 
 interface StatCardProps {
@@ -76,10 +68,17 @@ function StatCard({ title, value, subtitle, trend, icon }: StatCardProps) {
 
 export function StatsDashboard() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
+  const { preferences } = useUserPreferences();
+  const { formatCurrency } = useCurrencyFormatting(
+    preferences?.defaultCurrency || 'ILS'
+  );
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null);
-  const [overallStats, setOverallStats] = useState<OverallStats | null>(null);
+  const [overallStats, setOverallStats] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -87,7 +86,6 @@ export function StatsDashboard() {
         setLoading(true);
         setError(null);
 
-        // Fetch both player stats and overall statistics in parallel
         const [playerStatsResponse, overallStatsResponse] = await Promise.all([
           playerApi.getStats(),
           statisticsApi
@@ -105,7 +103,7 @@ export function StatsDashboard() {
       } catch (err) {
         console.error('Error fetching stats:', err);
         setError(
-          err instanceof Error ? err.message : 'Failed to load statistics'
+          err instanceof Error ? err.message : t('statistics.loadError')
         );
       } finally {
         setLoading(false);
@@ -113,7 +111,45 @@ export function StatsDashboard() {
     };
 
     fetchStats();
-  }, []);
+  }, [t]);
+
+  const formatPercentage = (value: number) => {
+    return `${(value * 100).toFixed(1)}%`;
+  };
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    if (hours > 0) {
+      return t('sessions.durationHours', { hours, minutes: mins });
+    }
+
+    return t('sessions.durationMinutes', { minutes: mins });
+  };
+
+  const formatMonth = (monthStr: string) => {
+    const parsed = monthStr.includes('-')
+      ? new Date(`${monthStr}-01`)
+      : new Date(monthStr);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return monthStr;
+    }
+
+    return parsed.toLocaleDateString(locale, {
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  const formatSessionCurrency = (session: Session) => {
+    const amount = session.profitLoss?.amount || 0;
+    const currency =
+      session.profitLoss?.currency || preferences?.defaultCurrency || 'ILS';
+
+    return formatCurrency(amount, currency);
+  };
 
   if (loading) {
     return (
@@ -134,29 +170,11 @@ export function StatsDashboard() {
   if (!playerStats && !overallStats) {
     return (
       <div className="py-8">
-        <ErrorMessage message={t('dashboard.noStatisticsAvailable')} />
+        <ErrorMessage message={t('statistics.noDataAvailable')} />
       </div>
     );
   }
 
-  const formatCurrency = (amount: number, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${(value * 100).toFixed(1)}%`;
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  };
-
-  // Helper function to safely get values from either stats type
   const getTotalSessions = () =>
     overallStats?.totalSessions ?? playerStats?.totalSessions ?? 0;
   const getWinRate = () => overallStats?.winRate ?? playerStats?.winRate ?? 0;
@@ -173,16 +191,15 @@ export function StatsDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Main Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title={t('dashboard.stats.totalSessions')}
+          title={t('statistics.totalSessions')}
           value={getTotalSessions()}
           icon="🎯"
         />
 
         <StatCard
-          title={t('dashboard.stats.winRate')}
+          title={t('statistics.winRate')}
           value={formatPercentage(getWinRate())}
           icon="📈"
           trend={
@@ -191,55 +208,57 @@ export function StatsDashboard() {
         />
 
         <StatCard
-          title={t('dashboard.stats.totalProfitLoss')}
+          title={t('statistics.totalProfitLoss')}
           value={formatCurrency(getTotalProfit())}
           icon="💰"
           trend={getTotalProfit() > 0 ? 'up' : 'down'}
         />
 
         <StatCard
-          title={t('dashboard.stats.totalHours')}
-          value={getTotalHours() ? formatDuration(getTotalHours() * 60) : '0h'}
+          title={t('statistics.totalHours')}
+          value={
+            getTotalHours()
+              ? formatDuration(getTotalHours() * 60)
+              : t('statistics.zeroHours')
+          }
           icon="⏱️"
         />
       </div>
 
-      {/* Additional Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
-          title={t('dashboard.stats.averageSessionDuration')}
+          title={t('statistics.averageSessionDuration')}
           value={
             getAverageSessionDuration()
               ? formatDuration(getAverageSessionDuration())
-              : 'N/A'
+              : t('statistics.notAvailable')
           }
           icon="⏰"
         />
 
         <StatCard
-          title={t('dashboard.stats.averageProfitPerSession')}
+          title={t('statistics.averageProfitPerSession')}
           value={formatCurrency(getAverageProfit())}
           icon="📊"
           trend={getAverageProfit() > 0 ? 'up' : 'down'}
         />
 
         <StatCard
-          title={t('dashboard.stats.averageSessionValue')}
+          title={t('statistics.averageSessionValue')}
           value={formatCurrency(getAverageSession())}
           icon="🎲"
         />
       </div>
 
-      {/* Best/Worst Session Info */}
       {(getBestSession() || getWorstSession()) && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {getBestSession() && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
               <h3 className="mb-2 text-lg font-medium text-green-800">
-                🏆 {t('dashboard.stats.bestSession')}
+                🏆 {t('statistics.bestSession')}
               </h3>
               <p className="text-green-700">
-                {formatCurrency(getBestSession().profitLoss?.amount || 0)}
+                {formatSessionCurrency(getBestSession())}
               </p>
               <p className="text-sm text-green-600">
                 {getBestSession().location} •{' '}
@@ -252,10 +271,10 @@ export function StatsDashboard() {
           {getWorstSession() && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <h3 className="mb-2 text-lg font-medium text-red-800">
-                📉 {t('dashboard.stats.worstSession')}
+                📉 {t('statistics.worstSession')}
               </h3>
               <p className="text-red-700">
-                {formatCurrency(getWorstSession().profitLoss?.amount || 0)}
+                {formatSessionCurrency(getWorstSession())}
               </p>
               <p className="text-sm text-red-600">
                 {getWorstSession().location} •{' '}
@@ -267,28 +286,29 @@ export function StatsDashboard() {
         </div>
       )}
 
-      {/* Monthly Stats Preview */}
       {getMonthlyStats().length > 0 && (
         <div className="rounded-lg bg-white p-6 shadow">
           <h3 className="mb-4 text-lg font-medium text-gray-900">
-            📅 {t('dashboard.stats.recentMonthlyPerformance')}
+            📅 {t('statistics.recentMonthlyPerformance')}
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {getMonthlyStats()
               .slice(0, 6)
-              .map((month: any, index: number) => (
+              .map((month: MonthlyStats, index: number) => (
                 <div key={index} className="rounded-lg border p-3">
-                  <h4 className="font-medium text-gray-900">{month.month}</h4>
+                  <h4 className="font-medium text-gray-900">
+                    {formatMonth(month.month)}
+                  </h4>
                   <div className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('dashboard.stats.sessions')}
+                        {t('statistics.sessionsLabel')}
                       </span>
                       <span className="font-medium">{month.sessions}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('dashboard.stats.profit')}
+                        {t('statistics.profit')}
                       </span>
                       <span
                         className={`font-medium ${month.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
@@ -298,7 +318,7 @@ export function StatsDashboard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('dashboard.stats.winRateLabel')}
+                        {t('statistics.winRateLabel')}
                       </span>
                       <span className="font-medium">
                         {formatPercentage(month.winRate)}

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCurrencyPreferenceWithUtils } from '@/hooks/useCurrencyPreference';
-import { SUPPORTED_CURRENCIES } from '@/lib/currency';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { getCurrencySymbol, useCurrencyFormatting } from '@/lib/currency';
 import type { Session } from '@/types';
 
 interface EndSessionModalProps {
@@ -23,15 +25,19 @@ export function EndSessionModal({
   loading,
   session,
 }: EndSessionModalProps) {
+  const { t } = useTranslation();
+  const { preferences } = useUserPreferences();
   const { defaultCurrency, supportedCurrencies } =
     useCurrencyPreferenceWithUtils();
+  const { formatCurrency } = useCurrencyFormatting(
+    preferences?.defaultCurrency || 'ILS'
+  );
   const [formData, setFormData] = useState({
     finalCashOut: '',
     currency: session.initialBuyIn.currency || defaultCurrency,
     notes: '',
   });
 
-  // Update form data when default currency changes (only if no session currency)
   useEffect(() => {
     if (!session.initialBuyIn.currency) {
       setFormData((prev) => ({
@@ -56,7 +62,6 @@ export function EndSessionModal({
       formData.notes || undefined
     );
 
-    // Reset form
     setFormData({
       finalCashOut: '',
       currency: session.initialBuyIn.currency || defaultCurrency,
@@ -75,14 +80,23 @@ export function EndSessionModal({
     }
   };
 
-  // Calculate current profit/loss
   const currentCashOut = session.currentCashOut?.amount || 0;
   const totalBuyIn = session.transactions
-    .filter((t) => t.type === 'buy_in' || t.type === 'rebuy')
-    .reduce((sum, t) => sum + t.amount.amount, 0);
+    .filter((txn) => txn.type === 'buy_in' || txn.type === 'rebuy')
+    .reduce((sum, txn) => sum + txn.amount.amount, 0);
   const currentProfitLoss = currentCashOut - totalBuyIn;
+  const currency = session.initialBuyIn.currency;
+
+  const formatSignedCurrency = (amount: number) => {
+    const formatted = formatCurrency(Math.abs(amount), currency);
+    if (amount < 0) return `-${formatted}`;
+    if (amount > 0) return `+${formatted}`;
+    return formatted;
+  };
 
   if (!isOpen) return null;
+
+  const currencySymbol = getCurrencySymbol(formData.currency);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -102,30 +116,24 @@ export function EndSessionModal({
               <div className="sm:flex sm:items-start">
                 <div className="w-full">
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    End Session
+                    {t('sessions.endSession')}
                   </h3>
 
                   <div className="mt-4 rounded-md bg-gray-50 p-4">
                     <h4 className="text-sm font-medium text-gray-700">
-                      Session Summary
+                      {t('sessions.sessionSummary')}
                     </h4>
                     <div className="mt-2 space-y-1 text-sm text-gray-600">
                       <div className="flex justify-between">
-                        <span>Total Buy-ins:</span>
-                        <span>
-                          ${totalBuyIn.toFixed(2)}{' '}
-                          {session.initialBuyIn.currency}
-                        </span>
+                        <span>{t('sessions.totalBuyIns')}:</span>
+                        <span>{formatCurrency(totalBuyIn, currency)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Current Cash-out:</span>
-                        <span>
-                          ${currentCashOut.toFixed(2)}{' '}
-                          {session.initialBuyIn.currency}
-                        </span>
+                        <span>{t('sessions.currentCashOut')}:</span>
+                        <span>{formatCurrency(currentCashOut, currency)}</span>
                       </div>
                       <div className="flex justify-between font-medium">
-                        <span>Current P&L:</span>
+                        <span>{t('sessions.currentPL')}:</span>
                         <span
                           className={
                             currentProfitLoss >= 0
@@ -133,8 +141,7 @@ export function EndSessionModal({
                               : 'text-red-600'
                           }
                         >
-                          ${currentProfitLoss.toFixed(2)}{' '}
-                          {session.initialBuyIn.currency}
+                          {formatSignedCurrency(currentProfitLoss)}
                         </span>
                       </div>
                     </div>
@@ -146,11 +153,11 @@ export function EndSessionModal({
                         htmlFor="finalCashOut"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Final Cash-out Amount
+                        {t('sessions.finalCashOutAmount')}
                       </label>
                       <div className="mt-1 flex rounded-md shadow-sm">
                         <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                          $
+                          {currencySymbol}
                         </span>
                         <input
                           type="number"
@@ -177,7 +184,7 @@ export function EndSessionModal({
                         htmlFor="currency"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Currency
+                        {t('sessions.currency')}
                       </label>
                       <select
                         id="currency"
@@ -188,9 +195,9 @@ export function EndSessionModal({
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         disabled={loading}
                       >
-                        {supportedCurrencies.map((currency) => (
-                          <option key={currency} value={currency}>
-                            {currency}
+                        {supportedCurrencies.map((curr) => (
+                          <option key={curr} value={curr}>
+                            {curr}
                           </option>
                         ))}
                       </select>
@@ -201,7 +208,7 @@ export function EndSessionModal({
                         htmlFor="notes"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Session Notes (Optional)
+                        {t('sessions.sessionNotesOptional')}
                       </label>
                       <textarea
                         id="notes"
@@ -211,7 +218,7 @@ export function EndSessionModal({
                           setFormData({ ...formData, notes: e.target.value })
                         }
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="Add any notes about the session..."
+                        placeholder={t('sessions.sessionNotesPlaceholder')}
                         disabled={loading}
                       />
                     </div>
@@ -230,7 +237,7 @@ export function EndSessionModal({
                 }
                 className="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                {loading ? 'Ending...' : 'End Session'}
+                {loading ? t('sessions.endingSession') : t('sessions.endSession')}
               </button>
               <button
                 type="button"
@@ -238,7 +245,7 @@ export function EndSessionModal({
                 disabled={loading}
                 className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>

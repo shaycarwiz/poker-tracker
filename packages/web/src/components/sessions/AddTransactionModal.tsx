@@ -2,20 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from 'react-i18next';
 import { useCurrencyPreferenceWithUtils } from '@/hooks/useCurrencyPreference';
+import { getCurrencySymbol } from '@/lib/currency';
 import { playerApi } from '@/lib/api-client';
 import type { Player } from '@/types';
 
-const TRANSACTION_TYPES = [
-  { value: 'buy_in', label: 'Buy In' },
-  { value: 'rebuy', label: 'Rebuy' },
-  { value: 'add_on', label: 'Add On' },
-  { value: 'cash_out', label: 'Cash Out' },
-  { value: 'tip', label: 'Tip' },
-  { value: 'rakeback', label: 'Rakeback' },
-  { value: 'bonus', label: 'Bonus' },
-  { value: 'other', label: 'Other' },
-];
+const TRANSACTION_TYPE_VALUES = [
+  'buy_in',
+  'rebuy',
+  'add_on',
+  'cash_out',
+  'tip',
+  'rakeback',
+  'bonus',
+  'other',
+] as const;
+
+const TRANSACTION_TYPE_KEYS: Record<string, string> = {
+  buy_in: 'buyIn',
+  rebuy: 'rebuy',
+  add_on: 'addOn',
+  cash_out: 'cashOut',
+  tip: 'tip',
+  rakeback: 'rakeback',
+  bonus: 'bonus',
+  other: 'other',
+};
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -35,6 +48,7 @@ export function AddTransactionModal({
   onAddTransaction,
   loading,
 }: AddTransactionModalProps) {
+  const { t } = useTranslation();
   const { data: session } = useSession();
   const { defaultCurrency, supportedCurrencies } =
     useCurrencyPreferenceWithUtils();
@@ -64,7 +78,6 @@ export function AddTransactionModal({
     loadPlayers();
   }, [session?.backendToken, session?.defaultPlayerId]);
 
-  // Update form data when default currency changes
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -115,6 +128,8 @@ export function AddTransactionModal({
 
   if (!isOpen) return null;
 
+  const currencySymbol = getCurrencySymbol(formData.currency);
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
@@ -133,7 +148,7 @@ export function AddTransactionModal({
               <div className="sm:flex sm:items-start">
                 <div className="w-full">
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Add Transaction
+                    {t('sessions.addTransaction')}
                   </h3>
                   <div className="mt-4 space-y-4">
                     <div>
@@ -141,7 +156,7 @@ export function AddTransactionModal({
                         htmlFor="playerId"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Player
+                        {t('sessions.player')}
                       </label>
                       <select
                         id="playerId"
@@ -166,7 +181,7 @@ export function AddTransactionModal({
                         htmlFor="type"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Transaction Type
+                        {t('sessions.transactionType')}
                       </label>
                       <select
                         id="type"
@@ -177,9 +192,11 @@ export function AddTransactionModal({
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         disabled={loading}
                       >
-                        {TRANSACTION_TYPES.map((type) => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
+                        {TRANSACTION_TYPE_VALUES.map((type) => (
+                          <option key={type} value={type}>
+                            {t(
+                              `sessions.transactionTypes.${TRANSACTION_TYPE_KEYS[type]}`
+                            )}
                           </option>
                         ))}
                       </select>
@@ -190,11 +207,11 @@ export function AddTransactionModal({
                         htmlFor="amount"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Amount
+                        {t('sessions.amount')}
                       </label>
                       <div className="mt-1 flex rounded-md shadow-sm">
                         <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                          $
+                          {currencySymbol}
                         </span>
                         <input
                           type="number"
@@ -218,7 +235,7 @@ export function AddTransactionModal({
                         htmlFor="currency"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Currency
+                        {t('sessions.currency')}
                       </label>
                       <select
                         id="currency"
@@ -242,7 +259,7 @@ export function AddTransactionModal({
                         htmlFor="description"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Description (Optional)
+                        {t('sessions.descriptionOptional')}
                       </label>
                       <input
                         type="text"
@@ -255,7 +272,9 @@ export function AddTransactionModal({
                           })
                         }
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="Transaction description"
+                        placeholder={t(
+                          'sessions.transactionDescriptionPlaceholder'
+                        )}
                         disabled={loading}
                       />
                     </div>
@@ -274,7 +293,9 @@ export function AddTransactionModal({
                 }
                 className="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                {loading ? 'Adding...' : 'Add Transaction'}
+                {loading
+                  ? t('sessions.addingTransaction')
+                  : t('sessions.addTransaction')}
               </button>
               <button
                 type="button"
@@ -282,7 +303,7 @@ export function AddTransactionModal({
                 disabled={loading}
                 className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>

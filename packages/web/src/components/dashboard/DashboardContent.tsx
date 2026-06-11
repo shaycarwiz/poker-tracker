@@ -100,18 +100,17 @@ export function DashboardContent() {
             </div>
             <div className="ml-4">
               <h3 className="text-lg font-medium text-blue-900">
-                Want more detailed statistics?
+                {t('dashboard.detailedStats')}
               </h3>
               <p className="mt-1 text-sm text-blue-700">
-                View comprehensive performance metrics, monthly breakdowns, and
-                detailed analytics.
+                {t('dashboard.detailedStatsDescription')}
               </p>
               <div className="mt-3">
                 <a
                   href="/statistics"
                   className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  View Detailed Statistics
+                  {t('dashboard.viewDetailedStats')}
                 </a>
               </div>
             </div>

@@ -1,6 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useCurrencyFormatting } from '@/lib/currency';
 import type { Session } from '@/types';
 
 interface RecentSessionsProps {
@@ -8,15 +12,17 @@ interface RecentSessionsProps {
 }
 
 export function RecentSessions({ sessions }: RecentSessionsProps) {
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const { preferences } = useUserPreferences();
+  const { formatCurrency } = useCurrencyFormatting(
+    preferences?.defaultCurrency || 'ILS'
+  );
+
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -42,6 +48,19 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return t('sessions.status.active');
+      case 'COMPLETED':
+        return t('sessions.status.completed');
+      case 'CANCELLED':
+        return t('sessions.status.cancelled');
+      default:
+        return status;
+    }
+  };
+
   const getProfitColor = (amount: number) => {
     if (amount > 0) return 'text-green-600';
     if (amount < 0) return 'text-red-600';
@@ -52,21 +71,25 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
     <div className="rounded-lg bg-white shadow">
       <div className="px-4 py-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900">Recent Sessions</h3>
+          <h3 className="text-lg font-medium text-gray-900">
+            {t('dashboard.recentSessions')}
+          </h3>
           <Link
             href="/sessions"
             className="text-sm font-medium text-blue-600 hover:text-blue-500"
           >
-            View all
+            {t('dashboard.viewAll')}
           </Link>
         </div>
         <div className="mt-6">
           {sessions.length === 0 ? (
             <div className="py-8 text-center">
               <div className="mb-4 text-4xl text-gray-400">🎯</div>
-              <p className="text-sm text-gray-500">No sessions yet</p>
+              <p className="text-sm text-gray-500">
+                {t('dashboard.noSessionsYet')}
+              </p>
               <p className="mt-1 text-xs text-gray-400">
-                Start your first poker session to see it here
+                {t('dashboard.startFirstSessionPrompt')}
               </p>
             </div>
           ) : (
@@ -101,7 +124,7 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
                                 session.status
                               )}`}
                             >
-                              {session.status}
+                              {getStatusLabel(session.status)}
                             </span>
                             <span
                               className={`text-sm font-medium ${getProfitColor(
@@ -110,7 +133,9 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
                             >
                               {formatCurrency(
                                 session.profitLoss?.amount ?? 0,
-                                session.profitLoss?.currency ?? 'USD'
+                                session.profitLoss?.currency ??
+                                  preferences?.defaultCurrency ??
+                                  'ILS'
                               )}
                             </span>
                           </div>
