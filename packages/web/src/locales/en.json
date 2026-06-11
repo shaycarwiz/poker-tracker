@@ -22,6 +22,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "sessions": "Sessions",
+    "players": "Players",
     "statistics": "Statistics",
     "settings": "Settings",
     "signIn": "Sign In",
@@ -99,6 +100,24 @@
       "rebuy": "Rebuy",
       "cashOut": "Cash Out"
     }
+  },
+  "players": {
+    "title": "Players",
+    "subtitle": "Manage your poker player profiles",
+    "newPlayer": "New Player",
+    "createPlayer": "Create Player",
+    "createPlayerDescription": "Add a new player profile to track sessions and bankroll",
+    "creatingPlayer": "Creating Player...",
+    "name": "Name",
+    "namePlaceholder": "e.g., John Doe",
+    "email": "Email",
+    "emailPlaceholder": "e.g., john@example.com",
+    "currency": "Currency",
+    "initialBankroll": "Initial Bankroll",
+    "bankroll": "Bankroll",
+    "createdAt": "Created",
+    "noPlayers": "No players yet. Create your first player profile.",
+    "loadError": "Failed to load players"
   },
   "statistics": {
     "title": "Statistics",

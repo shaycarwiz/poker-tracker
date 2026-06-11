@@ -22,6 +22,7 @@
   "navigation": {
     "dashboard": "לוח בקרה",
     "sessions": "משחקים",
+    "players": "שחקנים",
     "statistics": "סטטיסטיקות",
     "settings": "הגדרות",
     "signIn": "התחברות",
@@ -99,6 +100,24 @@
       "rebuy": "רכישה חוזרת",
       "cashOut": "משיכת כסף"
     }
+  },
+  "players": {
+    "title": "שחקנים",
+    "subtitle": "נהל את פרופילי השחקנים שלך בפוקר",
+    "newPlayer": "שחקן חדש",
+    "createPlayer": "צור שחקן",
+    "createPlayerDescription": "הוסף פרופיל שחקן חדש למעקב אחר משחקים ובנקול",
+    "creatingPlayer": "יוצר שחקן...",
+    "name": "שם",
+    "namePlaceholder": "למשל, יוחנן כהן",
+    "email": "אימייל",
+    "emailPlaceholder": "למשל, john@example.com",
+    "currency": "מטבע",
+    "initialBankroll": "בנקול התחלתי",
+    "bankroll": "בנקול",
+    "createdAt": "נוצר",
+    "noPlayers": "אין שחקנים עדיין. צור את פרופיל השחקן הראשון שלך.",
+    "loadError": "טעינת השחקנים נכשלה"
   },
   "statistics": {
     "title": "סטטיסטיקות",
