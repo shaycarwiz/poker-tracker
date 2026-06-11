@@ -102,7 +102,7 @@ export function CreateSessionForm() {
       return;
     }
 
-    if (!session?.user?.id) {
+    if (!session?.backendToken || !session?.userId) {
       setError('User not authenticated');
       return;
     }
@@ -112,7 +112,6 @@ export function CreateSessionForm() {
 
     try {
       const sessionData: StartSessionRequest = {
-        playerId: session.userId!,
         location: formData.location.trim(),
         stakes: {
           smallBlind: Number(formData.smallBlind),

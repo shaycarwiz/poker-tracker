@@ -17,7 +17,7 @@ export class EventHandlers {
         logger.info("Session started event received", {
           eventId: event.eventId,
           sessionId: event.sessionId.value,
-          playerId: event.playerId.value,
+          userId: event.userId.value,
           location: event.location,
           stakes: event.stakes.formatted,
           occurredOn: event.occurredOn,
@@ -38,7 +38,7 @@ export class EventHandlers {
         logger.info("Session ended event received", {
           eventId: event.eventId,
           sessionId: event.sessionId.value,
-          playerId: event.playerId.value,
+          userId: event.userId.value,
           netResult: event.netResult.amount,
           duration: event.duration.hours,
           occurredOn: event.occurredOn,

@@ -17,9 +17,11 @@ export class DeletePlayerUseCase extends BaseUseCase {
         }
 
         // Check if player has any active sessions
-        const sessions = await this.unitOfWork.sessions.findByPlayerId(id);
+        const sessions = await this.unitOfWork.sessions.findByUserId(
+          player.ownerUserId
+        );
         const hasActiveSessions = sessions.some(
-          (session) => session.status === SessionStatus.ACTIVE,
+          (session) => session.status === SessionStatus.ACTIVE
         );
 
         if (hasActiveSessions) {

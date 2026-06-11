@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLanguage } from './LanguageContext';
-import { playerApi } from '@/lib/api-client';
+import { userApi } from '@/lib/api-client';
 
 interface UserPreferences {
   preferredLanguage: string;
@@ -54,7 +54,7 @@ export function UserPreferencesProvider({
       setIsLoading(true);
       setError(null);
 
-      const response = await playerApi.getPreferences();
+      const response = await userApi.getPreferences();
 
       if (response.success && response.data) {
         setPreferences(response.data);
@@ -77,7 +77,7 @@ export function UserPreferencesProvider({
     try {
       setError(null);
 
-      const response = await playerApi.updatePreferences(newPreferences);
+      const response = await userApi.updatePreferences(newPreferences);
 
       if (response.success && response.data) {
         setPreferences(response.data);

@@ -6,8 +6,8 @@ describe('i18n Configuration', () => {
     i18n.init();
   });
 
-  it('should have English as default language', () => {
-    expect(i18n.language).toBe('en');
+  it('should have Hebrew as default language', () => {
+    expect(i18n.language).toBe('he');
   });
 
   it('should have Hebrew language available', () => {
@@ -15,6 +15,7 @@ describe('i18n Configuration', () => {
   });
 
   it('should translate English text correctly', () => {
+    i18n.changeLanguage('en');
     const translation = i18n.t('common.loading');
     expect(translation).toBe('Loading...');
   });
@@ -44,8 +45,7 @@ describe('i18n Configuration', () => {
   });
 
   afterEach(() => {
-    // Reset to English after each test
-    i18n.changeLanguage('en');
+    i18n.changeLanguage('he');
   });
 });
 

@@ -1,6 +1,4 @@
-// Update Player Use Case
-
-import { PlayerId } from "@/model/entities";
+import { PlayerId, UserId } from "@/model/entities";
 import { logger } from "@/shared/utils/logger";
 import {
   UpdatePlayerRequest,
@@ -15,19 +13,8 @@ export class UpdatePlayerUseCase extends BaseUseCase {
         const playerId = new PlayerId(request.id);
         const player = await this.unitOfWork.players.findById(playerId);
 
-        if (!player) {
+        if (!player || !player.isOwnedBy(new UserId(request.ownerUserId))) {
           throw new Error("Player not found");
-        }
-
-        // Check if email is being changed and if it already exists
-        if (request.email && request.email !== player.email) {
-          const existingPlayer = await this.unitOfWork.players.findByEmail(
-            request.email,
-          );
-
-          if (existingPlayer) {
-            throw new Error("Player with this email already exists");
-          }
         }
 
         if (request.name) {
@@ -52,11 +39,11 @@ export class UpdatePlayerUseCase extends BaseUseCase {
             amount: player.currentBankroll.amount,
             currency: player.currentBankroll.currency,
           },
-          updatedAt: new Date(),
+          updatedAt: player.updatedAt,
         };
       },
       "UpdatePlayerUseCase",
-      { request },
+      { request }
     );
   }
 }

@@ -1,35 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-
-interface Session {
-  sessionId: string;
-  playerId: string;
-  location: string;
-  stakes: {
-    smallBlind: number;
-    bigBlind: number;
-    currency: string;
-  };
-  initialBuyIn: {
-    amount: number;
-    currency: string;
-  };
-  currentCashOut?: {
-    amount: number;
-    currency: string;
-  };
-  profitLoss: {
-    amount: number;
-    currency: string;
-  };
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  transactions: any[];
-  startedAt: string;
-  endedAt?: string;
-  duration?: number;
-}
+import type { Session } from '@/types';
 
 interface RecentSessionsProps {
   sessions: Session[];
@@ -43,8 +15,8 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -133,12 +105,12 @@ export function RecentSessions({ sessions }: RecentSessionsProps) {
                             </span>
                             <span
                               className={`text-sm font-medium ${getProfitColor(
-                                session.profitLoss.amount
+                                session.profitLoss?.amount ?? 0
                               )}`}
                             >
                               {formatCurrency(
-                                session.profitLoss.amount,
-                                session.profitLoss.currency
+                                session.profitLoss?.amount ?? 0,
+                                session.profitLoss?.currency ?? 'USD'
                               )}
                             </span>
                           </div>

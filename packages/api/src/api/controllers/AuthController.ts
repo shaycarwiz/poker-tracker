@@ -11,8 +11,9 @@ import {
 } from "tsoa";
 import { injectable, inject } from "tsyringe";
 import { JWTService } from "@/shared/utils/jwt";
-import { PlayerRepository } from "@/model/repositories";
-import { Player } from "@/model/entities";
+import { UserId } from "@/model/entities";
+import { UserRepository } from "@/model/repositories";
+import { UserService } from "@/application/services/user-service";
 import logger from "@/shared/utils/logger";
 import {
   LoginRequest,
@@ -23,30 +24,22 @@ import {
   RefreshTokenResponse,
 } from "../types";
 
-/**
- * Authentication Controller
- *
- * Handles user authentication, profile management, and JWT token generation.
- */
 @Route("auth")
 @Tags("Authentication")
 @injectable()
 export class AuthController extends Controller {
   constructor(
-    @inject("PlayerRepository") private playerRepository: PlayerRepository
+    @inject("UserRepository") private userRepository: UserRepository,
+    @inject("UserService") private userService: UserService
   ) {
     super();
   }
 
-  /**
-   * Login with Google OAuth credentials
-   */
   @Post("login")
   public async login(@Body() body: LoginRequest): Promise<LoginResponse> {
     try {
       const { googleId, email, name } = body;
 
-      // Validation
       const validationErrors: string[] = [];
 
       if (!googleId || typeof googleId !== "string" || googleId.trim() === "") {
@@ -72,30 +65,17 @@ export class AuthController extends Controller {
         throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
       }
 
-      // Check if player exists by Google ID
-      let player = await this.playerRepository.findByGoogleId(googleId);
+      const authResult = await this.userService.loginOrRegister({
+        googleId,
+        email,
+        name,
+      });
 
-      if (!player) {
-        // Check if player exists by email (for account linking)
-        const existingPlayer = await this.playerRepository.findByEmail(email);
-
-        if (existingPlayer) {
-          // Link Google account to existing player
-          existingPlayer.linkGoogleAccount(googleId);
-          await this.playerRepository.save(existingPlayer);
-          player = existingPlayer;
-        } else {
-          // Create new player from Google account
-          player = Player.createFromGoogle(googleId, name, email);
-          await this.playerRepository.save(player);
-        }
-      }
-
-      // Generate JWT token pair
       const tokenPair = JWTService.generateTokenPair({
-        googleId: player.googleId!,
-        email: player.email!,
-        name: player.name,
+        userId: authResult.userId,
+        googleId,
+        email: authResult.email,
+        name: authResult.name,
       });
 
       return {
@@ -103,11 +83,10 @@ export class AuthController extends Controller {
         refreshToken: tokenPair.refreshToken,
         expiresIn: tokenPair.expiresIn,
         user: {
-          id: player.id.value,
-          name: player.name,
-          email: player.email || "",
-          currentBankroll: player.currentBankroll.amount,
-          totalSessions: player.totalSessions,
+          id: authResult.userId,
+          name: authResult.name,
+          email: authResult.email,
+          defaultPlayerId: authResult.defaultPlayerId,
         },
       };
     } catch (error) {
@@ -117,35 +96,26 @@ export class AuthController extends Controller {
     }
   }
 
-  /**
-   * Get authenticated user's profile information
-   */
   @Get("profile")
   @Security("jwt")
   public async getProfile(@Request() request: any): Promise<ProfileResponse> {
     try {
-      if (!request.user) {
+      if (!request.user?.userId) {
         this.setStatus(401);
         throw new Error("Authentication required");
       }
 
-      const player = await this.playerRepository.findByGoogleId(
-        request.user.googleId
-      );
-
-      if (!player) {
-        this.setStatus(404);
-        throw new Error("Player not found");
-      }
+      const profile = await this.userService.getProfile(request.user.userId);
 
       return {
-        id: player.id.value,
-        name: player.name,
-        email: player.email || "",
-        currentBankroll: player.currentBankroll.amount,
-        totalSessions: player.totalSessions,
-        createdAt: player.createdAt,
-        updatedAt: player.updatedAt,
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        defaultPlayerId: profile.defaultPlayerId,
+        preferredLanguage: profile.preferredLanguage,
+        defaultCurrency: profile.defaultCurrency,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
       };
     } catch (error) {
       logger.error(`Get profile error: ${error}`);
@@ -154,9 +124,6 @@ export class AuthController extends Controller {
     }
   }
 
-  /**
-   * Update authenticated user's profile information
-   */
   @Put("profile")
   @Security("jwt")
   public async updateProfile(
@@ -164,14 +131,12 @@ export class AuthController extends Controller {
     @Request() request: any
   ): Promise<ProfileResponse> {
     try {
-      if (!request.user) {
+      if (!request.user?.userId) {
         this.setStatus(401);
         throw new Error("Authentication required");
       }
 
       const { name, email } = body;
-
-      // Validation
       const validationErrors: string[] = [];
 
       if (name !== undefined) {
@@ -193,33 +158,20 @@ export class AuthController extends Controller {
         throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
       }
 
-      const player = await this.playerRepository.findByGoogleId(
-        request.user.googleId
+      const profile = await this.userService.updateProfile(
+        request.user.userId,
+        { name, email }
       );
 
-      if (!player) {
-        this.setStatus(404);
-        throw new Error("Player not found");
-      }
-
-      if (name) {
-        player.updateName(name);
-      }
-
-      if (email) {
-        player.updateEmail(email);
-      }
-
-      await this.playerRepository.save(player);
-
       return {
-        id: player.id.value,
-        name: player.name,
-        email: player.email || "",
-        currentBankroll: player.currentBankroll.amount,
-        totalSessions: player.totalSessions,
-        createdAt: player.createdAt,
-        updatedAt: player.updatedAt,
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        defaultPlayerId: profile.defaultPlayerId,
+        preferredLanguage: profile.preferredLanguage,
+        defaultCurrency: profile.defaultCurrency,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
       };
     } catch (error) {
       logger.error(`Update profile error: ${error}`);
@@ -228,9 +180,6 @@ export class AuthController extends Controller {
     }
   }
 
-  /**
-   * Refresh access token using refresh token
-   */
   @Post("refresh")
   public async refreshToken(
     @Body() body: RefreshTokenRequest
@@ -247,24 +196,21 @@ export class AuthController extends Controller {
         throw new Error("Refresh token is required");
       }
 
-      // Verify refresh token
       const refreshPayload = JWTService.verifyRefreshToken(refreshToken);
-
-      // Find player by Google ID
-      const player = await this.playerRepository.findByGoogleId(
-        refreshPayload.googleId
+      const user = await this.userRepository.findById(
+        new UserId(refreshPayload.userId)
       );
 
-      if (!player) {
+      if (!user) {
         this.setStatus(404);
-        throw new Error("Player not found");
+        throw new Error("User not found");
       }
 
-      // Generate new token pair (refresh token rotation)
       const tokenPair = JWTService.generateTokenPair({
-        googleId: player.googleId!,
-        email: player.email!,
-        name: player.name,
+        userId: user.id.value,
+        googleId: user.googleId,
+        email: user.email,
+        name: user.name,
       });
 
       return {
@@ -286,9 +232,6 @@ export class AuthController extends Controller {
     }
   }
 
-  /**
-   * Helper method to validate email format
-   */
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);

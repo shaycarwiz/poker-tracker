@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useCurrencyPreferenceWithUtils } from '@/hooks/useCurrencyPreference';
-import { SUPPORTED_CURRENCIES } from '@/lib/currency';
+import { playerApi } from '@/lib/api-client';
+import type { Player } from '@/types';
 
 const TRANSACTION_TYPES = [
   { value: 'buy_in', label: 'Buy In' },
@@ -19,6 +21,7 @@ interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddTransaction: (
+    playerId: string,
     type: string,
     amount: { amount: number; currency: string },
     description?: string
@@ -32,14 +35,34 @@ export function AddTransactionModal({
   onAddTransaction,
   loading,
 }: AddTransactionModalProps) {
+  const { data: session } = useSession();
   const { defaultCurrency, supportedCurrencies } =
     useCurrencyPreferenceWithUtils();
+  const [players, setPlayers] = useState<Player[]>([]);
   const [formData, setFormData] = useState({
+    playerId: '',
     type: 'buy_in',
     amount: '',
     currency: defaultCurrency,
     description: '',
   });
+
+  useEffect(() => {
+    const loadPlayers = async () => {
+      if (!session?.backendToken) return;
+      const response = await playerApi.list();
+      if (response.success && response.data?.players) {
+        setPlayers(response.data.players);
+        const defaultId =
+          session.defaultPlayerId || response.data.players[0]?.id || '';
+        setFormData((prev) => ({
+          ...prev,
+          playerId: prev.playerId || defaultId,
+        }));
+      }
+    };
+    loadPlayers();
+  }, [session?.backendToken, session?.defaultPlayerId]);
 
   // Update form data when default currency changes
   useEffect(() => {
@@ -56,7 +79,10 @@ export function AddTransactionModal({
       return;
     }
 
+    if (!formData.playerId) return;
+
     await onAddTransaction(
+      formData.playerId,
       formData.type,
       {
         amount: parseFloat(formData.amount),
@@ -65,8 +91,8 @@ export function AddTransactionModal({
       formData.description || undefined
     );
 
-    // Reset form
     setFormData({
+      playerId: formData.playerId,
       type: 'buy_in',
       amount: '',
       currency: defaultCurrency,
@@ -77,6 +103,7 @@ export function AddTransactionModal({
   const handleClose = () => {
     if (!loading) {
       setFormData({
+        playerId: session?.defaultPlayerId || '',
         type: 'buy_in',
         amount: '',
         currency: defaultCurrency,
@@ -109,6 +136,31 @@ export function AddTransactionModal({
                     Add Transaction
                   </h3>
                   <div className="mt-4 space-y-4">
+                    <div>
+                      <label
+                        htmlFor="playerId"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Player
+                      </label>
+                      <select
+                        id="playerId"
+                        value={formData.playerId}
+                        onChange={(e) =>
+                          setFormData({ ...formData, playerId: e.target.value })
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        disabled={loading}
+                        required
+                      >
+                        {players.map((player) => (
+                          <option key={player.id} value={player.id}>
+                            {player.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div>
                       <label
                         htmlFor="type"

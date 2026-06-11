@@ -4,6 +4,7 @@ import { logger } from "../../shared/utils/logger";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
+    userId: string;
     googleId: string;
     email: string;
     name: string;
@@ -37,11 +38,17 @@ export const authenticateToken = (
       return;
     }
 
-    const decoded = jwt.verify(token, secret) as any;
+    const decoded = jwt.verify(token, secret) as {
+      userId: string;
+      googleId?: string;
+      sub?: string;
+      email: string;
+      name: string;
+    };
 
-    // Extract user information from the JWT payload
     req.user = {
-      googleId: decoded.googleId || decoded.sub,
+      userId: decoded.userId,
+      googleId: decoded.googleId || decoded.sub || "",
       email: decoded.email,
       name: decoded.name,
     };
@@ -50,7 +57,6 @@ export const authenticateToken = (
   } catch (error) {
     logger.warn(`JWT verification failed: ${error}`);
 
-    // Check if it's a token expiration error
     if (error instanceof Error && error.name === "TokenExpiredError") {
       res.status(401).json({
         error: "Token has expired",
@@ -85,17 +91,23 @@ export const optionalAuth = (
       return;
     }
 
-    const decoded = jwt.verify(token, secret) as any;
+    const decoded = jwt.verify(token, secret) as {
+      userId: string;
+      googleId?: string;
+      sub?: string;
+      email: string;
+      name: string;
+    };
 
     req.user = {
-      googleId: decoded.googleId || decoded.sub,
+      userId: decoded.userId,
+      googleId: decoded.googleId || decoded.sub || "",
       email: decoded.email,
       name: decoded.name,
     };
 
     next();
   } catch (error) {
-    // For optional auth, we don't fail on invalid tokens
     logger.warn(`Optional JWT verification failed: ${error}`);
     next();
   }

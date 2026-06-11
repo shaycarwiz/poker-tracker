@@ -1,6 +1,6 @@
 export interface Session {
   sessionId: string;
-  playerId: string;
+  userId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -23,6 +23,7 @@ export interface Session {
   notes?: string;
   transactions: {
     id: string;
+    playerId: string;
     type: string;
     amount: {
       amount: number;
@@ -33,11 +34,10 @@ export interface Session {
   }[];
   startedAt: Date;
   endedAt?: Date;
-  duration?: number; // in minutes
+  duration?: number;
 }
 
 export interface StartSessionRequest {
-  playerId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -48,12 +48,13 @@ export interface StartSessionRequest {
     amount: number;
     currency: string;
   };
+  initialBuyInPlayerId?: string;
   notes?: string;
 }
 
 export interface StartSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -72,7 +73,11 @@ export interface StartSessionResponse {
 export interface Player {
   id: string;
   name: string;
-  email: string;
+  email?: string;
+  bankroll?: {
+    amount: number;
+    currency: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -103,6 +108,7 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
   success: boolean;
+  error?: string;
 }
 
 export interface PaginatedResponse<T> {

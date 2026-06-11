@@ -130,8 +130,7 @@ export interface LoginResponse {
     id: string;
     name: string;
     email: string;
-    currentBankroll: number;
-    totalSessions: number;
+    defaultPlayerId: string;
   };
 }
 
@@ -149,8 +148,9 @@ export interface ProfileResponse {
   id: string;
   name: string;
   email: string;
-  currentBankroll: number;
-  totalSessions: number;
+  defaultPlayerId?: string;
+  preferredLanguage: string;
+  defaultCurrency: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -165,9 +165,9 @@ export interface ErrorResponse {
   code: string;
 }
 
-// Session DTOs for TSOA
 export interface StartSessionRequest {
-  playerId: string;
+  userId: string;
+  initialBuyInPlayerId?: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -183,7 +183,7 @@ export interface StartSessionRequest {
 
 export interface StartSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -201,6 +201,8 @@ export interface StartSessionResponse {
 
 export interface EndSessionRequest {
   sessionId: string;
+  userId: string;
+  playerId: string;
   finalCashOut: {
     amount: number;
     currency: string;
@@ -210,7 +212,7 @@ export interface EndSessionRequest {
 
 export interface EndSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   finalCashOut: {
     amount: number;
     currency: string;
@@ -219,13 +221,15 @@ export interface EndSessionResponse {
     amount: number;
     currency: string;
   };
-  duration: number; // in minutes
+  duration: number;
   status: string;
   endedAt: Date;
 }
 
 export interface AddTransactionRequest {
   sessionId: string;
+  userId: string;
+  playerId: string;
   type: string;
   amount: {
     amount: number;
@@ -237,6 +241,7 @@ export interface AddTransactionRequest {
 export interface AddTransactionResponse {
   transactionId: string;
   sessionId: string;
+  playerId: string;
   type: string;
   amount: {
     amount: number;
@@ -248,7 +253,7 @@ export interface AddTransactionResponse {
 
 export interface GetSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -271,6 +276,7 @@ export interface GetSessionResponse {
   notes?: string;
   transactions: {
     id: string;
+    playerId: string;
     type: string;
     amount: {
       amount: number;
@@ -281,11 +287,11 @@ export interface GetSessionResponse {
   }[];
   startedAt: Date;
   endedAt?: Date;
-  duration?: number; // in minutes
+  duration?: number;
 }
 
 export interface ListSessionsRequest {
-  playerId?: string;
+  userId: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -302,6 +308,7 @@ export interface ListSessionsResponse {
 
 export interface UpdateSessionNotesRequest {
   sessionId: string;
+  userId: string;
   notes: string;
 }
 
@@ -313,21 +320,9 @@ export interface UpdateSessionNotesResponse {
 
 export interface CancelSessionRequest {
   reason?: string;
+  playerId?: string;
 }
 
-export interface CancelSessionResponse {
-  sessionId: string;
-  playerId: string;
-  finalCashOut: {
-    amount: number;
-    currency: string;
-  };
-  profitLoss: {
-    amount: number;
-    currency: string;
-  };
-  duration: number; // in minutes
-  status: string;
-  endedAt: Date;
-  notes: string;
+export interface CancelSessionResponse extends EndSessionResponse {
+  notes?: string;
 }

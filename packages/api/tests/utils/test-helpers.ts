@@ -1,4 +1,4 @@
-import { Player, PlayerId } from "@/model/entities";
+import { Player, PlayerId, UserId } from "@/model/entities";
 import { Money, Stakes, Duration } from "@/model/value-objects";
 
 export class TestHelpers {
@@ -7,7 +7,12 @@ export class TestHelpers {
     email?: string,
     bankroll?: Money
   ): Player {
-    return Player.create(name, email, bankroll);
+    return Player.create(
+      name,
+      new UserId("test-user-id"),
+      email,
+      bankroll
+    );
   }
 
   static createTestMoney(

@@ -134,14 +134,30 @@ export const playerApi = {
   },
 
   updateBankroll: async (amount: number): Promise<ApiResponse<any>> => {
-    const response = await apiClient.patch('/players/me/bankroll', { amount });
+    const response = await apiClient.put('/players/me/bankroll', { amount });
     return response.data;
   },
 
+  list: async (page = 1, limit = 50): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get(`/players?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  create: async (data: {
+    name: string;
+    email?: string;
+    initialBankroll?: { amount: number; currency: string };
+  }): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/players', data);
+    return response.data;
+  },
+};
+
+export const userApi = {
   getPreferences: async (): Promise<
     ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
   > => {
-    const response = await apiClient.get('/players/me/preferences');
+    const response = await apiClient.get('/users/me/preferences');
     return response.data;
   },
 
@@ -151,10 +167,7 @@ export const playerApi = {
   }): Promise<
     ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
   > => {
-    const response = await apiClient.put(
-      '/players/me/preferences',
-      preferences
-    );
+    const response = await apiClient.put('/users/me/preferences', preferences);
     return response.data;
   },
 };
@@ -183,22 +196,26 @@ export const sessionApi = {
   end: async (
     id: string,
     finalCashOut: { amount: number; currency?: string },
-    notes?: string
+    notes?: string,
+    playerId?: string
   ): Promise<ApiResponse<any>> => {
     const response = await apiClient.post(`/sessions/${id}/end`, {
       finalCashOut,
       notes,
+      playerId,
     });
     return response.data;
   },
 
   addTransaction: async (
     id: string,
+    playerId: string,
     type: string,
     amount: { amount: number; currency?: string },
     description?: string
   ): Promise<ApiResponse<any>> => {
     const response = await apiClient.post(`/sessions/${id}/transactions`, {
+      playerId,
       type,
       amount,
       notes: description,
@@ -216,15 +233,8 @@ export const sessionApi = {
     return response.data;
   },
 
-  getPlayerSessions: async (playerId: string): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(`/sessions/player/${playerId}`);
-    return response.data;
-  },
-
-  getActiveSession: async (
-    playerId: string
-  ): Promise<ApiResponse<Session | null>> => {
-    const response = await apiClient.get(`/sessions/player/${playerId}/active`);
+  getActiveSession: async (): Promise<ApiResponse<Session | null>> => {
+    const response = await apiClient.get('/sessions/me/active');
     return response.data;
   },
 };

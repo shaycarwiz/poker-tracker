@@ -9,19 +9,21 @@ import {
   Query,
   Tags,
   Example,
+  Security,
+  Request,
 } from "tsoa";
-import { injectable } from "tsyringe";
-import { container } from "@/infrastructure/container";
+import { injectable, inject } from "tsyringe";
+import { SessionService } from "@/application/services/session-service";
+import { UserService } from "@/application/services/user-service";
 import { logger } from "@/shared/utils/logger";
 import { config } from "@/infrastructure/config";
+import { AuthenticatedRequest } from "@/api/middleware/auth";
 import {
-  // Request DTOs
   StartSessionRequest,
   EndSessionRequest,
   AddTransactionRequest,
   UpdateSessionNotesRequest,
   ListSessionsRequest,
-  // Response DTOs
   StartSessionResponse,
   EndSessionResponse,
   AddTransactionResponse,
@@ -29,71 +31,72 @@ import {
   ListSessionsResponse,
   UpdateSessionNotesResponse,
   CancelSessionResponse,
-  // Common types
   ApiResponse,
 } from "../types";
 
 @Route("sessions")
 @Tags("Sessions")
+@Security("jwt")
 @injectable()
 export class SessionController extends Controller {
-  private sessionService = container.services.sessions;
+  constructor(
+    @inject("SessionService") private sessionService: SessionService,
+    @inject("UserService") private userService: UserService
+  ) {
+    super();
+  }
 
   @Post("/")
-  @Example<StartSessionRequest>({
-    playerId: "player-123",
+  @Example<{
+    location: string;
+    stakes: { smallBlind: number; bigBlind: number; currency: string };
+    initialBuyIn: { amount: number; currency: string };
+    initialBuyInPlayerId?: string;
+    notes?: string;
+  }>({
     location: "Casino Royale",
-    stakes: {
-      smallBlind: 1,
-      bigBlind: 2,
-      currency: "USD",
-    },
-    initialBuyIn: {
-      amount: 200,
-      currency: "USD",
-    },
+    stakes: { smallBlind: 1, bigBlind: 2, currency: "USD" },
+    initialBuyIn: { amount: 200, currency: "USD" },
     notes: "Starting a new session",
   })
   public async startSession(
-    @Body() body: StartSessionRequest
+    @Request() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      location: string;
+      stakes: { smallBlind: number; bigBlind: number; currency?: string };
+      initialBuyIn: { amount: number; currency?: string };
+      initialBuyInPlayerId?: string;
+      notes?: string;
+    }
   ): Promise<ApiResponse<StartSessionResponse>> {
     try {
-      const { playerId, location, stakes, initialBuyIn, notes } = body;
-
-      if (!playerId || typeof playerId !== "string") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required and must be a string",
-        };
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
       }
+
+      const { location, stakes, initialBuyIn, initialBuyInPlayerId, notes } =
+        body;
 
       if (!location || typeof location !== "string") {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Location is required and must be a string",
-        };
+        return { success: false, error: "Location is required" };
       }
 
-      if (!stakes || !stakes.smallBlind || !stakes.bigBlind) {
+      if (!stakes?.smallBlind || !stakes?.bigBlind) {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Stakes with smallBlind and bigBlind are required",
-        };
+        return { success: false, error: "Stakes are required" };
       }
 
       if (!initialBuyIn || typeof initialBuyIn.amount !== "number") {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Initial buy-in amount is required and must be a number",
-        };
+        return { success: false, error: "Initial buy-in is required" };
       }
 
       const request: StartSessionRequest = {
-        playerId,
+        userId: req.user.userId,
+        initialBuyInPlayerId: initialBuyInPlayerId,
         location,
         stakes: {
           smallBlind: stakes.smallBlind,
@@ -108,12 +111,8 @@ export class SessionController extends Controller {
       };
 
       const response = await this.sessionService.startSession(request);
-
       this.setStatus(201);
-      return {
-        success: true,
-        data: response,
-      };
+      return { success: true, data: response };
     } catch (error) {
       logger.error("Error starting session", { error, body });
       this.setStatus(500);
@@ -126,70 +125,49 @@ export class SessionController extends Controller {
   }
 
   @Post("/{id}/end")
-  @Example<{
-    finalCashOut: { amount: number; currency?: string };
-    notes?: string;
-  }>({
-    finalCashOut: {
-      amount: 250,
-      currency: "USD",
-    },
-    notes: "Session ended with profit",
-  })
   public async endSession(
+    @Request() req: AuthenticatedRequest,
     @Path() id: string,
     @Body()
     body: {
+      playerId?: string;
       finalCashOut: { amount: number; currency?: string };
       notes?: string;
     }
   ): Promise<ApiResponse<EndSessionResponse>> {
     try {
-      const { finalCashOut, notes } = body;
-
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Session ID is required",
-        };
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
       }
 
-      if (!finalCashOut || typeof finalCashOut.amount !== "number") {
+      const profile = await this.userService.getProfile(req.user.userId);
+      const playerId = body.playerId || profile.defaultPlayerId;
+
+      if (!playerId) {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Final cash out amount is required and must be a number",
-        };
+        return { success: false, error: "Player ID is required" };
       }
 
       const request: EndSessionRequest = {
         sessionId: id,
+        userId: req.user.userId,
+        playerId,
         finalCashOut: {
-          amount: finalCashOut.amount,
-          currency: finalCashOut.currency || config.poker.defaultCurrency,
+          amount: body.finalCashOut.amount,
+          currency:
+            body.finalCashOut.currency || config.poker.defaultCurrency,
         },
-        notes,
+        notes: body.notes,
       };
 
       const response = await this.sessionService.endSession(request);
-
-      return {
-        success: true,
-        data: response,
-      };
+      return { success: true, data: response };
     } catch (error) {
-      logger.error("Error ending session", {
-        error,
-        id,
-        body,
-      });
+      logger.error("Error ending session", { error, id, body });
       if (error instanceof Error && error.message === "Session not found") {
         this.setStatus(404);
-        return {
-          success: false,
-          error: "Session not found",
-        };
+        return { success: false, error: "Session not found" };
       }
       this.setStatus(500);
       return {
@@ -201,83 +179,48 @@ export class SessionController extends Controller {
   }
 
   @Post("/{id}/transactions")
-  @Example<{
-    type: string;
-    amount: { amount: number; currency?: string };
-    notes?: string;
-  }>({
-    type: "buy-in",
-    amount: {
-      amount: 50,
-      currency: "USD",
-    },
-    notes: "Additional buy-in",
-  })
   public async addTransaction(
+    @Request() req: AuthenticatedRequest,
     @Path() id: string,
     @Body()
     body: {
+      playerId: string;
       type: string;
       amount: { amount: number; currency?: string };
       notes?: string;
     }
   ): Promise<ApiResponse<AddTransactionResponse>> {
     try {
-      const { type, amount, notes } = body;
-
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Session ID is required",
-        };
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
       }
 
-      if (!type || typeof type !== "string") {
+      if (!body.playerId) {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Transaction type is required and must be a string",
-        };
-      }
-
-      if (!amount || typeof amount.amount !== "number") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Amount is required and must be a number",
-        };
+        return { success: false, error: "Player ID is required" };
       }
 
       const request: AddTransactionRequest = {
         sessionId: id,
-        type,
+        userId: req.user.userId,
+        playerId: body.playerId,
+        type: body.type,
         amount: {
-          amount: amount.amount,
-          currency: amount.currency || config.poker.defaultCurrency,
+          amount: body.amount.amount,
+          currency: body.amount.currency || config.poker.defaultCurrency,
         },
-        description: notes,
+        description: body.notes,
       };
 
       const response = await this.sessionService.addTransaction(request);
-
       this.setStatus(201);
-      return {
-        success: true,
-        data: response,
-      };
+      return { success: true, data: response };
     } catch (error) {
-      logger.error("Error adding transaction", {
-        error,
-        id,
-        body,
-      });
+      logger.error("Error adding transaction", { error, id, body });
       if (error instanceof Error && error.message === "Session not found") {
         this.setStatus(404);
-        return {
-          success: false,
-          error: "Session not found",
-        };
+        return { success: false, error: "Session not found" };
       }
       this.setStatus(500);
       return {
@@ -290,31 +233,25 @@ export class SessionController extends Controller {
 
   @Get("/{id}")
   public async getSession(
+    @Request() req: AuthenticatedRequest,
     @Path() id: string
   ): Promise<ApiResponse<GetSessionResponse>> {
     try {
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Session ID is required",
-        };
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
       }
 
-      const response = await this.sessionService.getSession(id);
-
-      return {
-        success: true,
-        data: response,
-      };
+      const response = await this.sessionService.getSession(
+        id,
+        req.user.userId
+      );
+      return { success: true, data: response };
     } catch (error) {
       logger.error("Error getting session", { error, id });
       if (error instanceof Error && error.message === "Session not found") {
         this.setStatus(404);
-        return {
-          success: false,
-          error: "Session not found",
-        };
+        return { success: false, error: "Session not found" };
       }
       this.setStatus(500);
       return {
@@ -327,7 +264,7 @@ export class SessionController extends Controller {
 
   @Get("/")
   public async listSessions(
-    @Query() playerId?: string,
+    @Request() req: AuthenticatedRequest,
     @Query() status?: string,
     @Query() page: number = 1,
     @Query() limit: number = 10,
@@ -335,8 +272,13 @@ export class SessionController extends Controller {
     @Query() endDate?: string
   ): Promise<ApiResponse<ListSessionsResponse>> {
     try {
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
+
       const request: ListSessionsRequest = {
-        playerId,
+        userId: req.user.userId,
         status,
         page,
         limit,
@@ -345,21 +287,9 @@ export class SessionController extends Controller {
       };
 
       const response = await this.sessionService.listSessions(request);
-
-      return {
-        success: true,
-        data: response,
-      };
+      return { success: true, data: response };
     } catch (error) {
-      logger.error("Error listing sessions", {
-        error,
-        playerId,
-        status,
-        page,
-        limit,
-        startDate,
-        endDate,
-      });
+      logger.error("Error listing sessions", { error });
       this.setStatus(500);
       return {
         success: false,
@@ -369,35 +299,61 @@ export class SessionController extends Controller {
     }
   }
 
+  @Get("/me/active")
+  public async getActiveSession(
+    @Request() req: AuthenticatedRequest
+  ): Promise<ApiResponse<GetSessionResponse | null>> {
+    try {
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
+
+      const response = await this.sessionService.getActiveSession(
+        req.user.userId
+      );
+      return { success: true, data: response };
+    } catch (error) {
+      logger.error("Error getting active session", { error });
+      this.setStatus(500);
+      return {
+        success: false,
+        error: "Failed to get active session",
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
   @Post("/{id}/cancel")
-  @Example<{ reason?: string }>({
-    reason: "Emergency - had to leave",
-  })
   public async cancelSession(
+    @Request() req: AuthenticatedRequest,
     @Path() id: string,
-    @Body() body: { reason?: string } = {}
+    @Body() body: { reason?: string; playerId?: string } = {}
   ): Promise<ApiResponse<CancelSessionResponse>> {
     try {
-      if (!id) {
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
+
+      const profile = await this.userService.getProfile(req.user.userId);
+      const playerId = body.playerId || profile.defaultPlayerId;
+
+      if (!playerId) {
         this.setStatus(400);
-        return {
-          success: false,
-          error: "Session ID is required",
-        };
+        return { success: false, error: "Player ID is required" };
       }
 
       const request: EndSessionRequest = {
         sessionId: id,
+        userId: req.user.userId,
+        playerId,
         finalCashOut: { amount: 0, currency: config.poker.defaultCurrency },
         notes: body.reason || "Session cancelled",
       };
 
       const response = await this.sessionService.endSession(request);
-
-      return {
-        success: true,
-        data: response as CancelSessionResponse,
-      };
+      return { success: true, data: response as CancelSessionResponse };
     } catch (error) {
       logger.error("Error cancelling session", { error, id });
       this.setStatus(500);
@@ -410,146 +366,35 @@ export class SessionController extends Controller {
   }
 
   @Patch("/{id}/notes")
-  @Example<{ notes: string }>({
-    notes: "Updated session notes with important observations",
-  })
   public async updateSessionNotes(
+    @Request() req: AuthenticatedRequest,
     @Path() id: string,
     @Body() body: { notes: string }
   ): Promise<ApiResponse<UpdateSessionNotesResponse>> {
     try {
-      const { notes } = body;
-
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Session ID is required",
-        };
-      }
-
-      if (!notes || typeof notes !== "string") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Notes are required and must be a string",
-        };
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
       }
 
       const request: UpdateSessionNotesRequest = {
         sessionId: id,
-        notes,
+        userId: req.user.userId,
+        notes: body.notes,
       };
 
       const response = await this.sessionService.updateSessionNotes(request);
-
-      return {
-        success: true,
-        data: response,
-      };
+      return { success: true, data: response };
     } catch (error) {
-      logger.error("Error updating session notes", {
-        error,
-        id,
-        body,
-      });
+      logger.error("Error updating session notes", { error, id, body });
       if (error instanceof Error && error.message === "Session not found") {
         this.setStatus(404);
-        return {
-          success: false,
-          error: "Session not found",
-        };
-      }
-      if (error instanceof Error && error.message === "Session is not active") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Session is not active",
-        };
+        return { success: false, error: "Session not found" };
       }
       this.setStatus(500);
       return {
         success: false,
         error: "Failed to update session notes",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Get("/player/{playerId}")
-  public async getPlayerSessions(
-    @Path() playerId: string
-  ): Promise<ApiResponse<ListSessionsResponse>> {
-    try {
-      if (!playerId) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      const request: ListSessionsRequest = {
-        playerId,
-        page: 1,
-        limit: 100,
-      };
-
-      const response = await this.sessionService.listSessions(request);
-
-      return {
-        success: true,
-        data: response,
-      };
-    } catch (error) {
-      logger.error("Error getting player sessions", {
-        error,
-        playerId,
-      });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get player sessions",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Get("/player/{playerId}/active")
-  public async getActiveSession(
-    @Path() playerId: string
-  ): Promise<ApiResponse<GetSessionResponse | null>> {
-    try {
-      if (!playerId) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      const request: ListSessionsRequest = {
-        playerId,
-        status: "active",
-        page: 1,
-        limit: 1,
-      };
-
-      const response = await this.sessionService.listSessions(request);
-
-      return {
-        success: true,
-        data: response.sessions[0] || null,
-      };
-    } catch (error) {
-      logger.error("Error getting active session", {
-        error,
-        playerId,
-      });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get active session",
         message: error instanceof Error ? error.message : "Unknown error",
       };
     }

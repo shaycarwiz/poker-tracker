@@ -5,13 +5,19 @@ import {
   PostgresPlayerRepository,
   PostgresSessionRepository,
   PostgresTransactionRepository,
+  PostgresUserRepository,
   PostgresUnitOfWork,
 } from "./database";
-import { PlayerService, SessionService } from "@/application/services";
+import {
+  PlayerService,
+  SessionService,
+  UserService,
+} from "@/application/services";
 import { EventHandlers } from "@/application/handlers/event-handlers";
 import { SessionEventHandlers } from "@/application/handlers/session-event-handlers";
 
 // Register repositories as singletons
+tsyringeContainer.registerSingleton("UserRepository", PostgresUserRepository);
 tsyringeContainer.registerSingleton(
   "PlayerRepository",
   PostgresPlayerRepository
@@ -27,6 +33,7 @@ tsyringeContainer.registerSingleton(
 tsyringeContainer.registerSingleton("UnitOfWork", PostgresUnitOfWork);
 
 // Register services as singletons
+tsyringeContainer.registerSingleton("UserService", UserService);
 tsyringeContainer.registerSingleton("PlayerService", PlayerService);
 tsyringeContainer.registerSingleton("SessionService", SessionService);
 

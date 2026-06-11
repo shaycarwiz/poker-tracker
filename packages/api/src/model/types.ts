@@ -5,8 +5,8 @@ import { SessionStatus, TransactionType } from "./enums";
 
 export interface SessionSummary {
   sessionId: string;
-  playerId: string;
-  playerName: string;
+  userId: string;
+  ownerName: string;
   duration: number; // in minutes
   totalBuyIn: number;
   totalCashOut: number;
@@ -19,7 +19,7 @@ export interface SessionSummary {
 }
 
 export interface SessionFilters {
-  playerId?: string;
+  userId?: string;
   dateFrom?: Date;
   dateTo?: Date;
   minBuyIn?: number;
@@ -60,7 +60,7 @@ export interface PaginatedResponse<T> {
 
 // Helper types for common operations
 export interface CreateSessionRequest {
-  playerId: string;
+  userId: string;
   location: string;
   stakes: Stakes;
   startTime: Date;

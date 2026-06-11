@@ -23,13 +23,15 @@ afterEach(() => {
 });
 
 describe("JWTService", () => {
-  const mockPayload: Omit<JWTPayload, "iat" | "exp"> = {
+  const mockPayload: Omit<JWTPayload, "iat" | "exp" | "jti"> = {
+    userId: "user-123",
     googleId: "test-google-id",
     email: "test@example.com",
     name: "Test User",
   };
 
   const mockRefreshPayload: Omit<RefreshTokenPayload, "iat" | "exp"> = {
+    userId: "user-123",
     googleId: "test-google-id",
     tokenId: "test-token-id",
   };

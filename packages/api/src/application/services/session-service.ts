@@ -1,10 +1,9 @@
-// Session application service - Orchestrates use cases
-
 import { injectable, inject } from "tsyringe";
 import { UnitOfWork } from "@/model/repositories";
 import {
   AddTransactionUseCase,
   EndSessionUseCase,
+  GetActiveSessionUseCase,
   GetSessionUseCase,
   ListSessionsUseCase,
   StartSessionUseCase,
@@ -30,6 +29,7 @@ export class SessionService {
   private endSessionUseCase: EndSessionUseCase;
   private addTransactionUseCase: AddTransactionUseCase;
   private getSessionUseCase: GetSessionUseCase;
+  private getActiveSessionUseCase: GetActiveSessionUseCase;
   private listSessionsUseCase: ListSessionsUseCase;
   private updateSessionNotesUseCase: UpdateSessionNotesUseCase;
 
@@ -38,6 +38,7 @@ export class SessionService {
     this.endSessionUseCase = new EndSessionUseCase(unitOfWork);
     this.addTransactionUseCase = new AddTransactionUseCase(unitOfWork);
     this.getSessionUseCase = new GetSessionUseCase(unitOfWork);
+    this.getActiveSessionUseCase = new GetActiveSessionUseCase(unitOfWork);
     this.listSessionsUseCase = new ListSessionsUseCase(unitOfWork);
     this.updateSessionNotesUseCase = new UpdateSessionNotesUseCase(unitOfWork);
   }
@@ -58,8 +59,15 @@ export class SessionService {
     return await this.addTransactionUseCase.execute(request);
   }
 
-  async getSession(sessionId: string): Promise<GetSessionResponse> {
-    return await this.getSessionUseCase.execute(sessionId);
+  async getSession(
+    sessionId: string,
+    userId?: string
+  ): Promise<GetSessionResponse> {
+    return await this.getSessionUseCase.execute(sessionId, userId);
+  }
+
+  async getActiveSession(userId: string): Promise<GetSessionResponse | null> {
+    return await this.getActiveSessionUseCase.execute(userId);
   }
 
   async listSessions(

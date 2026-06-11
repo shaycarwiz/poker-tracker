@@ -32,23 +32,15 @@ export const authorizePlayerAccess = async (
     }
 
     // Find the player by ID to get their associated user info
-    const player = await container.services.players.getPlayer(playerId);
+    const player = await container.services.players.getPlayer(
+      playerId,
+      req.user.userId
+    );
 
     if (!player) {
       res.status(404).json({
         error: "Player not found",
         code: "PLAYER_NOT_FOUND",
-      });
-      return;
-    }
-
-    // Check if the player belongs to the authenticated user
-    // We'll need to add a user association to the player model
-    // For now, we'll check by email as a temporary solution
-    if (player.email !== req.user.email) {
-      res.status(403).json({
-        error: "Access denied. You can only access your own player data.",
-        code: "FORBIDDEN",
       });
       return;
     }
@@ -84,8 +76,8 @@ export const requirePlayerProfile = async (
     }
 
     // Find player by user email
-    const player = await container.services.players.getPlayerByEmail(
-      req.user.email
+    const player = await container.services.players.getDefaultPlayer(
+      req.user.userId
     );
 
     if (!player) {

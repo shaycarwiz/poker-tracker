@@ -8,7 +8,9 @@ import {
   SessionEndedEvent,
   TransactionAddedEvent,
 } from "@/model/events";
-import { SessionId, PlayerId, TransactionId } from "@/model/entities";
+import { SessionId, PlayerId, TransactionId, UserId } from "@/model/entities";
+
+const testUserId = new UserId("test-user-id");
 import { Money, Stakes, Duration } from "@/model/value-objects";
 import { TransactionType } from "@/model/enums";
 
@@ -27,11 +29,10 @@ describe("Domain Events", () => {
     it("should collect events", () => {
       const aggregate = new TestAggregate();
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
@@ -48,11 +49,10 @@ describe("Domain Events", () => {
     it("should clear events", () => {
       const aggregate = new TestAggregate();
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
@@ -80,11 +80,10 @@ describe("Domain Events", () => {
       );
 
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
@@ -94,7 +93,7 @@ describe("Domain Events", () => {
       expect(handlerCalled).toBe(true);
       expect(receivedEvent).toBe(event);
       expect(receivedEvent!.sessionId).toBe(sessionId);
-      expect(receivedEvent!.playerId).toBe(playerId);
+      expect(receivedEvent!.userId).toBe(testUserId);
     });
 
     it("should handle multiple handlers for the same event type", async () => {
@@ -116,11 +115,10 @@ describe("Domain Events", () => {
       );
 
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
@@ -144,11 +142,10 @@ describe("Domain Events", () => {
       DomainEventDispatcher.disable();
 
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
@@ -178,11 +175,10 @@ describe("Domain Events", () => {
       );
 
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
@@ -235,14 +231,13 @@ describe("Domain Events", () => {
       );
 
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const netResult = new Money(100, "USD");
       const duration = new Duration(2.5);
 
       const events = [
-        new SessionStartedEvent(sessionId, playerId, "Test Location", stakes),
-        new SessionEndedEvent(sessionId, playerId, netResult, duration),
+        new SessionStartedEvent(sessionId, testUserId, "Test Location", stakes),
+        new SessionEndedEvent(sessionId, testUserId, netResult, duration),
       ];
 
       await DomainEventDispatcher.publishAll(events);
@@ -255,17 +250,16 @@ describe("Domain Events", () => {
   describe("Event Classes", () => {
     it("should create SessionStartedEvent with correct properties", () => {
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const stakes = new Stakes(new Money(1, "USD"), new Money(2, "USD"));
       const event = new SessionStartedEvent(
         sessionId,
-        playerId,
+        testUserId,
         "Test Location",
         stakes
       );
 
       expect(event.sessionId).toBe(sessionId);
-      expect(event.playerId).toBe(playerId);
+      expect(event.userId).toBe(testUserId);
       expect(event.location).toBe("Test Location");
       expect(event.stakes).toBe(stakes);
       expect(event.eventId).toBeDefined();
@@ -274,18 +268,17 @@ describe("Domain Events", () => {
 
     it("should create SessionEndedEvent with correct properties", () => {
       const sessionId = new SessionId("test-session-id");
-      const playerId = new PlayerId("test-player-id");
       const netResult = new Money(100, "USD");
       const duration = new Duration(2.5);
       const event = new SessionEndedEvent(
         sessionId,
-        playerId,
+        testUserId,
         netResult,
         duration
       );
 
       expect(event.sessionId).toBe(sessionId);
-      expect(event.playerId).toBe(playerId);
+      expect(event.userId).toBe(testUserId);
       expect(event.netResult).toBe(netResult);
       expect(event.duration).toBe(duration);
       expect(event.eventId).toBeDefined();

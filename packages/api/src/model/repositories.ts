@@ -7,6 +7,8 @@ import {
   SessionId,
   Transaction,
   TransactionId,
+  User,
+  UserId,
 } from "./entities";
 import { SessionFilters, TransactionFilters } from "./types";
 
@@ -17,23 +19,32 @@ export interface Repository<T, ID> {
   delete(id: ID): Promise<void>;
 }
 
+// User repository interface
+export interface UserRepository extends Repository<User, UserId> {
+  findByGoogleId(googleId: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+}
+
 // Player repository interface
 export interface PlayerRepository extends Repository<Player, PlayerId> {
-  findByEmail(email: string): Promise<Player | null>;
-  findByGoogleId(googleId: string): Promise<Player | null>;
-  findAll(): Promise<Player[]>;
+  findByOwnerUserId(userId: UserId): Promise<Player[]>;
+  findByOwnerUserIdPaginated(
+    userId: UserId,
+    page: number,
+    limit: number
+  ): Promise<{ players: Player[]; total: number }>;
   findByName(name: string): Promise<Player[]>;
 }
 
 // Session repository interface
 export interface SessionRepository extends Repository<Session, SessionId> {
-  findByPlayerId(playerId: PlayerId): Promise<Session[]>;
-  findActiveByPlayerId(playerId: PlayerId): Promise<Session | null>;
+  findByUserId(userId: UserId): Promise<Session[]>;
+  findActiveByUserId(userId: UserId): Promise<Session | null>;
   findByFilters(
     filters: SessionFilters
   ): Promise<{ sessions: Session[]; total: number }>;
-  findCompletedByPlayerId(playerId: PlayerId): Promise<Session[]>;
-  findRecentByPlayerId(playerId: PlayerId, limit: number): Promise<Session[]>;
+  findCompletedByUserId(userId: UserId): Promise<Session[]>;
+  findRecentByUserId(userId: UserId, limit: number): Promise<Session[]>;
 }
 
 // Transaction repository interface
@@ -46,6 +57,7 @@ export interface TransactionRepository
 
 // Unit of Work pattern for transaction management
 export interface UnitOfWork {
+  users: UserRepository;
   players: PlayerRepository;
   sessions: SessionRepository;
   transactions: TransactionRepository;
