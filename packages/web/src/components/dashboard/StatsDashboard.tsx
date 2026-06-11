@@ -252,37 +252,45 @@ export function StatsDashboard() {
 
       {(getBestSession() || getWorstSession()) && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {getBestSession() && (
+          {(() => {
+            const bestSession = getBestSession();
+            if (!bestSession) return null;
+            return (
             <div className="rounded-lg border border-green-200 bg-green-50 p-4">
               <h3 className="mb-2 text-lg font-medium text-green-800">
                 🏆 {t('statistics.bestSession')}
               </h3>
               <p className="text-green-700">
-                {formatSessionCurrency(getBestSession())}
+                {formatSessionCurrency(bestSession)}
               </p>
               <p className="text-sm text-green-600">
-                {getBestSession().location} •{' '}
-                {getBestSession().stakes?.smallBlind}/
-                {getBestSession().stakes?.bigBlind}
+                {bestSession.location} •{' '}
+                {bestSession.stakes?.smallBlind}/
+                {bestSession.stakes?.bigBlind}
               </p>
             </div>
-          )}
+            );
+          })()}
 
-          {getWorstSession() && (
+          {(() => {
+            const worstSession = getWorstSession();
+            if (!worstSession) return null;
+            return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <h3 className="mb-2 text-lg font-medium text-red-800">
                 📉 {t('statistics.worstSession')}
               </h3>
               <p className="text-red-700">
-                {formatSessionCurrency(getWorstSession())}
+                {formatSessionCurrency(worstSession)}
               </p>
               <p className="text-sm text-red-600">
-                {getWorstSession().location} •{' '}
-                {getWorstSession().stakes?.smallBlind}/
-                {getWorstSession().stakes?.bigBlind}
+                {worstSession.location} •{' '}
+                {worstSession.stakes?.smallBlind}/
+                {worstSession.stakes?.bigBlind}
               </p>
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
 

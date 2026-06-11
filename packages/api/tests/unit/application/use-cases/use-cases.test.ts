@@ -102,6 +102,12 @@ describe("Player Use Cases", () => {
       transactions: {
         save: jest.fn(),
       },
+      hands: {
+        findBySessionId: jest.fn().mockResolvedValue([]),
+        findById: jest.fn(),
+        save: jest.fn(),
+        delete: jest.fn(),
+      },
     } as any;
 
     createPlayerUseCase = new CreatePlayerUseCase(mockUnitOfWork);
@@ -391,6 +397,12 @@ describe("Session Use Cases", () => {
       },
       transactions: {
         save: jest.fn(),
+      },
+      hands: {
+        findBySessionId: jest.fn().mockResolvedValue([]),
+        findById: jest.fn(),
+        save: jest.fn(),
+        delete: jest.fn(),
       },
     } as any;
 

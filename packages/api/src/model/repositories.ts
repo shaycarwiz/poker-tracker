@@ -1,6 +1,8 @@
 // Repository interfaces - Domain layer abstractions for data access
 
 import {
+  Hand,
+  HandId,
   Player,
   PlayerId,
   Session,
@@ -55,12 +57,18 @@ export interface TransactionRepository
   findByFilters(filters: TransactionFilters): Promise<Transaction[]>;
 }
 
+// Hand repository interface
+export interface HandRepository extends Repository<Hand, HandId> {
+  findBySessionId(sessionId: SessionId): Promise<Hand[]>;
+}
+
 // Unit of Work pattern for transaction management
 export interface UnitOfWork {
   users: UserRepository;
   players: PlayerRepository;
   sessions: SessionRepository;
   transactions: TransactionRepository;
+  hands: HandRepository;
 
   begin(): Promise<void>;
   commit(): Promise<void>;

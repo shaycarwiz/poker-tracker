@@ -2,6 +2,7 @@
 import "reflect-metadata";
 import { container as tsyringeContainer } from "tsyringe";
 import {
+  PostgresHandRepository,
   PostgresPlayerRepository,
   PostgresSessionRepository,
   PostgresTransactionRepository,
@@ -9,6 +10,7 @@ import {
   PostgresUnitOfWork,
 } from "./database";
 import {
+  HandService,
   PlayerService,
   SessionService,
   UserService,
@@ -30,12 +32,14 @@ tsyringeContainer.registerSingleton(
   "TransactionRepository",
   PostgresTransactionRepository
 );
+tsyringeContainer.registerSingleton("HandRepository", PostgresHandRepository);
 tsyringeContainer.registerSingleton("UnitOfWork", PostgresUnitOfWork);
 
 // Register services as singletons
 tsyringeContainer.registerSingleton("UserService", UserService);
 tsyringeContainer.registerSingleton("PlayerService", PlayerService);
 tsyringeContainer.registerSingleton("SessionService", SessionService);
+tsyringeContainer.registerSingleton("HandService", HandService);
 
 // Initialize event handlers
 const initializeEventHandlers = () => {

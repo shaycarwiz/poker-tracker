@@ -16,3 +16,4 @@ export enum TransactionType {
   BONUS = "bonus",
   OTHER = "other",
 }
+

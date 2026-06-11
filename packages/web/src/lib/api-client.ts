@@ -4,11 +4,14 @@ import { tokenManager } from './token-manager';
 import { authErrorHandler } from './auth-error-handler';
 import type {
   ApiResponse,
+  CreateHandRequest,
+  Hand,
   PaginatedResponse,
   Session,
   StartSessionRequest,
   StartSessionResponse,
   Statistics,
+  UpdateHandRequest,
 } from '@/types';
 
 const API_BASE_URL =
@@ -235,6 +238,43 @@ export const sessionApi = {
 
   getActiveSession: async (): Promise<ApiResponse<Session | null>> => {
     const response = await apiClient.get('/sessions/me/active');
+    return response.data;
+  },
+};
+
+export const handApi = {
+  create: async (
+    sessionId: string,
+    data: CreateHandRequest
+  ): Promise<ApiResponse<Hand>> => {
+    const response = await apiClient.post(`/sessions/${sessionId}/hands`, data);
+    return response.data;
+  },
+
+  listBySession: async (
+    sessionId: string
+  ): Promise<ApiResponse<{ hands: Hand[] }>> => {
+    const response = await apiClient.get(`/sessions/${sessionId}/hands`);
+    return response.data;
+  },
+
+  getById: async (handId: string): Promise<ApiResponse<Hand>> => {
+    const response = await apiClient.get(`/hands/${handId}`);
+    return response.data;
+  },
+
+  update: async (
+    handId: string,
+    data: UpdateHandRequest
+  ): Promise<ApiResponse<Hand>> => {
+    const response = await apiClient.patch(`/hands/${handId}`, data);
+    return response.data;
+  },
+
+  delete: async (
+    handId: string
+  ): Promise<ApiResponse<{ deleted: boolean }>> => {
+    const response = await apiClient.delete(`/hands/${handId}`);
     return response.data;
   },
 };

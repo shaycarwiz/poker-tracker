@@ -41,6 +41,23 @@ export interface SessionRow {
   updated_at: Date;
 }
 
+export interface HandRow {
+  id: string;
+  session_id: string;
+  owner_user_id: string;
+  capture_type: "snapshot" | "full";
+  hero_player_id: string | null;
+  pot_amount: string | null;
+  net_result: string | null;
+  currency: string;
+  tags: string[];
+  note: string | null;
+  hand_state: Record<string, unknown>;
+  schema_version: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface TransactionRow {
   id: string; // UUID
   session_id: string; // UUID, references sessions(id)

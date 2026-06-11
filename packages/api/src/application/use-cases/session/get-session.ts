@@ -1,10 +1,13 @@
-import { SessionId, UserId } from "@/model/entities";
+import { Session, SessionId, UserId } from "@/model/entities";
 import { GetSessionResponse } from "../../dto/session-dto";
 import { BaseUseCase } from "../base-use-case";
+import { mapHandToSummary } from "../hand/hand-mappers";
 
-function mapSessionToResponse(
-  session: import("@/model/entities").Session
-): GetSessionResponse {
+async function mapSessionToResponse(
+  session: Session,
+  unitOfWork: import("@/model/repositories").UnitOfWork
+): Promise<GetSessionResponse> {
+  const hands = await unitOfWork.hands.findBySessionId(session.id);
   const duration = session.endTime
     ? Math.floor(
         (session.endTime.getTime() - session.startTime.getTime()) / (1000 * 60)
@@ -48,6 +51,7 @@ function mapSessionToResponse(
     startedAt: session.startTime,
     endedAt: session.endTime,
     duration,
+    hands: hands.map(mapHandToSummary),
   };
 }
 
@@ -69,7 +73,7 @@ export class GetSessionUseCase extends BaseUseCase {
           throw new Error("Session not found");
         }
 
-        return mapSessionToResponse(session);
+        return mapSessionToResponse(session, this.unitOfWork);
       },
       "GetSessionUseCase",
       { sessionId, userId }

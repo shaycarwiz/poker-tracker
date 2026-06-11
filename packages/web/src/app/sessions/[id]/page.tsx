@@ -8,6 +8,8 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { SessionActions } from '@/components/sessions/SessionActions';
+import { SessionHandActions } from '@/components/sessions/SessionHandActions';
+import { HandSummaryCard } from '@/components/hands/HandSummaryCard';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useCurrencyFormatting } from '@/lib/currency';
@@ -175,6 +177,10 @@ export default function SessionDetailPage() {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="space-y-6">
             <SessionActions session={session} onSessionUpdate={setSession} />
+            <SessionHandActions
+              session={session}
+              onSessionUpdate={setSession}
+            />
 
             <div className="rounded-lg bg-white shadow">
               <div className="px-4 py-5 sm:p-6">
@@ -288,6 +294,28 @@ export default function SessionDetailPage() {
                     </p>
                   </div>
                 )}
+
+                <div className="mt-8">
+                  <h3 className="mb-4 text-lg font-medium text-gray-900">
+                    {t('sessions.hands.title')}
+                  </h3>
+                  {session.hands && session.hands.length > 0 ? (
+                    <div className="space-y-3">
+                      {session.hands.map((hand) => (
+                        <HandSummaryCard
+                          key={hand.handId}
+                          hand={hand}
+                          sessionId={session.sessionId}
+                          currency={currency}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">
+                      {t('sessions.hands.noHandsYet')}
+                    </p>
+                  )}
+                </div>
 
                 <div className="mt-8">
                   <h3 className="mb-4 text-lg font-medium text-gray-900">

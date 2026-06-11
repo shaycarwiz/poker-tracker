@@ -35,8 +35,14 @@ export class ListSessionsUseCase extends BaseUseCase {
         const { sessions, total } =
           await this.unitOfWork.sessions.findByFilters(filters);
 
+        const mappedSessions = await Promise.all(
+          sessions.map((session) =>
+            mapSessionToResponse(session, this.unitOfWork)
+          )
+        );
+
         return {
-          sessions: sessions.map(mapSessionToResponse),
+          sessions: mappedSessions,
           total,
           page,
           limit,

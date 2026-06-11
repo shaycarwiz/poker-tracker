@@ -4,3 +4,4 @@ export * from "./base-use-case";
 export * from "./users";
 export * from "./players";
 export * from "./session";
+export * from "./hand";

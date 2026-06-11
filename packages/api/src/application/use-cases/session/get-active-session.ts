@@ -14,7 +14,7 @@ export class GetActiveSessionUseCase extends BaseUseCase {
         return null;
       }
 
-      return mapSessionToResponse(session);
+      return mapSessionToResponse(session, this.unitOfWork);
     }, "GetActiveSessionUseCase", { userId });
   }
 }

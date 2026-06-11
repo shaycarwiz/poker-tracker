@@ -1,3 +1,5 @@
+import { HandSummaryResponse } from "./hand-dto";
+
 export interface StartSessionRequest {
   userId: string;
   initialBuyInPlayerId?: string;
@@ -121,6 +123,7 @@ export interface GetSessionResponse {
   startedAt: Date;
   endedAt?: Date | undefined;
   duration?: number | undefined;
+  hands: HandSummaryResponse[];
 }
 
 export interface ListSessionsRequest {

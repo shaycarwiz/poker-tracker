@@ -3,6 +3,7 @@ import { UnitOfWork } from "@/model/repositories";
 import { PostgresPlayerRepository } from "./repositories/player-repository";
 import { PostgresSessionRepository } from "./repositories/session-repository";
 import { PostgresTransactionRepository } from "./repositories/transaction-repository";
+import { PostgresHandRepository } from "./repositories/hand-repository";
 import { PostgresUserRepository } from "./repositories/user-repository";
 import { DatabaseConnection } from "./connection";
 import { logger } from "@/shared/utils/logger";
@@ -14,6 +15,7 @@ export class PostgresUnitOfWork implements UnitOfWork {
   public readonly players: PostgresPlayerRepository;
   public readonly sessions: PostgresSessionRepository;
   public readonly transactions: PostgresTransactionRepository;
+  public readonly hands: PostgresHandRepository;
 
   private db = DatabaseConnection.getInstance();
   private client: PoolClient | null = null;
@@ -23,6 +25,7 @@ export class PostgresUnitOfWork implements UnitOfWork {
     this.players = new PostgresPlayerRepository();
     this.sessions = new PostgresSessionRepository();
     this.transactions = new PostgresTransactionRepository();
+    this.hands = new PostgresHandRepository();
   }
 
   async begin(): Promise<void> {

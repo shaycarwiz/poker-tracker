@@ -288,6 +288,36 @@ export interface GetSessionResponse {
   startedAt: Date;
   endedAt?: Date;
   duration?: number;
+  hands: HandSummaryResponse[];
+}
+
+export type HandStateInput = Record<string, unknown>;
+
+export interface HandSummaryResponse {
+  handId: string;
+  sessionId: string;
+  captureType: string;
+  potAmount?: number;
+  netResult?: number;
+  currency: string;
+  tags: string[];
+  note?: string;
+  createdAt: Date;
+}
+
+export interface HandResponse extends HandSummaryResponse {
+  heroPlayerId?: string;
+  handState: HandStateInput;
+  schemaVersion: number;
+  updatedAt: Date;
+}
+
+export interface CreateHandResponse extends HandResponse {}
+
+export interface UpdateHandResponse extends HandResponse {}
+
+export interface ListHandsResponse {
+  hands: HandSummaryResponse[];
 }
 
 export interface ListSessionsRequest {

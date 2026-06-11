@@ -3,6 +3,13 @@
 import { Duration, Money, Stakes } from "./value-objects";
 import { SessionStatus, TransactionType } from "./enums";
 import {
+  CaptureType,
+  extractNetResult,
+  extractPotAmount,
+  HandStateV1,
+  validateHandState,
+} from "./hand-state";
+import {
   AggregateRoot,
   SessionEndedEvent,
   SessionStartedEvent,
@@ -69,6 +76,21 @@ export class TransactionId {
   }
 
   equals(other: TransactionId): boolean {
+    return this.value === other.value;
+  }
+}
+
+export class HandId {
+  constructor(public readonly value: string) {
+    if (!value)
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_HAND_ID_REQUIRED);
+  }
+
+  static generate(): HandId {
+    return new HandId(crypto.randomUUID());
+  }
+
+  equals(other: HandId): boolean {
     return this.value === other.value;
   }
 }
@@ -530,5 +552,141 @@ export class Transaction {
     if (amount.amount <= 0) {
       throw new ValidationError(API_ERROR_CODES.VALIDATION_AMOUNT_POSITIVE);
     }
+  }
+}
+
+export class Hand {
+  constructor(
+    public readonly id: HandId,
+    public readonly sessionId: SessionId,
+    public readonly ownerUserId: UserId,
+    private _captureType: CaptureType,
+    private _handState: HandStateV1,
+    private _currency: string,
+    private _heroPlayerId?: PlayerId,
+    private _potAmount?: number,
+    private _netResult?: number,
+    private _tags: string[] = [],
+    private _note?: string,
+    private _schemaVersion: number = 1,
+    private _createdAt: Date = new Date(),
+    private _updatedAt: Date = new Date()
+  ) {}
+
+  static create(
+    sessionId: SessionId,
+    ownerUserId: UserId,
+    captureType: CaptureType,
+    handState: unknown,
+    currency: string,
+    heroPlayerId?: PlayerId,
+    tags?: string[],
+    note?: string
+  ): Hand {
+    const validatedState = validateHandState(captureType, handState);
+    const potAmount = extractPotAmount(captureType, validatedState);
+    const netResult = extractNetResult(
+      captureType,
+      validatedState,
+      captureType === "full"
+        ? (validatedState as import("./hand-state").FullHandState).players.find(
+            (p) => p.playerId === heroPlayerId?.value
+          )?.seat
+        : undefined
+    );
+
+    return new Hand(
+      HandId.generate(),
+      sessionId,
+      ownerUserId,
+      captureType,
+      validatedState,
+      currency,
+      heroPlayerId,
+      potAmount,
+      netResult,
+      tags ?? [],
+      note
+    );
+  }
+
+  get captureType(): CaptureType {
+    return this._captureType;
+  }
+
+  get handState(): HandStateV1 {
+    return this._handState;
+  }
+
+  get currency(): string {
+    return this._currency;
+  }
+
+  get heroPlayerId(): PlayerId | undefined {
+    return this._heroPlayerId;
+  }
+
+  get potAmount(): number | undefined {
+    return this._potAmount;
+  }
+
+  get netResult(): number | undefined {
+    return this._netResult;
+  }
+
+  get tags(): readonly string[] {
+    return [...this._tags];
+  }
+
+  get note(): string | undefined {
+    return this._note;
+  }
+
+  get schemaVersion(): number {
+    return this._schemaVersion;
+  }
+
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  isOwnedBy(userId: UserId): boolean {
+    return this.ownerUserId.equals(userId);
+  }
+
+  updateState(
+    handState: unknown,
+    tags?: string[],
+    note?: string,
+    heroPlayerId?: PlayerId
+  ): void {
+    const validatedState = validateHandState(this._captureType, handState);
+
+    this._handState = validatedState;
+    this._potAmount = extractPotAmount(this._captureType, validatedState);
+    this._netResult = extractNetResult(
+      this._captureType,
+      validatedState,
+      this._captureType === "full"
+        ? (validatedState as import("./hand-state").FullHandState).players.find(
+            (p) => p.playerId === (heroPlayerId ?? this._heroPlayerId)?.value
+          )?.seat
+        : undefined
+    );
+
+    if (heroPlayerId !== undefined) {
+      this._heroPlayerId = heroPlayerId;
+    }
+    if (tags !== undefined) {
+      this._tags = tags;
+    }
+    if (note !== undefined) {
+      this._note = note;
+    }
+    this._updatedAt = new Date();
   }
 }

@@ -1,3 +1,21 @@
+import type { HandSummary } from './hand';
+
+export type {
+  CaptureType,
+  Hand,
+  HandAction,
+  HandActionType,
+  HandOutcome,
+  HandPlayer,
+  HandStateV1,
+  HandStreet,
+  HandSummary,
+  FullHandState,
+  SnapshotHandState,
+  CreateHandRequest,
+  UpdateHandRequest,
+} from './hand';
+
 export interface Session {
   sessionId: string;
   userId: string;
@@ -35,6 +53,7 @@ export interface Session {
   startedAt: Date;
   endedAt?: Date;
   duration?: number;
+  hands?: HandSummary[];
 }
 
 export interface StartSessionRequest {
