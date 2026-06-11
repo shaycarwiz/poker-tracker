@@ -2,14 +2,17 @@ import jwt from "jsonwebtoken";
 import { logger } from "./logger";
 
 export interface JWTPayload {
+  userId: string;
   googleId: string;
   email: string;
   name: string;
+  jti?: string;
   iat?: number;
   exp?: number;
 }
 
 export interface RefreshTokenPayload {
+  userId: string;
   googleId: string;
   tokenId: string;
   iat?: number;
@@ -100,7 +103,7 @@ export class JWTService {
     }
   }
 
-  static generateTokenPair(userPayload: Omit<JWTPayload, "iat" | "exp">): {
+  static generateTokenPair(userPayload: Omit<JWTPayload, "iat" | "exp" | "jti">): {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
@@ -108,19 +111,18 @@ export class JWTService {
     const tokenId =
       Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
 
-    // Add a unique identifier to ensure different access tokens
     const accessTokenPayload = {
       ...userPayload,
-      jti: tokenId, // JWT ID for uniqueness
+      jti: tokenId,
     };
 
     const accessToken = this.generateToken(accessTokenPayload);
     const refreshToken = this.generateRefreshToken({
+      userId: userPayload.userId,
       googleId: userPayload.googleId,
       tokenId,
     });
 
-    // Calculate expiration time in seconds
     const expiresIn = this.parseExpirationTime(this.expiresIn);
 
     return {
@@ -140,7 +142,7 @@ export class JWTService {
 
     const match = expiresIn.match(/^(\d+)([smhd])$/);
     if (!match) {
-      return 900; // Default to 15 minutes
+      return 900;
     }
 
     const value = parseInt(match[1]!, 10);

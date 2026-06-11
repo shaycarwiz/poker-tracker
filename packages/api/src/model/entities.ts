@@ -11,6 +11,21 @@ import {
 import { ValidationError, BusinessError, API_ERROR_CODES } from "../shared";
 
 // ID Value Objects
+export class UserId {
+  constructor(public readonly value: string) {
+    if (!value)
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_USER_ID_REQUIRED);
+  }
+
+  static generate(): UserId {
+    return new UserId(crypto.randomUUID());
+  }
+
+  equals(other: UserId): boolean {
+    return this.value === other.value;
+  }
+}
+
 export class PlayerId {
   constructor(public readonly value: string) {
     if (!value)
@@ -58,47 +73,132 @@ export class TransactionId {
   }
 }
 
-// Main Entities
-export class Player extends AggregateRoot {
+// User entity - app account (authentication identity)
+export class User extends AggregateRoot {
   constructor(
-    public readonly id: PlayerId,
+    public readonly id: UserId,
+    private _googleId: string,
+    private _email: string,
     private _name: string,
-    private _email?: string,
-    private _googleId?: string,
-    private _currentBankroll: Money = new Money(0),
-    private _totalSessions: number = 0,
     private _preferredLanguage: string = "he",
+    private _defaultCurrency: string = "USD",
+    private _defaultPlayerId?: PlayerId,
     private _createdAt: Date = new Date(),
     private _updatedAt: Date = new Date()
   ) {
     super();
   }
 
-  static create(name: string, email?: string, initialBankroll?: Money): Player {
-    const id = PlayerId.generate();
-
-    return new Player(
-      id,
-      name,
-      email,
-      undefined,
-      initialBankroll || new Money(0)
-    );
-  }
-
   static createFromGoogle(
     googleId: string,
     name: string,
-    email: string,
+    email: string
+  ): User {
+    return new User(UserId.generate(), googleId, email, name.trim());
+  }
+
+  get googleId(): string {
+    return this._googleId;
+  }
+
+  get email(): string {
+    return this._email;
+  }
+
+  get name(): string {
+    return this._name;
+  }
+
+  get preferredLanguage(): string {
+    return this._preferredLanguage;
+  }
+
+  get defaultCurrency(): string {
+    return this._defaultCurrency;
+  }
+
+  get defaultPlayerId(): PlayerId | undefined {
+    return this._defaultPlayerId;
+  }
+
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  updateName(name: string): void {
+    if (!name.trim())
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_NAME_REQUIRED);
+    this._name = name.trim();
+    this._updatedAt = new Date();
+  }
+
+  updateEmail(email: string): void {
+    if (!this.isValidEmail(email)) {
+      throw new ValidationError(API_ERROR_CODES.VALIDATION_EMAIL_INVALID);
+    }
+    this._email = email;
+    this._updatedAt = new Date();
+  }
+
+  updatePreferredLanguage(language: string): void {
+    const supportedLanguages = ["he", "en", "es", "fr"];
+    if (!supportedLanguages.includes(language)) {
+      throw new ValidationError(
+        API_ERROR_CODES.VALIDATION_LANGUAGE_NOT_SUPPORTED
+      );
+    }
+    this._preferredLanguage = language;
+    this._updatedAt = new Date();
+  }
+
+  updateDefaultCurrency(currency: string): void {
+    this._defaultCurrency = currency;
+    this._updatedAt = new Date();
+  }
+
+  setDefaultPlayer(playerId: PlayerId): void {
+    this._defaultPlayerId = playerId;
+    this._updatedAt = new Date();
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+}
+
+// Main Entities
+export class Player extends AggregateRoot {
+  constructor(
+    public readonly id: PlayerId,
+    public readonly ownerUserId: UserId,
+    private _name: string,
+    private _email?: string,
+    private _linkedUserId?: UserId,
+    private _currentBankroll: Money = new Money(0),
+    private _totalSessions: number = 0,
+    private _createdAt: Date = new Date(),
+    private _updatedAt: Date = new Date()
+  ) {
+    super();
+  }
+
+  static create(
+    name: string,
+    ownerUserId: UserId,
+    email?: string,
     initialBankroll?: Money
   ): Player {
-    const id = PlayerId.generate();
-
     return new Player(
-      id,
+      PlayerId.generate(),
+      ownerUserId,
       name,
       email,
-      googleId,
+      undefined,
       initialBankroll || new Money(0)
     );
   }
@@ -111,8 +211,8 @@ export class Player extends AggregateRoot {
     return this._email;
   }
 
-  get googleId(): string | undefined {
-    return this._googleId;
+  get linkedUserId(): UserId | undefined {
+    return this._linkedUserId;
   }
 
   get currentBankroll(): Money {
@@ -131,10 +231,6 @@ export class Player extends AggregateRoot {
     return this._updatedAt;
   }
 
-  get preferredLanguage(): string {
-    return this._preferredLanguage;
-  }
-
   updateName(name: string): void {
     if (!name.trim())
       throw new ValidationError(API_ERROR_CODES.VALIDATION_NAME_REQUIRED);
@@ -150,16 +246,6 @@ export class Player extends AggregateRoot {
     this._updatedAt = new Date();
   }
 
-  linkGoogleAccount(googleId: string): void {
-    if (this._googleId) {
-      throw new BusinessError(
-        API_ERROR_CODES.AUTH_GOOGLE_ACCOUNT_ALREADY_LINKED
-      );
-    }
-    this._googleId = googleId;
-    this._updatedAt = new Date();
-  }
-
   adjustBankroll(amount: Money): void {
     this._currentBankroll = this._currentBankroll.add(amount);
     this._updatedAt = new Date();
@@ -170,20 +256,12 @@ export class Player extends AggregateRoot {
     this._updatedAt = new Date();
   }
 
-  updatePreferredLanguage(language: string): void {
-    const supportedLanguages = ["he", "en", "es", "fr"];
-    if (!supportedLanguages.includes(language)) {
-      throw new ValidationError(
-        API_ERROR_CODES.VALIDATION_LANGUAGE_NOT_SUPPORTED
-      );
-    }
-    this._preferredLanguage = language;
-    this._updatedAt = new Date();
+  isOwnedBy(userId: UserId): boolean {
+    return this.ownerUserId.equals(userId);
   }
 
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     return emailRegex.test(email);
   }
 }
@@ -191,7 +269,7 @@ export class Player extends AggregateRoot {
 export class Session extends AggregateRoot {
   constructor(
     public readonly id: SessionId,
-    public readonly playerId: PlayerId,
+    public readonly userId: UserId,
     private _location: string,
     private _stakes: Stakes,
     private _startTime: Date,
@@ -206,17 +284,18 @@ export class Session extends AggregateRoot {
   }
 
   static start(
-    playerId: PlayerId,
+    userId: UserId,
     location: string,
     stakes: Stakes,
     initialBuyIn: Money,
+    buyInPlayerId: PlayerId,
     notes?: string
   ): Session {
     const id = SessionId.generate();
-    const session = new Session(id, playerId, location, stakes, new Date());
+    const session = new Session(id, userId, location, stakes, new Date());
 
-    // Add initial buy-in transaction
     session.addTransaction(
+      buyInPlayerId,
       TransactionType.BUY_IN,
       initialBuyIn,
       "Initial buy-in"
@@ -226,17 +305,20 @@ export class Session extends AggregateRoot {
       session._notes = notes;
     }
 
-    // Add domain event to the session
     session.addDomainEvent(
       new SessionStartedEvent(
         session.id,
-        session.playerId,
+        session.userId,
         session.location,
         session.stakes
       )
     );
 
     return session;
+  }
+
+  isOwnedBy(userId: UserId): boolean {
+    return this.userId.equals(userId);
   }
 
   get location(): string {
@@ -326,6 +408,7 @@ export class Session extends AggregateRoot {
   }
 
   addTransaction(
+    playerId: PlayerId,
     type: TransactionType,
     amount: Money,
     description?: string,
@@ -340,7 +423,7 @@ export class Session extends AggregateRoot {
     const transaction = new Transaction(
       TransactionId.generate(),
       this.id,
-      this.playerId,
+      playerId,
       type,
       amount,
       new Date(),
@@ -351,28 +434,31 @@ export class Session extends AggregateRoot {
     this._transactions.push(transaction);
     this._updatedAt = new Date();
 
-    // Add domain event to the session
     this.addDomainEvent(
       new TransactionAddedEvent(
         transaction.id,
         this.id,
-        this.playerId,
+        playerId,
         type,
         amount
       )
     );
   }
 
-  end(finalCashOut: Money, notes?: string): void {
+  end(
+    playerId: PlayerId,
+    finalCashOut: Money,
+    notes?: string
+  ): void {
     if (this._status !== SessionStatus.ACTIVE) {
       throw new BusinessError(
         API_ERROR_CODES.BUSINESS_CANNOT_END_INACTIVE_SESSION
       );
     }
 
-    // Add cash-out transaction before changing status
     if (finalCashOut.amount > 0) {
       this.addTransaction(
+        playerId,
         TransactionType.CASH_OUT,
         finalCashOut,
         "Final cash out"
@@ -388,11 +474,10 @@ export class Session extends AggregateRoot {
 
     this._updatedAt = new Date();
 
-    // Add domain event to the session
     this.addDomainEvent(
       new SessionEndedEvent(
         this.id,
-        this.playerId,
+        this.userId,
         this.netResult,
         this.duration || new Duration(0)
       )

@@ -1,6 +1,6 @@
 // Domain Events - Events that represent something important that happened in the domain
 
-import { PlayerId, SessionId, TransactionId } from "./entities";
+import { PlayerId, SessionId, TransactionId, UserId } from "./entities";
 import { Duration, Money, Stakes } from "./value-objects";
 import { TransactionType } from "./enums";
 import logger from "@/shared/utils/logger";
@@ -109,7 +109,7 @@ export class DomainEventDispatcher {
 export class SessionStartedEvent extends DomainEvent {
   constructor(
     public readonly sessionId: SessionId,
-    public readonly playerId: PlayerId,
+    public readonly userId: UserId,
     public readonly location: string,
     public readonly stakes: Stakes
   ) {
@@ -120,7 +120,7 @@ export class SessionStartedEvent extends DomainEvent {
 export class SessionEndedEvent extends DomainEvent {
   constructor(
     public readonly sessionId: SessionId,
-    public readonly playerId: PlayerId,
+    public readonly userId: UserId,
     public readonly netResult: Money,
     public readonly duration: Duration
   ) {

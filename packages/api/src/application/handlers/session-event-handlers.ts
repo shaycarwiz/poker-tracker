@@ -42,7 +42,7 @@ export class SessionEventHandlers {
   ): Promise<void> {
     logger.info("Processing session started event", {
       sessionId: event.sessionId.value,
-      playerId: event.playerId.value,
+      userId: event.userId.value,
       location: event.location,
       stakes: event.stakes.formatted,
     });
@@ -56,7 +56,7 @@ export class SessionEventHandlers {
     // Example: Log to audit trail
     logger.info("AUDIT: Session started", {
       sessionId: event.sessionId.value,
-      playerId: event.playerId.value,
+      userId: event.userId.value,
       timestamp: event.occurredOn,
       eventId: event.eventId,
     });
@@ -67,7 +67,7 @@ export class SessionEventHandlers {
   ): Promise<void> {
     logger.info("Processing session ended event", {
       sessionId: event.sessionId.value,
-      playerId: event.playerId.value,
+      userId: event.userId.value,
       netResult: event.netResult.amount,
       duration: event.duration.hours,
     });
@@ -85,7 +85,7 @@ export class SessionEventHandlers {
 
     logger.info("AUDIT: Session ended", {
       sessionId: event.sessionId.value,
-      playerId: event.playerId.value,
+      userId: event.userId.value,
       result: isProfit ? "PROFIT" : isLoss ? "LOSS" : "BREAKEVEN",
       netResult: event.netResult.amount,
       duration: event.duration.hours,
@@ -98,7 +98,7 @@ export class SessionEventHandlers {
       // Large win/loss threshold
       logger.warn("Large session result detected", {
         sessionId: event.sessionId.value,
-        playerId: event.playerId.value,
+        userId: event.userId.value,
         amount: event.netResult.amount,
         type: isProfit ? "LARGE_WIN" : "LARGE_LOSS",
       });

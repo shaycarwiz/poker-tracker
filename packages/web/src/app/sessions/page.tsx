@@ -2,17 +2,42 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useCurrencyFormatting } from '@/lib/currency';
 import { sessionApi } from '@/lib/api-client';
 import type { Session } from '@/types';
 
 export default function SessionsPage() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const { preferences } = useUserPreferences();
+  const { formatCurrency } = useCurrencyFormatting(
+    preferences?.defaultCurrency || 'ILS'
+  );
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return t('sessions.status.active');
+      case 'COMPLETED':
+        return t('sessions.status.completed');
+      case 'CANCELLED':
+        return t('sessions.status.cancelled');
+      default:
+        return status;
+    }
+  };
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -25,12 +50,12 @@ export default function SessionsPage() {
         if (response.success) {
           setSessions(response.data.sessions || []);
         } else {
-          setError('Failed to load sessions');
+          setError(t('sessions.loadError'));
         }
       } catch (err) {
         console.error('Error fetching sessions:', err);
         setError(
-          err instanceof Error ? err.message : 'Failed to load sessions'
+          err instanceof Error ? err.message : t('sessions.loadError')
         );
       } finally {
         setLoading(false);
@@ -38,7 +63,7 @@ export default function SessionsPage() {
     };
 
     fetchSessions();
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (
@@ -73,14 +98,16 @@ export default function SessionsPage() {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Sessions</h1>
-              <p className="mt-2 text-gray-600">Your poker session history</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {t('navigation.sessions')}
+              </h1>
+              <p className="mt-2 text-gray-600">{t('sessions.subtitle')}</p>
             </div>
             <Link
               href="/sessions/new"
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Start New Session
+              {t('sessions.startNewSession')}
             </Link>
           </div>
 
@@ -88,17 +115,17 @@ export default function SessionsPage() {
             <div className="rounded-lg bg-white shadow">
               <div className="px-4 py-12 text-center sm:px-6">
                 <h3 className="text-lg font-medium text-gray-900">
-                  No sessions yet
+                  {t('sessions.noSessionsYet')}
                 </h3>
                 <p className="mt-2 text-gray-500">
-                  Get started by creating your first poker session.
+                  {t('sessions.getStartedPrompt')}
                 </p>
                 <div className="mt-6">
                   <Link
                     href="/sessions/new"
                     className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                   >
-                    Start Your First Session
+                    {t('sessions.startFirstSession')}
                   </Link>
                 </div>
               </div>
@@ -119,8 +146,10 @@ export default function SessionsPage() {
                         </h3>
                         <p className="mt-1 text-sm text-gray-500">
                           {session.stakes.smallBlind}/{session.stakes.bigBlind}{' '}
-                          {session.stakes.currency} • Started{' '}
-                          {new Date(session.startedAt).toLocaleDateString()}
+                          {session.stakes.currency} • {t('sessions.started')}{' '}
+                          {new Date(session.startedAt).toLocaleDateString(
+                            locale
+                          )}
                         </p>
                         {session.notes && (
                           <p className="mt-2 text-sm text-gray-600">
@@ -130,11 +159,13 @@ export default function SessionsPage() {
                       </div>
                       <div className="ml-4 text-right">
                         <span className="text-lg font-medium text-gray-900">
-                          {session.initialBuyIn.amount}{' '}
-                          {session.initialBuyIn.currency}
+                          {formatCurrency(
+                            session.initialBuyIn.amount,
+                            session.initialBuyIn.currency
+                          )}
                         </span>
-                        <p className="text-sm capitalize text-gray-500">
-                          {session.status}
+                        <p className="text-sm text-gray-500">
+                          {getStatusLabel(session.status)}
                         </p>
                       </div>
                     </div>

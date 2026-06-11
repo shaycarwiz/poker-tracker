@@ -3,7 +3,7 @@ import { DashboardContent } from '../DashboardContent';
 import { SessionProvider } from 'next-auth/react';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { UserPreferencesProvider } from '@/contexts/UserPreferencesContext';
-import { playerApi, sessionApi } from '@/lib/api-client';
+import { playerApi, sessionApi, userApi } from '@/lib/api-client';
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({
@@ -30,6 +30,8 @@ jest.mock('@/lib/api-client', () => ({
   playerApi: {
     getMe: jest.fn(),
     getStats: jest.fn(),
+  },
+  userApi: {
     getPreferences: jest.fn(),
   },
   sessionApi: {
@@ -51,7 +53,7 @@ describe('DashboardContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Mock getPreferences to return a successful response
-    (playerApi.getPreferences as jest.Mock).mockResolvedValue({
+    (userApi.getPreferences as jest.Mock).mockResolvedValue({
       success: true,
       data: {
         currency: 'USD',
@@ -107,7 +109,7 @@ describe('DashboardContent', () => {
     const mockSessions = [
       {
         sessionId: '1',
-        playerId: '1',
+        userId: '1',
         location: 'Test Casino',
         stakes: { smallBlind: 1, bigBlind: 2, currency: 'USD' },
         initialBuyIn: { amount: 200, currency: 'USD' },

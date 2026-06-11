@@ -1,4 +1,4 @@
-import { Player, Session } from "@/model/entities";
+import { Player, Session, User, UserId } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { TransactionType, SessionStatus } from "@/model/enums";
 import {
@@ -18,7 +18,39 @@ import {
 } from "@/application/use-cases/session";
 import { config } from "@/infrastructure";
 
-// Mock dependencies
+const testUserId = new UserId("user-123");
+
+function createTestPlayer(name = "John Doe", email?: string): Player {
+  return Player.create(name, testUserId, email);
+}
+
+function startTestSession(notes?: string): { player: Player; session: Session } {
+  const player = createTestPlayer();
+  const stakes = new Stakes(
+    new Money(1, config.poker.defaultCurrency),
+    new Money(2, config.poker.defaultCurrency)
+  );
+  const session = Session.start(
+    testUserId,
+    "Casino Royale",
+    stakes,
+    new Money(100, config.poker.defaultCurrency),
+    player.id,
+    notes
+  );
+  return { player, session };
+}
+
+function createUserWithDefaultPlayer(player: Player): User {
+  const user = User.createFromGoogle(
+    "google-123",
+    "Test User",
+    "test@example.com"
+  );
+  user.setDefaultPlayer(player.id);
+  return user;
+}
+
 jest.mock("@/shared/utils/logger", () => ({
   logger: {
     debug: jest.fn(),
@@ -37,27 +69,34 @@ describe("Player Use Cases", () => {
   let addBankrollUseCase: AddBankrollUseCase;
 
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
 
-    // Create mock unit of work
     mockUnitOfWork = {
       begin: jest.fn(),
       commit: jest.fn(),
       rollback: jest.fn(),
+      users: {
+        findById: jest.fn(),
+        save: jest.fn(),
+        findByGoogleId: jest.fn(),
+        findByEmail: jest.fn(),
+      },
       players: {
         findById: jest.fn(),
-        findByEmail: jest.fn(),
+        findByOwnerUserId: jest.fn().mockResolvedValue([]),
+        findByOwnerUserIdPaginated: jest.fn().mockResolvedValue({
+          players: [],
+          total: 0,
+        }),
         save: jest.fn(),
         delete: jest.fn(),
-        findAll: jest.fn(),
         findByName: jest.fn(),
       },
       sessions: {
         findById: jest.fn(),
         save: jest.fn(),
-        findByPlayerId: jest.fn().mockResolvedValue([]),
-        findActiveByPlayerId: jest.fn(),
+        findByUserId: jest.fn().mockResolvedValue([]),
+        findActiveByUserId: jest.fn(),
         findByFilters: jest.fn(),
       },
       transactions: {
@@ -65,7 +104,6 @@ describe("Player Use Cases", () => {
       },
     } as any;
 
-    // Create use cases
     createPlayerUseCase = new CreatePlayerUseCase(mockUnitOfWork);
     getPlayerUseCase = new GetPlayerUseCase(mockUnitOfWork);
     updatePlayerUseCase = new UpdatePlayerUseCase(mockUnitOfWork);
@@ -77,6 +115,7 @@ describe("Player Use Cases", () => {
   describe("CreatePlayerUseCase", () => {
     it("should create player successfully", async () => {
       const request = {
+        ownerUserId: testUserId.value,
         name: "John Doe",
         email: "john@example.com",
         initialBankroll: {
@@ -85,15 +124,11 @@ describe("Player Use Cases", () => {
         },
       };
 
-      mockUnitOfWork.players.findByEmail.mockResolvedValue(null);
       mockUnitOfWork.players.save.mockResolvedValue(undefined);
 
       const result = await createPlayerUseCase.execute(request);
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockUnitOfWork.players.findByEmail).toHaveBeenCalledWith(
-        request.email
-      );
       expect(mockUnitOfWork.players.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
       expect(result.name).toBe(request.name);
@@ -103,6 +138,7 @@ describe("Player Use Cases", () => {
 
     it("should create player without email", async () => {
       const request = {
+        ownerUserId: testUserId.value,
         name: "Jane Doe",
       };
 
@@ -110,41 +146,20 @@ describe("Player Use Cases", () => {
 
       const result = await createPlayerUseCase.execute(request);
 
-      expect(mockUnitOfWork.players.findByEmail).not.toHaveBeenCalled();
       expect(mockUnitOfWork.players.save).toHaveBeenCalled();
       expect(result.name).toBe(request.name);
       expect(result.email).toBeUndefined();
       expect(result.bankroll.amount).toBe(0);
     });
 
-    it("should throw error if email already exists", async () => {
-      const request = {
-        name: "John Doe",
-        email: "john@example.com",
-      };
-
-      const existingPlayer = Player.create(
-        "Existing Player",
-        "john@example.com"
-      );
-      mockUnitOfWork.players.findByEmail.mockResolvedValue(existingPlayer);
-
-      await expect(createPlayerUseCase.execute(request)).rejects.toThrow(
-        "Player with this email already exists"
-      );
-
-      expect(mockUnitOfWork.rollback).toHaveBeenCalled();
-    });
-
     it("should rollback on error", async () => {
       const request = {
+        ownerUserId: testUserId.value,
         name: "John Doe",
         email: "john@example.com",
       };
 
-      mockUnitOfWork.players.findByEmail.mockRejectedValue(
-        new Error("Database error")
-      );
+      mockUnitOfWork.players.save.mockRejectedValue(new Error("Database error"));
 
       await expect(createPlayerUseCase.execute(request)).rejects.toThrow(
         "Database error"
@@ -157,13 +172,11 @@ describe("Player Use Cases", () => {
   describe("GetPlayerUseCase", () => {
     it("should get player successfully", async () => {
       const playerId = "player-123";
-      const mockPlayer = Player.create("John Doe", "john@example.com");
+      const mockPlayer = createTestPlayer("John Doe", "john@example.com");
       const mockSessions: Session[] = [];
 
       mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
-      mockUnitOfWork.sessions.findByPlayerId = jest
-        .fn()
-        .mockResolvedValue(mockSessions);
+      mockUnitOfWork.sessions.findByUserId.mockResolvedValue(mockSessions);
 
       const result = await getPlayerUseCase.execute(playerId);
 
@@ -193,12 +206,13 @@ describe("Player Use Cases", () => {
         email: "john.updated@example.com",
       };
 
-      const mockPlayer = Player.create("John Doe", "john@example.com");
+      const mockPlayer = createTestPlayer("John Doe", "john@example.com");
       mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
       mockUnitOfWork.players.save.mockResolvedValue(undefined);
 
       const result = await updatePlayerUseCase.execute({
         id: playerId,
+        ownerUserId: testUserId.value,
         ...request,
       });
 
@@ -219,7 +233,11 @@ describe("Player Use Cases", () => {
       mockUnitOfWork.players.findById.mockResolvedValue(null);
 
       await expect(
-        updatePlayerUseCase.execute({ id: playerId, ...request })
+        updatePlayerUseCase.execute({
+          id: playerId,
+          ownerUserId: testUserId.value,
+          ...request,
+        })
       ).rejects.toThrow("Player not found");
 
       expect(mockUnitOfWork.rollback).toHaveBeenCalled();
@@ -229,10 +247,10 @@ describe("Player Use Cases", () => {
   describe("DeletePlayerUseCase", () => {
     it("should delete player successfully", async () => {
       const playerId = "player-123";
-      const mockPlayer = Player.create("John Doe");
+      const mockPlayer = createTestPlayer();
 
       mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
-      mockUnitOfWork.sessions.findByPlayerId.mockResolvedValue([]);
+      mockUnitOfWork.sessions.findByUserId.mockResolvedValue([]);
       mockUnitOfWork.players.delete.mockResolvedValue(undefined);
 
       await deletePlayerUseCase.execute(playerId);
@@ -263,15 +281,21 @@ describe("Player Use Cases", () => {
   describe("ListPlayersUseCase", () => {
     it("should list players successfully", async () => {
       const mockPlayers = [
-        Player.create("John Doe", "john@example.com"),
-        Player.create("Jane Doe", "jane@example.com"),
+        createTestPlayer("John Doe", "john@example.com"),
+        createTestPlayer("Jane Doe", "jane@example.com"),
       ];
 
-      mockUnitOfWork.players.findAll.mockResolvedValue(mockPlayers);
+      mockUnitOfWork.players.findByOwnerUserIdPaginated.mockResolvedValue({
+        players: mockPlayers,
+        total: 2,
+      });
+      mockUnitOfWork.sessions.findByUserId.mockResolvedValue([]);
 
-      const result = await listPlayersUseCase.execute(1, 10);
+      const result = await listPlayersUseCase.execute(testUserId.value, 1, 10);
 
-      expect(mockUnitOfWork.players.findAll).toHaveBeenCalledWith();
+      expect(
+        mockUnitOfWork.players.findByOwnerUserIdPaginated
+      ).toHaveBeenCalledWith(testUserId, 1, 10);
       expect(result.players).toHaveLength(2);
       expect(result.total).toBe(2);
     });
@@ -285,12 +309,13 @@ describe("Player Use Cases", () => {
         currency: config.poker.defaultCurrency,
       };
 
-      const mockPlayer = Player.create("John Doe", "john@example.com");
+      const mockPlayer = createTestPlayer();
       mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
       mockUnitOfWork.players.save.mockResolvedValue(undefined);
 
       const result = await addBankrollUseCase.execute({
         playerId,
+        ownerUserId: testUserId.value,
         amount: request,
       });
 
@@ -313,7 +338,11 @@ describe("Player Use Cases", () => {
       mockUnitOfWork.players.findById.mockResolvedValue(null);
 
       await expect(
-        addBankrollUseCase.execute({ playerId, amount: request })
+        addBankrollUseCase.execute({
+          playerId,
+          ownerUserId: testUserId.value,
+          amount: request,
+        })
       ).rejects.toThrow("Player not found");
 
       expect(mockUnitOfWork.rollback).toHaveBeenCalled();
@@ -330,27 +359,34 @@ describe("Session Use Cases", () => {
   let listSessionsUseCase: ListSessionsUseCase;
 
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
 
-    // Create mock unit of work
     mockUnitOfWork = {
       begin: jest.fn(),
       commit: jest.fn(),
       rollback: jest.fn(),
+      users: {
+        findById: jest.fn(),
+        save: jest.fn(),
+        findByGoogleId: jest.fn(),
+        findByEmail: jest.fn(),
+      },
       players: {
         findById: jest.fn(),
-        findByEmail: jest.fn(),
+        findByOwnerUserId: jest.fn().mockResolvedValue([]),
+        findByOwnerUserIdPaginated: jest.fn().mockResolvedValue({
+          players: [],
+          total: 0,
+        }),
         save: jest.fn(),
         delete: jest.fn(),
-        findAll: jest.fn(),
         findByName: jest.fn(),
       },
       sessions: {
         findById: jest.fn(),
         save: jest.fn(),
-        findByPlayerId: jest.fn().mockResolvedValue([]),
-        findActiveByPlayerId: jest.fn(),
+        findByUserId: jest.fn().mockResolvedValue([]),
+        findActiveByUserId: jest.fn(),
         findByFilters: jest.fn(),
       },
       transactions: {
@@ -358,7 +394,6 @@ describe("Session Use Cases", () => {
       },
     } as any;
 
-    // Create use cases
     startSessionUseCase = new StartSessionUseCase(mockUnitOfWork);
     endSessionUseCase = new EndSessionUseCase(mockUnitOfWork);
     addTransactionUseCase = new AddTransactionUseCase(mockUnitOfWork);
@@ -368,8 +403,10 @@ describe("Session Use Cases", () => {
 
   describe("StartSessionUseCase", () => {
     it("should start session successfully", async () => {
+      const mockPlayer = createTestPlayer();
+      const mockUser = createUserWithDefaultPlayer(mockPlayer);
       const request = {
-        playerId: "player-123",
+        userId: testUserId.value,
         location: "Casino Royale",
         stakes: {
           smallBlind: 1,
@@ -380,43 +417,37 @@ describe("Session Use Cases", () => {
         notes: "Test session",
       };
 
-      mockUnitOfWork.sessions.findActiveByPlayerId.mockResolvedValue(null);
+      mockUnitOfWork.users.findById.mockResolvedValue(mockUser);
+      mockUnitOfWork.players.findById.mockResolvedValue(mockPlayer);
+      mockUnitOfWork.sessions.findActiveByUserId.mockResolvedValue(null);
       mockUnitOfWork.sessions.save.mockResolvedValue(undefined);
 
       const result = await startSessionUseCase.execute(request);
 
       expect(mockUnitOfWork.begin).toHaveBeenCalled();
-      expect(mockUnitOfWork.sessions.findActiveByPlayerId).toHaveBeenCalledWith(
-        expect.objectContaining({ value: request.playerId })
+      expect(mockUnitOfWork.sessions.findActiveByUserId).toHaveBeenCalledWith(
+        testUserId
       );
       expect(mockUnitOfWork.sessions.save).toHaveBeenCalled();
       expect(mockUnitOfWork.commit).toHaveBeenCalled();
-      expect(result.playerId).toBe(request.playerId);
+      expect(result.userId).toBe(testUserId.value);
       expect(result.location).toBe(request.location);
     });
   });
 
   describe("EndSessionUseCase", () => {
     it("should end session successfully", async () => {
+      const { player, session: mockSession } = startTestSession("Test session");
       const request = {
-        sessionId: "session-123",
+        sessionId: mockSession.id.value,
+        userId: testUserId.value,
+        playerId: player.id.value,
         finalCashOut: { amount: 150, currency: config.poker.defaultCurrency },
         notes: "Ended session",
       };
 
-      const mockPlayer = Player.create("John Doe");
-      const mockSession = Session.start(
-        mockPlayer.id,
-        "Casino Royale",
-        new Stakes(
-          new Money(1, config.poker.defaultCurrency),
-          new Money(2, config.poker.defaultCurrency)
-        ),
-        new Money(100, config.poker.defaultCurrency),
-        "Test session"
-      );
-
       mockUnitOfWork.sessions.findById.mockResolvedValue(mockSession);
+      mockUnitOfWork.players.findById.mockResolvedValue(player);
       mockUnitOfWork.sessions.save.mockResolvedValue(undefined);
 
       const result = await endSessionUseCase.execute(request);
@@ -434,6 +465,8 @@ describe("Session Use Cases", () => {
     it("should throw error if session not found", async () => {
       const request = {
         sessionId: "session-123",
+        userId: testUserId.value,
+        playerId: "player-123",
         finalCashOut: { amount: 150, currency: "USD" },
       };
 
@@ -449,24 +482,18 @@ describe("Session Use Cases", () => {
 
   describe("AddTransactionUseCase", () => {
     it("should add transaction successfully", async () => {
+      const { player, session: mockSession } = startTestSession("Test session");
       const request = {
-        sessionId: "session-123",
+        sessionId: mockSession.id.value,
+        userId: testUserId.value,
+        playerId: player.id.value,
         type: TransactionType.BUY_IN,
         amount: { amount: 50, currency: "USD" },
-        notes: "Additional buy-in",
+        description: "Additional buy-in",
       };
 
-      const mockPlayer = Player.create("John Doe");
-      const mockSession = Session.start(
-        mockPlayer.id,
-        "Casino Royale",
-        new Stakes(new Money(1, "USD"), new Money(2, "USD")),
-        new Money(100, "USD"),
-        "Test session"
-      );
-
       mockUnitOfWork.sessions.findById.mockResolvedValue(mockSession);
-      mockUnitOfWork.transactions.save.mockResolvedValue(undefined);
+      mockUnitOfWork.players.findById.mockResolvedValue(player);
       mockUnitOfWork.sessions.save.mockResolvedValue(undefined);
 
       const result = await addTransactionUseCase.execute(request);
@@ -484,6 +511,8 @@ describe("Session Use Cases", () => {
     it("should throw error if session not found", async () => {
       const request = {
         sessionId: "session-123",
+        userId: testUserId.value,
+        playerId: "player-123",
         type: TransactionType.BUY_IN,
         amount: { amount: 50, currency: "USD" },
       };
@@ -500,18 +529,8 @@ describe("Session Use Cases", () => {
 
   describe("GetSessionUseCase", () => {
     it("should get session successfully", async () => {
-      const sessionId = "session-123";
-      const mockPlayer = Player.create("John Doe");
-      const mockSession = Session.start(
-        mockPlayer.id,
-        "Casino Royale",
-        new Stakes(
-          new Money(1, config.poker.defaultCurrency),
-          new Money(2, config.poker.defaultCurrency)
-        ),
-        new Money(100, config.poker.defaultCurrency),
-        "Test session"
-      );
+      const { session: mockSession } = startTestSession("Test session");
+      const sessionId = mockSession.id.value;
 
       mockUnitOfWork.sessions.findById.mockResolvedValue(mockSession);
 
@@ -521,7 +540,7 @@ describe("Session Use Cases", () => {
         expect.objectContaining({ value: sessionId })
       );
       expect(result.sessionId).toBe(mockSession.id.value);
-      expect(result.playerId).toBe(mockPlayer.id.value);
+      expect(result.userId).toBe(testUserId.value);
     });
 
     it("should throw error if session not found", async () => {
@@ -538,34 +557,14 @@ describe("Session Use Cases", () => {
   describe("ListSessionsUseCase", () => {
     it("should list sessions successfully", async () => {
       const request = {
-        playerId: "player-123",
+        userId: testUserId.value,
         limit: 10,
-        offset: 0,
+        page: 1,
       };
 
-      const mockPlayer = Player.create("John Doe");
-      const mockSessions = [
-        Session.start(
-          mockPlayer.id,
-          "Casino Royale",
-          new Stakes(
-            new Money(1, config.poker.defaultCurrency),
-            new Money(2, config.poker.defaultCurrency)
-          ),
-          new Money(100, config.poker.defaultCurrency),
-          "Test session 1"
-        ),
-        Session.start(
-          mockPlayer.id,
-          "Casino Royale",
-          new Stakes(
-            new Money(1, config.poker.defaultCurrency),
-            new Money(2, config.poker.defaultCurrency)
-          ),
-          new Money(100, config.poker.defaultCurrency),
-          "Test session 2"
-        ),
-      ];
+      const { session: session1 } = startTestSession("Test session 1");
+      const { session: session2 } = startTestSession("Test session 2");
+      const mockSessions = [session1, session2];
 
       mockUnitOfWork.sessions.findByFilters.mockResolvedValue({
         sessions: mockSessions,
@@ -576,7 +575,7 @@ describe("Session Use Cases", () => {
 
       expect(mockUnitOfWork.sessions.findByFilters).toHaveBeenCalledWith(
         expect.objectContaining({
-          playerId: request.playerId,
+          userId: request.userId,
           page: 1,
           limit: 10,
         })

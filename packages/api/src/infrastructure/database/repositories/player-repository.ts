@@ -1,7 +1,5 @@
-// PostgreSQL implementation of PlayerRepository
-
 import { injectable } from "tsyringe";
-import { Player, PlayerId } from "@/model/entities";
+import { Player, PlayerId, UserId } from "@/model/entities";
 import { PlayerRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { PlayerMapper } from "../mappers/player-mapper";
@@ -19,7 +17,7 @@ export class PostgresPlayerRepository implements PlayerRepository {
         [id.value]
       );
 
-      if (!result.rows[0] || result.rows.length === 0) return null;
+      if (!result.rows[0]) return null;
 
       return PlayerMapper.toDomain(result.rows[0]);
     } catch (error) {
@@ -28,47 +26,51 @@ export class PostgresPlayerRepository implements PlayerRepository {
     }
   }
 
-  async findByEmail(email: string): Promise<Player | null> {
+  async findByOwnerUserId(userId: UserId): Promise<Player[]> {
     try {
       const result = await this.db.query<PlayerRow>(
-        "SELECT * FROM players WHERE email = $1",
-        [email]
-      );
-
-      if (!result.rows[0] || result.rows.length === 0) return null;
-
-      return PlayerMapper.toDomain(result.rows[0]);
-    } catch (error) {
-      logger.error("Error finding player by email", { email, error });
-      throw new Error("Failed to find player by email");
-    }
-  }
-
-  async findByGoogleId(googleId: string): Promise<Player | null> {
-    try {
-      const result = await this.db.query<PlayerRow>(
-        "SELECT * FROM players WHERE google_id = $1",
-        [googleId]
-      );
-
-      if (!result.rows[0] || result.rows.length === 0) return null;
-
-      return PlayerMapper.toDomain(result.rows[0]);
-    } catch (error) {
-      logger.error("Error finding player by Google ID", { googleId, error });
-      throw new Error("Failed to find player by Google ID");
-    }
-  }
-
-  async findAll(): Promise<Player[]> {
-    try {
-      const result = await this.db.query<PlayerRow>(
-        "SELECT * FROM players ORDER BY created_at DESC"
+        "SELECT * FROM players WHERE owner_user_id = $1 ORDER BY created_at ASC",
+        [userId.value]
       );
 
       return result.rows.map(PlayerMapper.toDomain);
     } catch (error) {
-      logger.error("Error finding all players", { error });
+      logger.error("Error finding players by owner user ID", {
+        userId: userId.value,
+        error,
+      });
+      throw new Error("Failed to find players");
+    }
+  }
+
+  async findByOwnerUserIdPaginated(
+    userId: UserId,
+    page: number,
+    limit: number
+  ): Promise<{ players: Player[]; total: number }> {
+    try {
+      const offset = (page - 1) * limit;
+
+      const countResult = await this.db.query<{ total: string }>(
+        "SELECT COUNT(*) as total FROM players WHERE owner_user_id = $1",
+        [userId.value]
+      );
+      const total = parseInt(countResult.rows[0]!.total, 10);
+
+      const result = await this.db.query<PlayerRow>(
+        "SELECT * FROM players WHERE owner_user_id = $1 ORDER BY created_at ASC LIMIT $2 OFFSET $3",
+        [userId.value, limit, offset]
+      );
+
+      return {
+        players: result.rows.map(PlayerMapper.toDomain),
+        total,
+      };
+    } catch (error) {
+      logger.error("Error finding paginated players by owner", {
+        userId: userId.value,
+        error,
+      });
       throw new Error("Failed to find players");
     }
   }
@@ -93,12 +95,13 @@ export class PostgresPlayerRepository implements PlayerRepository {
 
       await this.db.query(
         `
-        INSERT INTO players (id, name, email, google_id, current_bankroll, currency, total_sessions, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO players (id, owner_user_id, linked_user_id, name, email, current_bankroll, currency, total_sessions, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         ON CONFLICT (id) DO UPDATE SET
+          owner_user_id = EXCLUDED.owner_user_id,
+          linked_user_id = EXCLUDED.linked_user_id,
           name = EXCLUDED.name,
           email = EXCLUDED.email,
-          google_id = EXCLUDED.google_id,
           current_bankroll = EXCLUDED.current_bankroll,
           currency = EXCLUDED.currency,
           total_sessions = EXCLUDED.total_sessions,
@@ -106,9 +109,10 @@ export class PostgresPlayerRepository implements PlayerRepository {
       `,
         [
           data.id,
+          data.owner_user_id,
+          data.linked_user_id,
           data.name,
           data.email,
-          data.google_id,
           data.current_bankroll,
           data.currency,
           data.total_sessions,

@@ -1,21 +1,33 @@
 // Database table types based on migration files
 
+export interface UserRow {
+  id: string;
+  google_id: string | null;
+  email: string;
+  name: string;
+  preferred_language: string;
+  default_currency: string;
+  default_player_id: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface PlayerRow {
   id: string; // UUID
+  owner_user_id: string;
+  linked_user_id: string | null;
   name: string;
   email: string | null;
-  google_id: string | null;
   current_bankroll: string; // DECIMAL(15,2) - PostgreSQL returns as string
   currency: string; // VARCHAR(3)
   total_sessions: number;
-  preferred_language: string; // VARCHAR(5)
   created_at: Date;
   updated_at: Date;
 }
 
 export interface SessionRow {
   id: string; // UUID
-  player_id: string; // UUID, references players(id)
+  owner_user_id: string; // UUID, references users(id)
   location: string;
   small_blind: string; // DECIMAL(15,2) - PostgreSQL returns as string
   big_blind: string; // DECIMAL(15,2) - PostgreSQL returns as string
@@ -61,8 +73,8 @@ export interface MigrationRow {
 // View types for complex queries
 export interface SessionSummaryRow {
   session_id: string;
-  player_id: string;
-  player_name: string;
+  owner_user_id: string;
+  owner_name: string;
   location: string;
   stakes: string; // Formatted stakes like "1/2/0.5"
   start_time: Date;
@@ -81,6 +93,7 @@ export interface SessionSummaryRow {
 
 export interface PlayerStatisticsRow {
   player_id: string;
+  owner_user_id: string;
   player_name: string;
   current_bankroll: number;
   currency: string;
@@ -107,7 +120,7 @@ export interface CreatePlayerInputRow {
 }
 
 export interface CreateSessionInputRow {
-  player_id: string;
+  owner_user_id: string;
   location: string;
   small_blind: number;
   big_blind: number;
@@ -157,7 +170,7 @@ export interface PlayerFilters {
 }
 
 export interface SessionFilters {
-  player_id?: string;
+  owner_user_id?: string;
   status?: SessionRow["status"];
   location?: string;
   start_after?: Date;

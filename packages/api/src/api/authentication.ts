@@ -1,4 +1,3 @@
-// src/authentication.ts
 import type { Request } from "express";
 import jwt from "jsonwebtoken";
 import { logger } from "@/shared/utils/logger";
@@ -32,11 +31,17 @@ export async function expressAuthentication(
       const decoded = jwt.verify(token, secret, {
         issuer: "poker-tracker-api",
         audience: "poker-tracker-web",
-      }) as any;
+      }) as {
+        userId: string;
+        googleId?: string;
+        sub?: string;
+        email: string;
+        name: string;
+      };
 
-      // Return user information from the JWT payload
       return {
-        googleId: decoded.googleId || decoded.sub,
+        userId: decoded.userId,
+        googleId: decoded.googleId || decoded.sub || "",
         email: decoded.email,
         name: decoded.name,
       };

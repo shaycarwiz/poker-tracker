@@ -2,20 +2,80 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { SessionActions } from '@/components/sessions/SessionActions';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useCurrencyFormatting } from '@/lib/currency';
 import { sessionApi } from '@/lib/api-client';
 import type { Session } from '@/types';
+
+const TRANSACTION_TYPE_KEYS: Record<string, string> = {
+  buy_in: 'buyIn',
+  rebuy: 'rebuy',
+  add_on: 'addOn',
+  cash_out: 'cashOut',
+  tip: 'tip',
+  rakeback: 'rakeback',
+  bonus: 'bonus',
+  other: 'other',
+};
 
 export default function SessionDetailPage() {
   const params = useParams();
   const sessionId = params.id as string;
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const { preferences } = useUserPreferences();
+  const { formatCurrency } = useCurrencyFormatting(
+    preferences?.defaultCurrency || 'ILS'
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
+
+  const getStatusLabel = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'ACTIVE':
+        return t('sessions.status.active');
+      case 'COMPLETED':
+        return t('sessions.status.completed');
+      case 'CANCELLED':
+        return t('sessions.status.cancelled');
+      default:
+        return status;
+    }
+  };
+
+  const getTransactionTypeLabel = (type: string) => {
+    const key = TRANSACTION_TYPE_KEYS[type];
+    return key ? t(`sessions.transactionTypes.${key}`) : type.replace('_', ' ');
+  };
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0
+      ? t('sessions.durationHours', { hours, minutes: mins })
+      : t('sessions.durationMinutes', { minutes: mins });
+  };
+
+  const formatSignedCurrency = (
+    amount: number,
+    currency: string,
+    showPlus = false
+  ) => {
+    const formatted = formatCurrency(Math.abs(amount), currency);
+    if (amount < 0) return `-${formatted}`;
+    if (showPlus && amount > 0) return `+${formatted}`;
+    return formatted;
+  };
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -28,11 +88,13 @@ export default function SessionDetailPage() {
         if (response.success) {
           setSession(response.data);
         } else {
-          setError('Failed to load session');
+          setError(t('sessions.loadSessionError'));
         }
       } catch (err) {
         console.error('Error fetching session:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load session');
+        setError(
+          err instanceof Error ? err.message : t('sessions.loadSessionError')
+        );
       } finally {
         setLoading(false);
       }
@@ -41,7 +103,7 @@ export default function SessionDetailPage() {
     if (sessionId) {
       fetchSession();
     }
-  }, [sessionId]);
+  }, [sessionId, t]);
 
   if (loading) {
     return (
@@ -75,24 +137,24 @@ export default function SessionDetailPage() {
         <main className="min-h-screen bg-gray-50">
           <Header />
           <div className="flex min-h-screen items-center justify-center">
-            <ErrorMessage message="Session not found" />
+            <ErrorMessage message={t('sessions.sessionNotFound')} />
           </div>
         </main>
       </ProtectedRoute>
     );
   }
 
-  // Calculate session metrics
   const totalBuyIn = session.transactions
-    .filter((t) => t.type === 'buy_in' || t.type === 'rebuy')
-    .reduce((sum, t) => sum + t.amount.amount, 0);
+    .filter((txn) => txn.type === 'buy_in' || txn.type === 'rebuy')
+    .reduce((sum, txn) => sum + txn.amount.amount, 0);
 
   const totalCashOut = session.transactions
-    .filter((t) => t.type === 'cash_out')
-    .reduce((sum, t) => sum + t.amount.amount, 0);
+    .filter((txn) => txn.type === 'cash_out')
+    .reduce((sum, txn) => sum + txn.amount.amount, 0);
 
   const netResult = totalCashOut - totalBuyIn;
   const isProfit = netResult >= 0;
+  const currency = session.initialBuyIn.currency;
 
   const duration = session.endedAt
     ? Math.floor(
@@ -104,11 +166,7 @@ export default function SessionDetailPage() {
         (Date.now() - new Date(session.startedAt).getTime()) / (1000 * 60)
       );
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  };
+  const normalizedStatus = session.status.toUpperCase();
 
   return (
     <ProtectedRoute>
@@ -116,24 +174,22 @@ export default function SessionDetailPage() {
         <Header />
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="space-y-6">
-            {/* Session Actions */}
             <SessionActions session={session} onSessionUpdate={setSession} />
 
-            {/* Session Details */}
             <div className="rounded-lg bg-white shadow">
               <div className="px-4 py-5 sm:p-6">
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold text-gray-900">
-                    Session Details
+                    {t('sessions.sessionDetails')}
                   </h1>
                   <p className="mt-2 text-gray-600">
-                    Session started on{' '}
-                    {new Date(session.startedAt).toLocaleString()}
+                    {t('sessions.sessionStartedOn')}{' '}
+                    {new Date(session.startedAt).toLocaleString(locale)}
                     {session.endedAt && (
                       <span>
                         {' '}
-                        and ended on{' '}
-                        {new Date(session.endedAt).toLocaleString()}
+                        {t('sessions.andEndedOn')}{' '}
+                        {new Date(session.endedAt).toLocaleString(locale)}
                       </span>
                     )}
                   </p>
@@ -142,7 +198,7 @@ export default function SessionDetailPage() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">
-                      Location
+                      {t('sessions.location')}
                     </h3>
                     <p className="mt-1 text-lg text-gray-900">
                       {session.location}
@@ -151,17 +207,17 @@ export default function SessionDetailPage() {
 
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">
-                      Stakes
+                      {t('sessions.stakes')}
                     </h3>
                     <p className="mt-1 text-lg text-gray-900">
-                      ${session.stakes.smallBlind}/${session.stakes.bigBlind}{' '}
+                      {session.stakes.smallBlind}/{session.stakes.bigBlind}{' '}
                       {session.stakes.currency}
                     </p>
                   </div>
 
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">
-                      Duration
+                      {t('sessions.duration')}
                     </h3>
                     <p className="mt-1 text-lg text-gray-900">
                       {formatDuration(duration)}
@@ -170,56 +226,53 @@ export default function SessionDetailPage() {
 
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">
-                      Status
+                      {t('sessions.statusLabel')}
                     </h3>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        session.status === 'active'
+                        normalizedStatus === 'ACTIVE'
                           ? 'bg-green-100 text-green-800'
-                          : session.status === 'completed'
+                          : normalizedStatus === 'COMPLETED'
                             ? 'bg-blue-100 text-blue-800'
                             : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {session.status}
+                      {getStatusLabel(session.status)}
                     </span>
                   </div>
                 </div>
 
-                {/* Financial Summary */}
                 <div className="mt-8 rounded-lg bg-gray-50 p-6">
                   <h3 className="mb-4 text-lg font-medium text-gray-900">
-                    Financial Summary
+                    {t('sessions.financialSummary')}
                   </h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
-                        Total Buy-ins
+                        {t('sessions.totalBuyIns')}
                       </h4>
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
-                        ${totalBuyIn.toFixed(2)} {session.initialBuyIn.currency}
+                        {formatCurrency(totalBuyIn, currency)}
                       </p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
-                        Total Cash-outs
+                        {t('sessions.totalCashOuts')}
                       </h4>
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
-                        ${totalCashOut.toFixed(2)}{' '}
-                        {session.initialBuyIn.currency}
+                        {formatCurrency(totalCashOut, currency)}
                       </p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
-                        Net Result
+                        {t('sessions.netResult')}
                       </h4>
                       <p
                         className={`mt-1 text-2xl font-semibold ${
                           isProfit ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
-                        {isProfit ? '+' : ''}${netResult.toFixed(2)}{' '}
-                        {session.initialBuyIn.currency}
+                        {formatSignedCurrency(netResult, currency, true)}
                       </p>
                     </div>
                   </div>
@@ -227,7 +280,9 @@ export default function SessionDetailPage() {
 
                 {session.notes && (
                   <div className="mt-8">
-                    <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      {t('sessions.notes')}
+                    </h3>
                     <p className="mt-1 whitespace-pre-wrap text-lg text-gray-900">
                       {session.notes}
                     </p>
@@ -236,7 +291,7 @@ export default function SessionDetailPage() {
 
                 <div className="mt-8">
                   <h3 className="mb-4 text-lg font-medium text-gray-900">
-                    Transactions
+                    {t('sessions.transactions')}
                   </h3>
                   {session.transactions.length > 0 ? (
                     <div className="space-y-2">
@@ -246,8 +301,8 @@ export default function SessionDetailPage() {
                           className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                         >
                           <div>
-                            <span className="font-medium capitalize">
-                              {transaction.type.replace('_', ' ')}
+                            <span className="font-medium">
+                              {getTransactionTypeLabel(transaction.type)}
                             </span>
                             {transaction.description && (
                               <p className="text-sm text-gray-500">
@@ -257,18 +312,24 @@ export default function SessionDetailPage() {
                           </div>
                           <div className="text-right">
                             <span className="font-medium">
-                              ${transaction.amount.amount.toFixed(2)}{' '}
-                              {transaction.amount.currency}
+                              {formatCurrency(
+                                transaction.amount.amount,
+                                transaction.amount.currency
+                              )}
                             </span>
                             <p className="text-sm text-gray-500">
-                              {new Date(transaction.createdAt).toLocaleString()}
+                              {new Date(transaction.createdAt).toLocaleString(
+                                locale
+                              )}
                             </p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">No transactions yet</p>
+                    <p className="text-gray-500">
+                      {t('sessions.noTransactionsYet')}
+                    </p>
                   )}
                 </div>
               </div>

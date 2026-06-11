@@ -12,6 +12,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { playerApi, sessionApi } from '@/lib/api-client';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type { Session } from '@/types';
 
 interface PlayerData {
   id: string;
@@ -37,35 +38,6 @@ interface PlayerStats {
   totalWinnings: number;
   winRate: number;
   averageSession: number;
-}
-
-interface Session {
-  sessionId: string;
-  playerId: string;
-  location: string;
-  stakes: {
-    smallBlind: number;
-    bigBlind: number;
-    currency: string;
-  };
-  initialBuyIn: {
-    amount: number;
-    currency: string;
-  };
-  currentCashOut?: {
-    amount: number;
-    currency: string;
-  };
-  profitLoss: {
-    amount: number;
-    currency: string;
-  };
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  transactions: any[];
-  startedAt: string;
-  endedAt?: string;
-  duration?: number;
 }
 
 export function DashboardContent() {
@@ -128,18 +100,17 @@ export function DashboardContent() {
             </div>
             <div className="ml-4">
               <h3 className="text-lg font-medium text-blue-900">
-                Want more detailed statistics?
+                {t('dashboard.detailedStats')}
               </h3>
               <p className="mt-1 text-sm text-blue-700">
-                View comprehensive performance metrics, monthly breakdowns, and
-                detailed analytics.
+                {t('dashboard.detailedStatsDescription')}
               </p>
               <div className="mt-3">
                 <a
                   href="/statistics"
                   className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  View Detailed Statistics
+                  {t('dashboard.viewDetailedStats')}
                 </a>
               </div>
             </div>

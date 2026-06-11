@@ -11,6 +11,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 const defaultNavigation = [
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Sessions', href: '/sessions' },
+  { name: 'Players', href: '/players' },
   { name: 'Statistics', href: '/statistics' },
   { name: 'Settings', href: '/settings' },
 ];
@@ -30,6 +31,7 @@ export function Header() {
     ? [
         { name: t('navigation.dashboard'), href: '/dashboard' },
         { name: t('navigation.sessions'), href: '/sessions' },
+        { name: t('navigation.players'), href: '/players' },
         { name: t('navigation.statistics'), href: '/statistics' },
         { name: t('navigation.settings'), href: '/settings' },
       ]

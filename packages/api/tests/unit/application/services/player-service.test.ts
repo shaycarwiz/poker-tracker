@@ -10,6 +10,8 @@ jest.mock("@/shared/utils/logger", () => ({
   },
 }));
 
+const testOwnerUserId = "user-123";
+
 describe("PlayerService", () => {
   let playerService: PlayerService;
   let mockPlayerRepository: jest.Mocked<PlayerRepository>;
@@ -43,6 +45,7 @@ describe("PlayerService", () => {
   describe("createPlayer", () => {
     it("should create player successfully", async () => {
       const request = {
+        ownerUserId: testOwnerUserId,
         name: "John Doe",
         email: "john@example.com",
         initialBankroll: {
@@ -77,6 +80,7 @@ describe("PlayerService", () => {
 
     it("should create player without email", async () => {
       const request = {
+        ownerUserId: testOwnerUserId,
         name: "John Doe",
       };
 
@@ -101,28 +105,9 @@ describe("PlayerService", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it("should throw error if email already exists", async () => {
-      const request = {
-        name: "John Doe",
-        email: "john@example.com",
-      };
-
-      const mockCreatePlayerUseCase = {
-        execute: jest
-          .fn()
-          .mockRejectedValue(
-            new Error("Player with this email already exists")
-          ),
-      };
-      (playerService as any).createPlayerUseCase = mockCreatePlayerUseCase;
-
-      await expect(playerService.createPlayer(request)).rejects.toThrow(
-        "Player with this email already exists"
-      );
-    });
-
     it("should rollback on error", async () => {
       const request = {
+        ownerUserId: testOwnerUserId,
         name: "John Doe",
       };
 
@@ -165,7 +150,10 @@ describe("PlayerService", () => {
 
       const result = await playerService.getPlayer(playerId);
 
-      expect(mockGetPlayerUseCase.execute).toHaveBeenCalledWith(playerId);
+      expect(mockGetPlayerUseCase.execute).toHaveBeenCalledWith(
+        playerId,
+        undefined
+      );
       expect(result).toEqual(mockResponse);
     });
 

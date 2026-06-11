@@ -39,11 +39,12 @@ export const authOptions: NextAuthOptions = {
             token.refreshToken = data.refreshToken;
             token.tokenExpiresAt = Date.now() + data.expiresIn * 1000;
             token.userId = data.user.id;
+            token.defaultPlayerId = data.user.defaultPlayerId;
 
             // Fetch user preferences and store in token
             try {
               const preferencesResponse = await fetch(
-                `${process.env.BACKEND_API_URL}/players/me/preferences`,
+                `${process.env.BACKEND_API_URL}/users/me/preferences`,
                 {
                   method: 'GET',
                   headers: {
@@ -81,6 +82,7 @@ export const authOptions: NextAuthOptions = {
         session.refreshToken = token.refreshToken as string;
         session.tokenExpiresAt = token.tokenExpiresAt as number;
         session.userId = token.userId as string;
+        session.defaultPlayerId = token.defaultPlayerId as string;
         session.user.id = token.googleId as string;
         session.userPreferences = token.userPreferences as
           | { preferredLanguage: string; defaultCurrency: string }
@@ -107,6 +109,7 @@ declare module 'next-auth' {
     refreshToken?: string; // Backend refresh token
     tokenExpiresAt?: number; // Token expiration timestamp
     userId?: string; // Backend user ID
+    defaultPlayerId?: string; // Default player profile ID
     userPreferences?: { preferredLanguage: string; defaultCurrency: string }; // User preferences
     user: {
       id: string;
@@ -125,6 +128,7 @@ declare module 'next-auth/jwt' {
     refreshToken?: string; // Backend refresh token
     tokenExpiresAt?: number; // Token expiration timestamp
     userId?: string; // Backend user ID
+    defaultPlayerId?: string; // Default player profile ID
     userPreferences?: { preferredLanguage: string; defaultCurrency: string }; // User preferences
   }
 }

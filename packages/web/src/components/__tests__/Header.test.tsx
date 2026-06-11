@@ -20,7 +20,7 @@ jest.mock('next-auth/react', () => ({
 
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
-    <LanguageProvider>
+    <LanguageProvider defaultLanguage="en">
       <SessionProvider>{component}</SessionProvider>
     </LanguageProvider>
   );
@@ -34,7 +34,7 @@ describe('Header Component', () => {
 
   it('renders the logo', () => {
     renderWithProviders(<Header />);
-    const logo = screen.getByText(/poker tracker/i);
+    const logo = screen.getByText('ui.brandName');
 
     expect(logo).toBeInTheDocument();
   });

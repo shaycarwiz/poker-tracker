@@ -1,7 +1,6 @@
-// Session DTOs for data transfer between layers
-
 export interface StartSessionRequest {
-  playerId: string;
+  userId: string;
+  initialBuyInPlayerId?: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -17,7 +16,7 @@ export interface StartSessionRequest {
 
 export interface StartSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -35,6 +34,8 @@ export interface StartSessionResponse {
 
 export interface EndSessionRequest {
   sessionId: string;
+  userId: string;
+  playerId: string;
   finalCashOut: {
     amount: number;
     currency: string;
@@ -44,7 +45,7 @@ export interface EndSessionRequest {
 
 export interface EndSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   finalCashOut: {
     amount: number;
     currency: string;
@@ -53,13 +54,15 @@ export interface EndSessionResponse {
     amount: number;
     currency: string;
   };
-  duration: number; // in minutes
+  duration: number;
   status: string;
   endedAt: Date;
 }
 
 export interface AddTransactionRequest {
   sessionId: string;
+  userId: string;
+  playerId: string;
   type: string;
   amount: {
     amount: number;
@@ -71,6 +74,7 @@ export interface AddTransactionRequest {
 export interface AddTransactionResponse {
   transactionId: string;
   sessionId: string;
+  playerId: string;
   type: string;
   amount: {
     amount: number;
@@ -82,7 +86,7 @@ export interface AddTransactionResponse {
 
 export interface GetSessionResponse {
   sessionId: string;
-  playerId: string;
+  userId: string;
   location: string;
   stakes: {
     smallBlind: number;
@@ -105,6 +109,7 @@ export interface GetSessionResponse {
   notes?: string | undefined;
   transactions: {
     id: string;
+    playerId: string;
     type: string;
     amount: {
       amount: number;
@@ -115,11 +120,11 @@ export interface GetSessionResponse {
   }[];
   startedAt: Date;
   endedAt?: Date | undefined;
-  duration?: number | undefined; // in minutes
+  duration?: number | undefined;
 }
 
 export interface ListSessionsRequest {
-  playerId?: string;
+  userId: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -136,6 +141,7 @@ export interface ListSessionsResponse {
 
 export interface UpdateSessionNotesRequest {
   sessionId: string;
+  userId: string;
   notes: string;
 }
 

@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Route,
   Body,
   Path,
@@ -13,8 +12,8 @@ import {
   Example,
   Security,
 } from "tsoa";
-import { injectable } from "tsyringe";
-import { container } from "@/infrastructure/container";
+import { injectable, inject } from "tsyringe";
+import { PlayerService } from "@/application/services/player-service";
 import { logger } from "@/shared/utils/logger";
 import { config } from "@/infrastructure/config";
 import { AuthenticatedRequest } from "@/api/middleware/auth";
@@ -27,31 +26,23 @@ import {
   APIErrorCode,
 } from "@/shared";
 import {
-  // Request DTOs
-  CreatePlayerRequest,
-  UpdatePlayerRequest,
-  AddBankrollRequest,
-  // Response DTOs
   CreatePlayerResponse,
   GetPlayerResponse,
   UpdatePlayerResponse,
   ListPlayersResponse,
   AddBankrollResponse,
-  // Common types
   ApiResponse,
   PlayerStatsResponse,
-  SearchPlayersResponse,
 } from "../types";
 
 @Route("players")
 @Tags("Players")
 @injectable()
 export class PlayerController extends Controller {
-  private playerService = container.services.players;
+  constructor(@inject("PlayerService") private playerService: PlayerService) {
+    super();
+  }
 
-  /**
-   * Helper method to handle errors and return standardized responses
-   */
   private handleError(
     error: unknown,
     fallbackCode: APIErrorCode
@@ -67,21 +58,28 @@ export class PlayerController extends Controller {
   }
 
   @Post("/")
-  @Example<CreatePlayerRequest>({
+  @Security("jwt")
+  @Example<{ name: string; email?: string; initialBankroll?: { amount: number; currency: string } }>({
     name: "John Doe",
     email: "john@example.com",
-    initialBankroll: {
-      amount: 1000,
-      currency: "USD",
-    },
+    initialBankroll: { amount: 1000, currency: "USD" },
   })
   public async createPlayer(
-    @Body() body: CreatePlayerRequest
+    @Request() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      name: string;
+      email?: string;
+      initialBankroll?: { amount: number; currency: string };
+    }
   ): Promise<ApiResponse<CreatePlayerResponse>> {
     try {
-      const { name, email, initialBankroll } = body;
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
 
-      if (!name || typeof name !== "string") {
+      if (!body.name || typeof body.name !== "string") {
         this.setStatus(400);
         return createErrorResponse(
           API_ERROR_CODES.VALIDATION_NAME_REQUIRED,
@@ -89,22 +87,19 @@ export class PlayerController extends Controller {
         );
       }
 
-      const request: CreatePlayerRequest = {
-        name,
-        email,
-        initialBankroll: initialBankroll
+      const response = await this.playerService.createPlayer({
+        ownerUserId: req.user.userId,
+        name: body.name,
+        email: body.email,
+        initialBankroll: body.initialBankroll
           ? {
-              amount: initialBankroll.amount,
+              amount: body.initialBankroll.amount,
               currency:
-                initialBankroll.currency || config.poker.defaultCurrency,
+                body.initialBankroll.currency || config.poker.defaultCurrency,
             }
-          : {
-              amount: 0,
-              currency: config.poker.defaultCurrency,
-            },
-      };
+          : { amount: 0, currency: config.poker.defaultCurrency },
+      });
 
-      const response = await this.playerService.createPlayer(request);
       this.setStatus(201);
       return createSuccessResponse(response);
     } catch (error) {
@@ -119,40 +114,19 @@ export class PlayerController extends Controller {
     @Request() req: AuthenticatedRequest
   ): Promise<ApiResponse<GetPlayerResponse>> {
     try {
-      if (!req.user) {
+      if (!req.user?.userId) {
         this.setStatus(401);
-        return {
-          success: false,
-          error: "Authentication required",
-        };
+        return { success: false, error: "Authentication required" };
       }
 
-      // Fetch player by email from the authenticated user
-      const player = await this.playerService.getPlayerByEmail(req.user.email);
-
-      if (!player) {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player profile not found",
-        };
-      }
-
-      return {
-        success: true,
-        data: player,
-      };
+      const player = await this.playerService.getDefaultPlayer(
+        req.user.userId
+      );
+      return { success: true, data: player };
     } catch (error) {
-      logger.error("Error getting current player", {
-        error,
-        userId: req.user?.googleId,
-      });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get player profile",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      logger.error("Error getting current player", { error });
+      this.setStatus(404);
+      return { success: false, error: "Player profile not found" };
     }
   }
 
@@ -162,548 +136,161 @@ export class PlayerController extends Controller {
     @Request() req: AuthenticatedRequest
   ): Promise<ApiResponse<PlayerStatsResponse>> {
     try {
-      if (!req.user) {
+      if (!req.user?.userId) {
         this.setStatus(401);
-        return {
-          success: false,
-          error: "Authentication required",
-        };
+        return { success: false, error: "Authentication required" };
       }
 
-      // Fetch player by email from the authenticated user
-      const player = await this.playerService.getPlayerByEmail(req.user.email);
+      const player = await this.playerService.getDefaultPlayer(
+        req.user.userId
+      );
 
-      if (!player) {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player profile not found",
-        };
-      }
-
-      // For now, return basic stats - implement stats logic later
       return {
         success: true,
         data: {
           playerId: player.id,
-          totalSessions: 0,
-          totalWinnings: 0,
-          winRate: 0,
+          totalSessions: player.totalSessions,
+          totalWinnings: player.totalWinnings.amount,
+          winRate: player.winRate,
           averageSession: 0,
         },
       };
     } catch (error) {
-      logger.error("Error getting current player stats", {
-        error,
-        userId: req.user?.googleId,
-      });
+      logger.error("Error getting current player stats", { error });
       this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get player stats",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      return { success: false, error: "Failed to get player stats" };
     }
   }
 
-  @Get("/me/preferences")
+  @Get("/")
   @Security("jwt")
-  public async getCurrentPlayerPreferences(
-    @Request() req: AuthenticatedRequest
-  ): Promise<
-    ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
-  > {
-    try {
-      if (!req.user) {
-        this.setStatus(401);
-        return {
-          success: false,
-          error: "Authentication required",
-        };
-      }
-
-      // Fetch player by email from the authenticated user
-      const player = await this.playerService.getPlayerByEmail(req.user.email);
-
-      if (!player) {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player profile not found",
-        };
-      }
-
-      return {
-        success: true,
-        data: {
-          preferredLanguage: player.preferredLanguage,
-          defaultCurrency: player.bankroll.currency,
-        },
-      };
-    } catch (error) {
-      logger.error("Error getting current player preferences", {
-        error,
-        userId: req.user?.googleId,
-      });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get player preferences",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Put("/me/preferences")
-  @Security("jwt")
-  @Example<{ preferredLanguage?: string; defaultCurrency?: string }>({
-    preferredLanguage: "en",
-    defaultCurrency: "USD",
-  })
-  public async updateCurrentPlayerPreferences(
+  public async listPlayers(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { preferredLanguage?: string; defaultCurrency?: string }
-  ): Promise<
-    ApiResponse<{ preferredLanguage: string; defaultCurrency: string }>
-  > {
+    @Query() page: number = 1,
+    @Query() limit: number = 10
+  ): Promise<ApiResponse<ListPlayersResponse>> {
     try {
-      if (!req.user) {
+      if (!req.user?.userId) {
         this.setStatus(401);
-        return {
-          success: false,
-          error: "Authentication required",
-        };
+        return { success: false, error: "Authentication required" };
       }
 
-      // Fetch player by email from the authenticated user
-      const player = await this.playerService.getPlayerByEmail(req.user.email);
-
-      if (!player) {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player profile not found",
-        };
-      }
-
-      const { preferredLanguage, defaultCurrency } = body;
-
-      const response = await this.playerService.updatePlayerPreferences({
-        email: req.user.email,
-        preferredLanguage,
-        defaultCurrency,
-      });
-
-      return {
-        success: true,
-        data: response,
-      };
+      const response = await this.playerService.listPlayersByOwner(
+        req.user.userId,
+        page,
+        limit
+      );
+      return { success: true, data: response };
     } catch (error) {
-      logger.error("Error updating current player preferences", {
-        error,
-        userId: req.user?.googleId,
-        body,
-      });
+      logger.error("Error listing players", { error });
       this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to update player preferences",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      return { success: false, error: "Failed to list players" };
+    }
+  }
+
+  @Get("/{id}")
+  @Security("jwt")
+  public async getPlayer(
+    @Request() req: AuthenticatedRequest,
+    @Path() id: string
+  ): Promise<ApiResponse<GetPlayerResponse>> {
+    try {
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
+
+      const player = await this.playerService.getPlayer(id, req.user.userId);
+      return { success: true, data: player };
+    } catch (error) {
+      logger.error("Error getting player", { error, id });
+      this.setStatus(404);
+      return { success: false, error: "Player not found" };
+    }
+  }
+
+  @Put("/{id}")
+  @Security("jwt")
+  public async updatePlayer(
+    @Request() req: AuthenticatedRequest,
+    @Path() id: string,
+    @Body() body: { name?: string; email?: string }
+  ): Promise<ApiResponse<UpdatePlayerResponse>> {
+    try {
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
+
+      const response = await this.playerService.updatePlayer({
+        id,
+        ownerUserId: req.user.userId,
+        name: body.name,
+        email: body.email,
+      });
+      return createSuccessResponse(response);
+    } catch (error) {
+      logger.error("Error updating player", { error, id, body });
+      return this.handleError(error, API_ERROR_CODES.API_UPDATE_PLAYER_FAILED);
+    }
+  }
+
+  @Put("/{id}/bankroll")
+  @Security("jwt")
+  public async updatePlayerBankroll(
+    @Request() req: AuthenticatedRequest,
+    @Path() id: string,
+    @Body() body: { amount: number; currency?: string }
+  ): Promise<ApiResponse<AddBankrollResponse>> {
+    try {
+      if (!req.user?.userId) {
+        this.setStatus(401);
+        return { success: false, error: "Authentication required" };
+      }
+
+      const response = await this.playerService.addToBankroll({
+        playerId: id,
+        ownerUserId: req.user.userId,
+        amount: {
+          amount: body.amount,
+          currency: body.currency || config.poker.defaultCurrency,
+        },
+      });
+      return createSuccessResponse(response);
+    } catch (error) {
+      logger.error("Error updating player bankroll", { error, id, body });
+      return this.handleError(error, API_ERROR_CODES.API_UPDATE_PLAYER_FAILED);
     }
   }
 
   @Put("/me/bankroll")
   @Security("jwt")
-  @Example<{ amount: number; currency?: string }>({
-    amount: 500,
-    currency: "USD",
-  })
   public async updateCurrentPlayerBankroll(
     @Request() req: AuthenticatedRequest,
     @Body() body: { amount: number; currency?: string }
   ): Promise<ApiResponse<AddBankrollResponse>> {
     try {
-      if (!req.user) {
+      if (!req.user?.userId) {
         this.setStatus(401);
-        return {
-          success: false,
-          error: "Authentication required",
-        };
+        return { success: false, error: "Authentication required" };
       }
 
-      // Fetch player by email from the authenticated user
-      const player = await this.playerService.getPlayerByEmail(req.user.email);
+      const defaultPlayer = await this.playerService.getDefaultPlayer(
+        req.user.userId
+      );
 
-      if (!player) {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player profile not found",
-        };
-      }
-
-      const { amount, currency } = body;
-
-      if (!amount || typeof amount !== "number") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Amount is required and must be a number",
-        };
-      }
-
-      const request: AddBankrollRequest = {
-        playerId: player.id,
+      const response = await this.playerService.addToBankroll({
+        playerId: defaultPlayer.id,
+        ownerUserId: req.user.userId,
         amount: {
-          amount,
-          currency: currency || config.poker.defaultCurrency,
+          amount: body.amount,
+          currency: body.currency || config.poker.defaultCurrency,
         },
-        reason: "Manual bankroll update",
-      };
-
-      const response = await this.playerService.addToBankroll(request);
-
-      return {
-        success: true,
-        data: response,
-      };
-    } catch (error) {
-      logger.error("Error updating current player bankroll", {
-        error,
-        userId: req.user?.googleId,
-        body,
       });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to update bankroll",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Get("/{id}")
-  public async getPlayer(
-    @Path() id: string
-  ): Promise<ApiResponse<GetPlayerResponse>> {
-    try {
-      if (!id) {
-        this.setStatus(400);
-        return createErrorResponse(
-          API_ERROR_CODES.VALIDATION_PLAYER_ID_REQUIRED,
-          400
-        );
-      }
-
-      const response = await this.playerService.getPlayer(id);
       return createSuccessResponse(response);
     } catch (error) {
-      logger.error("Error getting player", { error, id });
-      return this.handleError(error, API_ERROR_CODES.API_GET_PLAYER_FAILED);
-    }
-  }
-
-  @Get("/")
-  public async getAllPlayers(
-    @Query() page: number = 1,
-    @Query() limit: number = 10
-  ): Promise<ApiResponse<ListPlayersResponse>> {
-    try {
-      const response = await this.playerService.getAllPlayers(page, limit);
-
-      return {
-        success: true,
-        data: response,
-      };
-    } catch (error) {
-      logger.error("Error getting all players", { error });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get players",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Put("/{id}")
-  public async updatePlayer(
-    @Path() id: string,
-    @Body() body: Omit<UpdatePlayerRequest, "id">
-  ): Promise<ApiResponse<UpdatePlayerResponse>> {
-    try {
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      const { name, email } = body;
-      const request: UpdatePlayerRequest = {
-        id,
-        name,
-        email,
-      };
-
-      const response = await this.playerService.updatePlayer(request);
-
-      return {
-        success: true,
-        data: response,
-      };
-    } catch (error) {
-      logger.error("Error updating player", {
-        error,
-        id,
-        body,
-      });
-      if (error instanceof Error && error.message === "Player not found") {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player not found",
-        };
-      }
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to update player",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Post("/{id}/bankroll")
-  @Example<{ amount: number; currency?: string; reason?: string }>({
-    amount: 500,
-    currency: "USD",
-    reason: "Tournament winnings",
-  })
-  public async addToBankroll(
-    @Path() id: string,
-    @Body() body: { amount: number; currency?: string; reason?: string }
-  ): Promise<ApiResponse<AddBankrollResponse>> {
-    try {
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      const { amount, currency, reason } = body;
-
-      if (!amount || typeof amount !== "number") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Amount is required and must be a number",
-        };
-      }
-
-      const request: AddBankrollRequest = {
-        playerId: id,
-        amount: {
-          amount,
-          currency: currency || config.poker.defaultCurrency,
-        },
-        reason,
-      };
-
-      const response = await this.playerService.addToBankroll(request);
-
-      return {
-        success: true,
-        data: response,
-      };
-    } catch (error) {
-      logger.error("Error adding to bankroll", {
-        error,
-        id,
-        body,
-      });
-      if (error instanceof Error && error.message === "Player not found") {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player not found",
-        };
-      }
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to add to bankroll",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Get("/search")
-  public async searchPlayers(
-    @Query() q: string
-  ): Promise<ApiResponse<SearchPlayersResponse>> {
-    try {
-      if (!q || typeof q !== "string") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Search query is required",
-        };
-      }
-
-      // For now, return empty results - implement search logic later
-      return {
-        success: true,
-        data: {
-          players: [],
-          total: 0,
-          page: 1,
-          limit: 10,
-        },
-      };
-    } catch (error) {
-      logger.error("Error searching players", { error, query: q });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to search players",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Get("/{id}/stats")
-  public async getPlayerStats(
-    @Path() id: string
-  ): Promise<ApiResponse<PlayerStatsResponse>> {
-    try {
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      // For now, return basic stats - implement stats logic later
-      return {
-        success: true,
-        data: {
-          playerId: id,
-          totalSessions: 0,
-          totalWinnings: 0,
-          winRate: 0,
-          averageSession: 0,
-        },
-      };
-    } catch (error) {
-      logger.error("Error getting player stats", { error, id });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to get player stats",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Put("/{id}/bankroll")
-  @Example<{ amount: number; currency?: string }>({
-    amount: 1000,
-    currency: "USD",
-  })
-  public async updatePlayerBankroll(
-    @Path() id: string,
-    @Body() body: { amount: number; currency?: string }
-  ): Promise<ApiResponse<AddBankrollResponse>> {
-    try {
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      const { amount, currency } = body;
-
-      if (!amount || typeof amount !== "number") {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Amount is required and must be a number",
-        };
-      }
-
-      const request: AddBankrollRequest = {
-        playerId: id,
-        amount: {
-          amount,
-          currency: currency || config.poker.defaultCurrency,
-        },
-        reason: "Manual bankroll update",
-      };
-
-      const response = await this.playerService.addToBankroll(request);
-
-      return {
-        success: true,
-        data: response,
-      };
-    } catch (error) {
-      logger.error("Error updating player bankroll", {
-        error,
-        id,
-        body,
-      });
-      if (error instanceof Error && error.message === "Player not found") {
-        this.setStatus(404);
-        return {
-          success: false,
-          error: "Player not found",
-        };
-      }
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to update player bankroll",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  @Delete("/{id}")
-  public async deletePlayer(
-    @Path() id: string
-  ): Promise<ApiResponse<{ message: string }>> {
-    try {
-      if (!id) {
-        this.setStatus(400);
-        return {
-          success: false,
-          error: "Player ID is required",
-        };
-      }
-
-      // For now, return success - implement delete logic later
-      return {
-        success: true,
-        data: {
-          message: "Player deleted successfully",
-        },
-      };
-    } catch (error) {
-      logger.error("Error deleting player", { error, id });
-      this.setStatus(500);
-      return {
-        success: false,
-        error: "Failed to delete player",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      logger.error("Error updating current player bankroll", { error, body });
+      return this.handleError(error, API_ERROR_CODES.API_UPDATE_PLAYER_FAILED);
     }
   }
 }

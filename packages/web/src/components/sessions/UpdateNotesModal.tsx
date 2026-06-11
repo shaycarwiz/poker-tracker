@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface UpdateNotesModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export function UpdateNotesModal({
   loading,
   currentNotes,
 }: UpdateNotesModalProps) {
+  const { t } = useTranslation();
   const [notes, setNotes] = useState(currentNotes);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,7 +53,7 @@ export function UpdateNotesModal({
               <div className="sm:flex sm:items-start">
                 <div className="w-full">
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Update Session Notes
+                    {t('sessions.updateSessionNotes')}
                   </h3>
 
                   <div className="mt-4">
@@ -59,7 +61,7 @@ export function UpdateNotesModal({
                       htmlFor="notes"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Session Notes
+                      {t('sessions.sessionNotes')}
                     </label>
                     <textarea
                       id="notes"
@@ -67,12 +69,11 @@ export function UpdateNotesModal({
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      placeholder="Add notes about this session..."
+                      placeholder={t('sessions.notesPlaceholder')}
                       disabled={loading}
                     />
                     <p className="mt-2 text-sm text-gray-500">
-                      You can add any notes about the session, opponents, game
-                      conditions, etc.
+                      {t('sessions.sessionNotesHelp')}
                     </p>
                   </div>
                 </div>
@@ -85,7 +86,7 @@ export function UpdateNotesModal({
                 disabled={loading}
                 className="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                {loading ? 'Updating...' : 'Update Notes'}
+                {loading ? t('sessions.updatingNotes') : t('sessions.updateNotes')}
               </button>
               <button
                 type="button"
@@ -93,7 +94,7 @@ export function UpdateNotesModal({
                 disabled={loading}
                 className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>

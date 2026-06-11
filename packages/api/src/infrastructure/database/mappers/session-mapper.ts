@@ -1,17 +1,13 @@
-// Session data mapper - converts between domain objects and database rows
-
-import { PlayerId, Session, SessionId, Transaction } from "@/model/entities";
+import { Session, SessionId, Transaction, UserId } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { SessionStatus } from "@/model/enums";
 import { SessionRow } from "../types";
 
 export class SessionMapper {
   static toDomain(row: SessionRow, transactions: Transaction[] = []): Session {
-    // Create Session instance directly using constructor
-    // This ensures proper initialization of the domain object
     return new Session(
       new SessionId(row.id),
-      new PlayerId(row.player_id),
+      new UserId(row.owner_user_id),
       row.location,
       new Stakes(
         new Money(Number(row.small_blind), row.currency),
@@ -31,7 +27,7 @@ export class SessionMapper {
   static toPersistence(session: Session): SessionRow {
     return {
       id: session.id.value,
-      player_id: session.playerId.value,
+      owner_user_id: session.userId.value,
       location: session.location,
       small_blind: session.stakes.smallBlind.amount.toString(),
       big_blind: session.stakes.bigBlind.amount.toString(),

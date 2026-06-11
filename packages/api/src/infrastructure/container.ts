@@ -6,7 +6,11 @@ import {
   PostgresTransactionRepository,
   PostgresUnitOfWork,
 } from "./database";
-import { PlayerService, SessionService } from "@/application/services";
+import {
+  PlayerService,
+  SessionService,
+  UserService,
+} from "@/application/services";
 import { EventHandlers } from "@/application/handlers/event-handlers";
 import { SessionEventHandlers } from "@/application/handlers/session-event-handlers";
 
@@ -17,6 +21,7 @@ const transactionRepository = new PostgresTransactionRepository();
 const unitOfWork = new PostgresUnitOfWork();
 
 // Create application services
+const userService = new UserService(unitOfWork);
 const playerService = new PlayerService(unitOfWork);
 const sessionService = new SessionService(unitOfWork);
 
@@ -40,6 +45,7 @@ export const container = {
 
   // Application Services
   services: {
+    users: userService,
     players: playerService,
     sessions: sessionService,
   },

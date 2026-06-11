@@ -67,11 +67,16 @@ export function StatsCards({ playerData, playerStats }: StatsCardsProps) {
       icon: '🎯',
     },
     {
-      name: 'Net Profit/Loss',
+      name: t('dashboard.netProfitLoss'),
       value: playerStats
-        ? formatCurrency(playerStats.totalWinnings, 'USD')
-        : '$0.00',
-      change: playerStats && playerStats.totalWinnings > 0 ? '+$0' : '-$0',
+        ? formatCurrency(
+            playerStats.totalWinnings,
+            playerData?.totalWinnings.currency ||
+              preferences?.defaultCurrency ||
+              'ILS'
+          )
+        : formatCurrency(0),
+      change: '+0%',
       changeType:
         playerStats && playerStats.totalWinnings >= 0
           ? 'positive'
