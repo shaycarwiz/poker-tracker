@@ -1,6 +1,4 @@
-// Create Player Use Case
-
-import { Player } from "@/model/entities";
+import { Player, UserId } from "@/model/entities";
 import { Money } from "@/model/value-objects";
 import { logger } from "@/shared/utils/logger";
 import { config } from "@/infrastructure/config";
@@ -14,36 +12,26 @@ export class CreatePlayerUseCase extends BaseUseCase {
   async execute(request: CreatePlayerRequest): Promise<CreatePlayerResponse> {
     return this.executeWithTransaction(
       async () => {
-        // Check if player with email already exists
-        if (request.email) {
-          const existingPlayer = await this.unitOfWork.players.findByEmail(
-            request.email,
-          );
-
-          if (existingPlayer) {
-            throw new Error("Player with this email already exists");
-          }
-        }
-
         const initialBankroll = request.initialBankroll
           ? new Money(
-            request.initialBankroll.amount,
-            request.initialBankroll.currency,
-          )
+              request.initialBankroll.amount,
+              request.initialBankroll.currency
+            )
           : new Money(0, config.poker.defaultCurrency);
 
         const player = Player.create(
           request.name,
+          new UserId(request.ownerUserId),
           request.email,
-          initialBankroll,
+          initialBankroll
         );
 
         await this.unitOfWork.players.save(player);
 
         logger.info("Player created successfully", {
           playerId: player.id.value,
+          ownerUserId: request.ownerUserId,
           name: player.name,
-          email: player.email,
         });
 
         return {
@@ -58,7 +46,7 @@ export class CreatePlayerUseCase extends BaseUseCase {
         };
       },
       "CreatePlayerUseCase",
-      { request },
+      { request }
     );
   }
 }

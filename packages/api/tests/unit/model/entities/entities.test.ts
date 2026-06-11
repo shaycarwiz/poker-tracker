@@ -1,5 +1,13 @@
 import { config } from "@/infrastructure";
-import { Player, PlayerId, SessionId, TransactionId } from "@/model/entities";
+import {
+  Player,
+  PlayerId,
+  SessionId,
+  TransactionId,
+  UserId,
+} from "@/model/entities";
+
+const testUserId = new UserId("test-user-id");
 import { Money } from "@/model/value-objects";
 
 describe("ID Value Objects", () => {
@@ -69,7 +77,7 @@ describe("ID Value Objects", () => {
 describe("Player Entity", () => {
   describe("create", () => {
     it("should create player with required fields", () => {
-      const player = Player.create("John Doe");
+      const player = Player.create("John Doe", testUserId);
 
       expect(player.name).toBe("John Doe");
       expect(player.email).toBeUndefined();
@@ -80,15 +88,15 @@ describe("Player Entity", () => {
     it("should create player with email and initial bankroll", () => {
       const email = "john@example.com";
       const bankroll = new Money(1000, "USD");
-      const player = Player.create("John Doe", email, bankroll);
+      const player = Player.create("John Doe", testUserId, email, bankroll);
 
       expect(player.email).toBe(email);
       expect(player.currentBankroll).toBe(bankroll);
     });
 
     it("should generate unique ID", () => {
-      const player1 = Player.create("Player 1");
-      const player2 = Player.create("Player 2");
+      const player1 = Player.create("Player 1", testUserId);
+      const player2 = Player.create("Player 2", testUserId);
 
       expect(player1.id.value).not.toBe(player2.id.value);
     });
@@ -96,7 +104,7 @@ describe("Player Entity", () => {
 
   describe("updateBankroll", () => {
     it("should update bankroll with positive amount", () => {
-      const player = Player.create("John Doe");
+      const player = Player.create("John Doe", testUserId);
       const newBankroll = new Money(500, config.poker.defaultCurrency);
 
       player.adjustBankroll(newBankroll);
@@ -105,7 +113,7 @@ describe("Player Entity", () => {
     });
 
     it("should update bankroll with zero amount", () => {
-      const player = Player.create("John Doe");
+      const player = Player.create("John Doe", testUserId);
       const newBankroll = new Money(0, config.poker.defaultCurrency);
 
       player.adjustBankroll(newBankroll);
@@ -116,7 +124,7 @@ describe("Player Entity", () => {
 
   describe("updateEmail", () => {
     it("should update email", () => {
-      const player = Player.create("John Doe");
+      const player = Player.create("John Doe", testUserId);
       const newEmail = "newemail@example.com";
 
       player.updateEmail(newEmail);
@@ -125,7 +133,7 @@ describe("Player Entity", () => {
     });
 
     it("should clear email when set to undefined", () => {
-      const player = Player.create("John Doe", "old@example.com");
+      const player = Player.create("John Doe", testUserId, "old@example.com");
 
       player.updateEmail("");
 

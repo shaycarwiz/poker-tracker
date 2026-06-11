@@ -1,6 +1,4 @@
-// Add Bankroll Use Case
-
-import { PlayerId } from "@/model/entities";
+import { PlayerId, UserId } from "@/model/entities";
 import { Money } from "@/model/value-objects";
 import { logger } from "@/shared/utils/logger";
 import { AddBankrollRequest, AddBankrollResponse } from "../../dto/player-dto";
@@ -13,17 +11,16 @@ export class AddBankrollUseCase extends BaseUseCase {
         const playerId = new PlayerId(request.playerId);
         const player = await this.unitOfWork.players.findById(playerId);
 
-        if (!player) {
+        if (!player || !player.isOwnedBy(new UserId(request.ownerUserId))) {
           throw new Error("Player not found");
         }
 
         const amount = new Money(
           request.amount.amount,
-          request.amount.currency,
+          request.amount.currency
         );
 
         player.adjustBankroll(amount);
-
         await this.unitOfWork.players.save(player);
 
         logger.info("Bankroll added successfully", {
@@ -46,7 +43,7 @@ export class AddBankrollUseCase extends BaseUseCase {
         };
       },
       "AddBankrollUseCase",
-      { request },
+      { request }
     );
   }
 }

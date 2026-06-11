@@ -1,33 +1,6 @@
 'use client';
 
-interface Session {
-  sessionId: string;
-  playerId: string;
-  location: string;
-  stakes: {
-    smallBlind: number;
-    bigBlind: number;
-    currency: string;
-  };
-  initialBuyIn: {
-    amount: number;
-    currency: string;
-  };
-  currentCashOut?: {
-    amount: number;
-    currency: string;
-  };
-  profitLoss: {
-    amount: number;
-    currency: string;
-  };
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  transactions: any[];
-  startedAt: string;
-  endedAt?: string;
-  duration?: number;
-}
+import type { Session } from '@/types';
 
 interface PlayerStats {
   playerId: string;
@@ -58,7 +31,7 @@ export function PerformanceCharts({
     const recentSessions = sessions.slice(0, 10).reverse();
     let runningTotal = 0;
     return recentSessions.map((session) => {
-      runningTotal += session.profitLoss.amount;
+      runningTotal += session.profitLoss?.amount ?? 0;
       return {
         date: new Date(session.startedAt).toLocaleDateString('en-US', {
           month: 'short',
@@ -79,7 +52,7 @@ export function PerformanceCharts({
       const stakesKey = `${session.stakes.smallBlind}/${session.stakes.bigBlind}`;
       const current = stakesMap.get(stakesKey) || { wins: 0, total: 0 };
       current.total += 1;
-      if (session.profitLoss.amount > 0) {
+      if ((session.profitLoss?.amount ?? 0) > 0) {
         current.wins += 1;
       }
       stakesMap.set(stakesKey, current);

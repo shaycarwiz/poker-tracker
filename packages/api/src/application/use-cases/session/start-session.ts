@@ -1,6 +1,4 @@
-// Start Session Use Case
-
-import { PlayerId, Session } from "@/model/entities";
+import { PlayerId, Session, UserId } from "@/model/entities";
 import { Money, Stakes } from "@/model/value-objects";
 import { logger } from "@/shared/utils/logger";
 import {
@@ -14,11 +12,26 @@ export class StartSessionUseCase extends BaseUseCase {
   async execute(request: StartSessionRequest): Promise<StartSessionResponse> {
     return this.executeWithTransactionAndEvents(
       async () => {
-        const playerId = new PlayerId(request.playerId);
+        const userId = new UserId(request.userId);
+        const user = await this.unitOfWork.users.findById(userId);
 
-        // Check if player has an active session
+        if (!user || !user.defaultPlayerId) {
+          throw new Error("User not found");
+        }
+
+        const buyInPlayerId = new PlayerId(
+          request.initialBuyInPlayerId || user.defaultPlayerId.value
+        );
+        const buyInPlayer = await this.unitOfWork.players.findById(
+          buyInPlayerId
+        );
+
+        if (!buyInPlayer || !buyInPlayer.isOwnedBy(userId)) {
+          throw new Error("Player not found");
+        }
+
         const activeSession =
-          await this.unitOfWork.sessions.findActiveByPlayerId(playerId);
+          await this.unitOfWork.sessions.findActiveByUserId(userId);
 
         if (activeSession) {
           throw new BusinessError(
@@ -36,10 +49,11 @@ export class StartSessionUseCase extends BaseUseCase {
         );
 
         const session = Session.start(
-          playerId,
+          userId,
           request.location,
           stakes,
           initialBuyIn,
+          buyInPlayerId,
           request.notes
         );
 
@@ -47,15 +61,14 @@ export class StartSessionUseCase extends BaseUseCase {
 
         logger.info("Session started successfully", {
           sessionId: session.id.value,
-          playerId: playerId.value,
+          userId: userId.value,
           location: request.location,
-          stakes: stakes.formatted,
         });
 
         return {
           result: {
             sessionId: session.id.value,
-            playerId: playerId.value,
+            userId: userId.value,
             location: request.location,
             stakes: {
               smallBlind: stakes.smallBlind.amount,

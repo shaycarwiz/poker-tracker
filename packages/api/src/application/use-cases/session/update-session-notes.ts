@@ -1,6 +1,4 @@
-// Update Session Notes Use Case
-
-import { SessionId } from "@/model/entities";
+import { SessionId, UserId } from "@/model/entities";
 import { SessionStatus } from "@/model/enums";
 import { logger } from "@/shared/utils/logger";
 import {
@@ -11,14 +9,15 @@ import { BaseUseCase } from "../base-use-case";
 
 export class UpdateSessionNotesUseCase extends BaseUseCase {
   async execute(
-    request: UpdateSessionNotesRequest,
+    request: UpdateSessionNotesRequest
   ): Promise<UpdateSessionNotesResponse> {
     return this.executeWithTransactionAndEvents(
       async () => {
         const sessionId = new SessionId(request.sessionId);
+        const userId = new UserId(request.userId);
         const session = await this.unitOfWork.sessions.findById(sessionId);
 
-        if (!session) {
+        if (!session || !session.isOwnedBy(userId)) {
           throw new Error("Session not found");
         }
 
@@ -27,12 +26,11 @@ export class UpdateSessionNotesUseCase extends BaseUseCase {
         }
 
         session.updateNotes(request.notes);
-
         await this.unitOfWork.sessions.save(session);
 
         logger.info("Session notes updated successfully", {
           sessionId: session.id.value,
-          playerId: session.playerId.value,
+          userId: session.userId.value,
         });
 
         return {
@@ -45,7 +43,7 @@ export class UpdateSessionNotesUseCase extends BaseUseCase {
         };
       },
       "UpdateSessionNotesUseCase",
-      { request },
+      { request }
     );
   }
 }

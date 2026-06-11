@@ -4,5 +4,6 @@ export { StartSessionUseCase } from "./start-session";
 export { EndSessionUseCase } from "./end-session";
 export { AddTransactionUseCase } from "./add-transaction";
 export { GetSessionUseCase } from "./get-session";
+export { GetActiveSessionUseCase } from "./get-active-session";
 export { ListSessionsUseCase } from "./list-sessions";
 export { UpdateSessionNotesUseCase } from "./update-session-notes";

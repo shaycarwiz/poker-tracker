@@ -1,12 +1,13 @@
-// Get Player Use Case
-
-import { PlayerId } from "@/model/entities";
+import { PlayerId, UserId } from "@/model/entities";
 import { PlayerStatsService } from "@/model/domain-services";
 import { GetPlayerResponse } from "../../dto/player-dto";
 import { BaseUseCase } from "../base-use-case";
 
 export class GetPlayerUseCase extends BaseUseCase {
-  async execute(playerId: string): Promise<GetPlayerResponse> {
+  async execute(
+    playerId: string,
+    ownerUserId?: string
+  ): Promise<GetPlayerResponse> {
     return this.executeReadOnly(
       async () => {
         const id = new PlayerId(playerId);
@@ -16,8 +17,13 @@ export class GetPlayerUseCase extends BaseUseCase {
           throw new Error("Player not found");
         }
 
-        // Get player's sessions to calculate stats
-        const sessions = await this.unitOfWork.sessions.findByPlayerId(id);
+        if (ownerUserId && !player.isOwnedBy(new UserId(ownerUserId))) {
+          throw new Error("Player not found");
+        }
+
+        const sessions = await this.unitOfWork.sessions.findByUserId(
+          player.ownerUserId
+        );
         const statsService = new PlayerStatsService();
         const stats = statsService.calculateStats(player, sessions);
 
@@ -35,13 +41,12 @@ export class GetPlayerUseCase extends BaseUseCase {
             currency: stats.netProfit.currency,
           },
           winRate: stats.winRate,
-          preferredLanguage: player.preferredLanguage,
           createdAt: player.createdAt,
           updatedAt: player.updatedAt,
         };
       },
       "GetPlayerUseCase",
-      { playerId }
+      { playerId, ownerUserId }
     );
   }
 }

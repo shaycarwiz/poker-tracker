@@ -1,6 +1,5 @@
-// Player DTOs for data transfer between layers
-
 export interface CreatePlayerRequest {
+  ownerUserId: string;
   name: string;
   email?: string;
   initialBankroll?: {
@@ -22,6 +21,7 @@ export interface CreatePlayerResponse {
 
 export interface UpdatePlayerRequest {
   id: string;
+  ownerUserId: string;
   name?: string;
   email?: string;
 }
@@ -51,7 +51,6 @@ export interface GetPlayerResponse {
     currency: string;
   };
   winRate: number;
-  preferredLanguage: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,6 +64,7 @@ export interface ListPlayersResponse {
 
 export interface AddBankrollRequest {
   playerId: string;
+  ownerUserId: string;
   amount: {
     amount: number;
     currency: string;

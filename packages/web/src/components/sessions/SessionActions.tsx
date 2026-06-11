@@ -25,6 +25,7 @@ export function SessionActions({
   const isActive = session.status === 'active';
 
   const handleAddTransaction = async (
+    playerId: string,
     type: string,
     amount: { amount: number; currency: string },
     description?: string
@@ -35,6 +36,7 @@ export function SessionActions({
 
       const response = await sessionApi.addTransaction(
         session.sessionId,
+        playerId,
         type,
         amount,
         description

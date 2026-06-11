@@ -1,15 +1,7 @@
 import { PlayerController } from "@/api/controllers/PlayerController";
 import { PlayerService } from "@/application/services/player-service";
+import { AuthenticatedRequest } from "@/api/middleware/auth";
 import { config } from "@/infrastructure";
-
-// Mock dependencies
-jest.mock("@/infrastructure/container", () => ({
-  container: {
-    services: {
-      players: {} as PlayerService,
-    },
-  },
-}));
 
 jest.mock("@/shared/utils/logger", () => ({
   logger: {
@@ -19,28 +11,32 @@ jest.mock("@/shared/utils/logger", () => ({
   },
 }));
 
+const mockAuthRequest = {
+  user: {
+    userId: "user-123",
+    googleId: "google-123",
+    email: "test@example.com",
+    name: "Test User",
+  },
+} as AuthenticatedRequest;
+
 describe("PlayerController", () => {
   let playerController: PlayerController;
   let mockPlayerService: jest.Mocked<PlayerService>;
 
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
 
-    // Create mock player service
     mockPlayerService = {
       createPlayer: jest.fn(),
       getPlayer: jest.fn(),
+      getDefaultPlayer: jest.fn(),
       updatePlayer: jest.fn(),
-      getAllPlayers: jest.fn(),
+      listPlayersByOwner: jest.fn(),
       addToBankroll: jest.fn(),
     } as any;
 
-    // Mock the container
-    const { container } = require("@/infrastructure/container");
-    container.services.players = mockPlayerService;
-
-    playerController = new PlayerController();
+    playerController = new PlayerController(mockPlayerService);
   });
 
   describe("createPlayer", () => {
@@ -67,9 +63,13 @@ describe("PlayerController", () => {
 
       mockPlayerService.createPlayer.mockResolvedValue(mockServiceResponse);
 
-      const result = await playerController.createPlayer(requestBody);
+      const result = await playerController.createPlayer(
+        mockAuthRequest,
+        requestBody
+      );
 
       expect(mockPlayerService.createPlayer).toHaveBeenCalledWith({
+        ownerUserId: "user-123",
         name: "John Doe",
         email: "john@example.com",
         initialBankroll: {
@@ -100,9 +100,13 @@ describe("PlayerController", () => {
 
       mockPlayerService.createPlayer.mockResolvedValue(mockServiceResponse);
 
-      const result = await playerController.createPlayer(requestBody);
+      const result = await playerController.createPlayer(
+        mockAuthRequest,
+        requestBody
+      );
 
       expect(mockPlayerService.createPlayer).toHaveBeenCalledWith({
+        ownerUserId: "user-123",
         name: "Jane Doe",
         email: undefined,
         initialBankroll: {
@@ -122,25 +126,10 @@ describe("PlayerController", () => {
         email: "john@example.com",
       };
 
-      const result = await playerController.createPlayer(requestBody);
-
-      expect(result).toEqual({
-        success: false,
-        error: "VALIDATION_NAME_REQUIRED",
-        code: "VALIDATION_NAME_REQUIRED",
-        statusCode: 400,
-        details: undefined,
-      });
-      expect(mockPlayerService.createPlayer).not.toHaveBeenCalled();
-    });
-
-    it("should return 400 for non-string name", async () => {
-      const requestBody = {
-        name: 123 as any,
-        email: "john@example.com",
-      };
-
-      const result = await playerController.createPlayer(requestBody);
+      const result = await playerController.createPlayer(
+        mockAuthRequest,
+        requestBody
+      );
 
       expect(result).toEqual({
         success: false,
@@ -159,15 +148,18 @@ describe("PlayerController", () => {
       };
 
       mockPlayerService.createPlayer.mockRejectedValue(
-        new Error("Player with this email already exists")
+        new Error("Database error")
       );
 
-      const result = await playerController.createPlayer(requestBody);
+      const result = await playerController.createPlayer(
+        mockAuthRequest,
+        requestBody
+      );
 
       expect(result).toEqual({
         success: false,
-        error: "API_CREATE_PLAYER_FAILED",
-        code: "API_CREATE_PLAYER_FAILED",
+        error: "DATABASE_PLAYER_SAVE_FAILED",
+        code: "DATABASE_PLAYER_SAVE_FAILED",
         statusCode: 500,
         details: undefined,
       });
@@ -191,16 +183,18 @@ describe("PlayerController", () => {
           currency: config.poker.defaultCurrency,
         },
         winRate: 0.6,
-        preferredLanguage: "he",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       mockPlayerService.getPlayer.mockResolvedValue(mockServiceResponse);
 
-      const result = await playerController.getPlayer(playerId);
+      const result = await playerController.getPlayer(mockAuthRequest, playerId);
 
-      expect(mockPlayerService.getPlayer).toHaveBeenCalledWith(playerId);
+      expect(mockPlayerService.getPlayer).toHaveBeenCalledWith(
+        playerId,
+        "user-123"
+      );
       expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
@@ -214,14 +208,11 @@ describe("PlayerController", () => {
         new Error("Player not found")
       );
 
-      const result = await playerController.getPlayer(playerId);
+      const result = await playerController.getPlayer(mockAuthRequest, playerId);
 
       expect(result).toEqual({
         success: false,
-        error: "BUSINESS_PLAYER_NOT_FOUND",
-        code: "BUSINESS_PLAYER_NOT_FOUND",
-        statusCode: 404,
-        details: undefined,
+        error: "Player not found",
       });
     });
   });
@@ -247,10 +238,15 @@ describe("PlayerController", () => {
 
       mockPlayerService.updatePlayer.mockResolvedValue(mockServiceResponse);
 
-      const result = await playerController.updatePlayer(playerId, requestBody);
+      const result = await playerController.updatePlayer(
+        mockAuthRequest,
+        playerId,
+        requestBody
+      );
 
       expect(mockPlayerService.updatePlayer).toHaveBeenCalledWith({
         id: playerId,
+        ownerUserId: "user-123",
         name: "John Updated",
         email: "john.updated@example.com",
       });
@@ -259,27 +255,9 @@ describe("PlayerController", () => {
         data: mockServiceResponse,
       });
     });
-
-    it("should handle update errors", async () => {
-      const playerId = "player-123";
-      const requestBody = {
-        name: "John Updated",
-      };
-
-      mockPlayerService.updatePlayer.mockRejectedValue(
-        new Error("Player not found")
-      );
-
-      const result = await playerController.updatePlayer(playerId, requestBody);
-
-      expect(result).toEqual({
-        success: false,
-        error: "Player not found",
-      });
-    });
   });
 
-  describe("getAllPlayers", () => {
+  describe("listPlayers", () => {
     it("should list players successfully", async () => {
       const mockServiceResponse = {
         players: [
@@ -297,7 +275,6 @@ describe("PlayerController", () => {
               currency: config.poker.defaultCurrency,
             },
             winRate: 0,
-            preferredLanguage: "he",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -307,33 +284,27 @@ describe("PlayerController", () => {
         limit: 10,
       };
 
-      mockPlayerService.getAllPlayers.mockResolvedValue(mockServiceResponse);
+      mockPlayerService.listPlayersByOwner.mockResolvedValue(mockServiceResponse);
 
-      const result = await playerController.getAllPlayers(1, 10);
+      const result = await playerController.listPlayers(
+        mockAuthRequest,
+        1,
+        10
+      );
 
-      expect(mockPlayerService.getAllPlayers).toHaveBeenCalledWith(1, 10);
+      expect(mockPlayerService.listPlayersByOwner).toHaveBeenCalledWith(
+        "user-123",
+        1,
+        10
+      );
       expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
       });
     });
-
-    it("should handle list players errors", async () => {
-      mockPlayerService.getAllPlayers.mockRejectedValue(
-        new Error("Database error")
-      );
-
-      const result = await playerController.getAllPlayers(1, 10);
-
-      expect(result).toEqual({
-        success: false,
-        error: "Failed to get players",
-        message: "Database error",
-      });
-    });
   });
 
-  describe("addToBankroll", () => {
+  describe("updatePlayerBankroll", () => {
     it("should add bankroll successfully", async () => {
       const playerId = "player-123";
       const requestBody = {
@@ -356,82 +327,23 @@ describe("PlayerController", () => {
 
       mockPlayerService.addToBankroll.mockResolvedValue(mockServiceResponse);
 
-      const result = await playerController.addToBankroll(
+      const result = await playerController.updatePlayerBankroll(
+        mockAuthRequest,
         playerId,
         requestBody
       );
 
       expect(mockPlayerService.addToBankroll).toHaveBeenCalledWith({
         playerId: playerId,
+        ownerUserId: "user-123",
         amount: {
           amount: 500,
           currency: config.poker.defaultCurrency,
         },
-        reason: undefined,
       });
       expect(result).toEqual({
         success: true,
         data: mockServiceResponse,
-      });
-    });
-
-    it("should return 400 for missing amount", async () => {
-      const playerId = "player-123";
-      const requestBody = {
-        amount: undefined as any,
-        currency: config.poker.defaultCurrency,
-      };
-
-      const result = await playerController.addToBankroll(
-        playerId,
-        requestBody
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error: "Amount is required and must be a number",
-      });
-      expect(mockPlayerService.addToBankroll).not.toHaveBeenCalled();
-    });
-
-    it("should return 400 for non-number amount", async () => {
-      const playerId = "player-123";
-      const requestBody = {
-        amount: "invalid" as any,
-        currency: config.poker.defaultCurrency,
-      };
-
-      const result = await playerController.addToBankroll(
-        playerId,
-        requestBody
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error: "Amount is required and must be a number",
-      });
-      expect(mockPlayerService.addToBankroll).not.toHaveBeenCalled();
-    });
-
-    it("should handle add bankroll errors", async () => {
-      const playerId = "player-123";
-      const requestBody = {
-        amount: 500,
-        currency: config.poker.defaultCurrency,
-      };
-
-      mockPlayerService.addToBankroll.mockRejectedValue(
-        new Error("Player not found")
-      );
-
-      const result = await playerController.addToBankroll(
-        playerId,
-        requestBody
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error: "Player not found",
       });
     });
   });

@@ -1,7 +1,7 @@
 // PostgreSQL implementation of SessionRepository
 
 import { injectable } from "tsyringe";
-import { PlayerId, Session, SessionId, Transaction } from "@/model/entities";
+import { Session, SessionId, Transaction, UserId } from "@/model/entities";
 import { SessionRepository } from "@/model/repositories";
 import { DatabaseConnection } from "../connection";
 import { SessionMapper } from "../mappers/session-mapper";
@@ -38,82 +38,79 @@ export class PostgresSessionRepository implements SessionRepository {
     }
   }
 
-  async findByPlayerId(playerId: PlayerId): Promise<Session[]> {
+  async findByUserId(userId: UserId): Promise<Session[]> {
     try {
       const result = await this.db.query<SessionRow>(
-        "SELECT * FROM sessions WHERE player_id = $1 ORDER BY start_time DESC",
-        [playerId.value]
+        "SELECT * FROM sessions WHERE owner_user_id = $1 ORDER BY start_time DESC",
+        [userId.value]
       );
 
       if (result.rows.length === 0) return [];
 
       return await this.mapSessionsWithTransactions(result.rows);
     } catch (error) {
-      logger.error("Error finding sessions by player ID", {
-        playerId: playerId.value,
+      logger.error("Error finding sessions by user ID", {
+        userId: userId.value,
         error,
       });
       throw new Error("Failed to find sessions");
     }
   }
 
-  async findActiveByPlayerId(playerId: PlayerId): Promise<Session | null> {
+  async findActiveByUserId(userId: UserId): Promise<Session | null> {
     try {
       const result = await this.db.query<SessionRow>(
-        "SELECT * FROM sessions WHERE player_id = $1 AND status = $2",
-        [playerId.value, SessionStatus.ACTIVE]
+        "SELECT * FROM sessions WHERE owner_user_id = $1 AND status = $2",
+        [userId.value, SessionStatus.ACTIVE]
       );
 
-      if (!result.rows[0] || result.rows.length === 0) return null;
+      if (!result.rows[0]) return null;
 
       const sessionId = new SessionId(result.rows[0].id);
       const transactions = await this.loadTransactionsForSession(sessionId);
 
       return SessionMapper.toDomain(result.rows[0], transactions);
     } catch (error) {
-      logger.error("Error finding active session by player ID", {
-        playerId: playerId.value,
+      logger.error("Error finding active session by user ID", {
+        userId: userId.value,
         error,
       });
       throw new Error("Failed to find active session");
     }
   }
 
-  async findCompletedByPlayerId(playerId: PlayerId): Promise<Session[]> {
+  async findCompletedByUserId(userId: UserId): Promise<Session[]> {
     try {
       const result = await this.db.query<SessionRow>(
-        "SELECT * FROM sessions WHERE player_id = $1 AND status = $2 ORDER BY start_time DESC",
-        [playerId.value, SessionStatus.COMPLETED]
+        "SELECT * FROM sessions WHERE owner_user_id = $1 AND status = $2 ORDER BY start_time DESC",
+        [userId.value, SessionStatus.COMPLETED]
       );
 
-      if (!result.rows[0] || result.rows.length === 0) return [];
+      if (result.rows.length === 0) return [];
 
       return await this.mapSessionsWithTransactions(result.rows);
     } catch (error) {
-      logger.error("Error finding completed sessions by player ID", {
-        playerId: playerId.value,
+      logger.error("Error finding completed sessions by user ID", {
+        userId: userId.value,
         error,
       });
       throw new Error("Failed to find completed sessions");
     }
   }
 
-  async findRecentByPlayerId(
-    playerId: PlayerId,
-    limit: number
-  ): Promise<Session[]> {
+  async findRecentByUserId(userId: UserId, limit: number): Promise<Session[]> {
     try {
       const result = await this.db.query<SessionRow>(
-        "SELECT * FROM sessions WHERE player_id = $1 ORDER BY start_time DESC LIMIT $2",
-        [playerId.value, limit]
+        "SELECT * FROM sessions WHERE owner_user_id = $1 ORDER BY start_time DESC LIMIT $2",
+        [userId.value, limit]
       );
 
-      if (!result.rows[0] || result.rows.length === 0) return [];
+      if (result.rows.length === 0) return [];
 
       return await this.mapSessionsWithTransactions(result.rows);
     } catch (error) {
-      logger.error("Error finding recent sessions by player ID", {
-        playerId: playerId.value,
+      logger.error("Error finding recent sessions by user ID", {
+        userId: userId.value,
         error,
       });
       throw new Error("Failed to find recent sessions");
@@ -129,10 +126,10 @@ export class PostgresSessionRepository implements SessionRepository {
       const params: unknown[] = [];
       let paramCount = 0;
 
-      if (filters.playerId) {
+      if (filters.userId) {
         paramCount++;
-        baseQuery += ` AND player_id = $${paramCount}`;
-        params.push(filters.playerId);
+        baseQuery += ` AND owner_user_id = $${paramCount}`;
+        params.push(filters.userId);
       }
 
       if (filters.status) {
@@ -203,7 +200,7 @@ export class PostgresSessionRepository implements SessionRepository {
       // Save the session data
       await this.db.query(
         `
-        INSERT INTO sessions (id, player_id, location, small_blind, big_blind, ante, currency, start_time, end_time, status, notes, created_at, updated_at)
+        INSERT INTO sessions (id, owner_user_id, location, small_blind, big_blind, ante, currency, start_time, end_time, status, notes, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         ON CONFLICT (id) DO UPDATE SET
           location = EXCLUDED.location,
@@ -219,7 +216,7 @@ export class PostgresSessionRepository implements SessionRepository {
       `,
         [
           data.id,
-          data.player_id,
+          data.owner_user_id,
           data.location,
           data.small_blind,
           data.big_blind,

@@ -12,6 +12,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { playerApi, sessionApi } from '@/lib/api-client';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type { Session } from '@/types';
 
 interface PlayerData {
   id: string;
@@ -37,35 +38,6 @@ interface PlayerStats {
   totalWinnings: number;
   winRate: number;
   averageSession: number;
-}
-
-interface Session {
-  sessionId: string;
-  playerId: string;
-  location: string;
-  stakes: {
-    smallBlind: number;
-    bigBlind: number;
-    currency: string;
-  };
-  initialBuyIn: {
-    amount: number;
-    currency: string;
-  };
-  currentCashOut?: {
-    amount: number;
-    currency: string;
-  };
-  profitLoss: {
-    amount: number;
-    currency: string;
-  };
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  transactions: any[];
-  startedAt: string;
-  endedAt?: string;
-  duration?: number;
 }
 
 export function DashboardContent() {

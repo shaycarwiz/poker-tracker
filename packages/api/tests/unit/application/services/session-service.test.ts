@@ -10,6 +10,9 @@ jest.mock("@/shared/utils/logger", () => ({
   },
 }));
 
+const testUserId = "user-123";
+const testPlayerId = "player-123";
+
 describe("SessionService", () => {
   let sessionService: SessionService;
   let mockUnitOfWork: jest.Mocked<UnitOfWork>;
@@ -34,7 +37,7 @@ describe("SessionService", () => {
   describe("startSession", () => {
     it("should start session successfully", async () => {
       const request = {
-        playerId: "player-123",
+        userId: testUserId,
         location: "Casino Royale",
         stakes: {
           smallBlind: 1,
@@ -47,7 +50,7 @@ describe("SessionService", () => {
 
       const mockResponse = {
         id: "session-123",
-        playerId: "player-123",
+        playerId: testPlayerId,
         location: "Casino Royale",
         stakes: {
           smallBlind: { amount: 1, currency: "USD" },
@@ -74,7 +77,7 @@ describe("SessionService", () => {
 
     it("should handle start session errors", async () => {
       const request = {
-        playerId: "player-123",
+        userId: testUserId,
         location: "Casino Royale",
         stakes: {
           smallBlind: 1,
@@ -99,13 +102,15 @@ describe("SessionService", () => {
     it("should end session successfully", async () => {
       const request = {
         sessionId: "session-123",
+        userId: testUserId,
+        playerId: testPlayerId,
         finalCashOut: { amount: 150, currency: "USD" },
         notes: "Ended session",
       };
 
       const mockResponse = {
         id: "session-123",
-        playerId: "player-123",
+        playerId: testPlayerId,
         status: "COMPLETED",
         startTime: new Date(),
         endTime: new Date(),
@@ -129,6 +134,8 @@ describe("SessionService", () => {
     it("should handle end session errors", async () => {
       const request = {
         sessionId: "session-123",
+        userId: testUserId,
+        playerId: testPlayerId,
         finalCashOut: { amount: 150, currency: "USD" },
       };
 
@@ -147,15 +154,17 @@ describe("SessionService", () => {
     it("should add transaction successfully", async () => {
       const request = {
         sessionId: "session-123",
+        userId: testUserId,
+        playerId: testPlayerId,
         type: "BUY_IN",
         amount: { amount: 50, currency: "USD" },
-        notes: "Additional buy-in",
+        description: "Additional buy-in",
       };
 
       const mockResponse = {
         id: "transaction-123",
         sessionId: "session-123",
-        playerId: "player-123",
+        playerId: testPlayerId,
         type: "BUY_IN",
         amount: { amount: 50, currency: "USD" },
         timestamp: new Date(),
@@ -176,6 +185,8 @@ describe("SessionService", () => {
     it("should handle add transaction errors", async () => {
       const request = {
         sessionId: "session-123",
+        userId: testUserId,
+        playerId: testPlayerId,
         type: "BUY_IN",
         amount: { amount: 50, currency: "USD" },
       };
@@ -196,7 +207,7 @@ describe("SessionService", () => {
       const sessionId = "session-123";
       const mockResponse = {
         id: "session-123",
-        playerId: "player-123",
+        playerId: testPlayerId,
         location: "Casino Royale",
         stakes: {
           smallBlind: { amount: 1, currency: "USD" },
@@ -217,7 +228,10 @@ describe("SessionService", () => {
 
       const result = await sessionService.getSession(sessionId);
 
-      expect(mockGetSessionUseCase.execute).toHaveBeenCalledWith(sessionId);
+      expect(mockGetSessionUseCase.execute).toHaveBeenCalledWith(
+        sessionId,
+        undefined
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -238,16 +252,16 @@ describe("SessionService", () => {
   describe("listSessions", () => {
     it("should list sessions successfully", async () => {
       const request = {
-        playerId: "player-123",
+        userId: testUserId,
         limit: 10,
-        offset: 0,
+        page: 1,
       };
 
       const mockResponse = {
         sessions: [
           {
             id: "session-123",
-            playerId: "player-123",
+            playerId: testPlayerId,
             location: "Casino Royale",
             status: "COMPLETED",
             startTime: new Date(),
@@ -257,7 +271,7 @@ describe("SessionService", () => {
         ],
         total: 1,
         limit: 10,
-        offset: 0,
+        page: 1,
       };
 
       const mockListSessionsUseCase = {
@@ -273,9 +287,9 @@ describe("SessionService", () => {
 
     it("should handle list sessions errors", async () => {
       const request = {
-        playerId: "player-123",
+        userId: testUserId,
         limit: 10,
-        offset: 0,
+        page: 1,
       };
 
       const mockListSessionsUseCase = {

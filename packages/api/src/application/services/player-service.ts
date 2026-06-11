@@ -1,15 +1,12 @@
-// Player application service - Orchestrates use cases
-
 import { injectable, inject } from "tsyringe";
 import { UnitOfWork } from "@/model/repositories";
 import {
   AddBankrollUseCase,
   CreatePlayerUseCase,
+  GetDefaultPlayerUseCase,
   GetPlayerUseCase,
-  GetPlayerByEmailUseCase,
   ListPlayersUseCase,
   UpdatePlayerUseCase,
-  UpdatePlayerPreferencesUseCase,
 } from "../use-cases/players";
 import {
   AddBankrollRequest,
@@ -21,31 +18,23 @@ import {
   UpdatePlayerRequest,
   UpdatePlayerResponse,
 } from "../dto/player-dto";
-import {
-  UpdatePlayerPreferencesRequest,
-  UpdatePlayerPreferencesResponse,
-} from "../use-cases/players/update-player-preferences";
 
 @injectable()
 export class PlayerService {
   private createPlayerUseCase: CreatePlayerUseCase;
   private updatePlayerUseCase: UpdatePlayerUseCase;
   private getPlayerUseCase: GetPlayerUseCase;
-  private getPlayerByEmailUseCase: GetPlayerByEmailUseCase;
+  private getDefaultPlayerUseCase: GetDefaultPlayerUseCase;
   private listPlayersUseCase: ListPlayersUseCase;
   private addBankrollUseCase: AddBankrollUseCase;
-  private updatePlayerPreferencesUseCase: UpdatePlayerPreferencesUseCase;
 
   constructor(@inject("UnitOfWork") unitOfWork: UnitOfWork) {
     this.createPlayerUseCase = new CreatePlayerUseCase(unitOfWork);
     this.updatePlayerUseCase = new UpdatePlayerUseCase(unitOfWork);
     this.getPlayerUseCase = new GetPlayerUseCase(unitOfWork);
-    this.getPlayerByEmailUseCase = new GetPlayerByEmailUseCase(unitOfWork);
+    this.getDefaultPlayerUseCase = new GetDefaultPlayerUseCase(unitOfWork);
     this.listPlayersUseCase = new ListPlayersUseCase(unitOfWork);
     this.addBankrollUseCase = new AddBankrollUseCase(unitOfWork);
-    this.updatePlayerPreferencesUseCase = new UpdatePlayerPreferencesUseCase(
-      unitOfWork
-    );
   }
 
   async createPlayer(
@@ -60,30 +49,28 @@ export class PlayerService {
     return await this.updatePlayerUseCase.execute(request);
   }
 
-  async getPlayer(playerId: string): Promise<GetPlayerResponse> {
-    return await this.getPlayerUseCase.execute(playerId);
+  async getPlayer(
+    playerId: string,
+    ownerUserId?: string
+  ): Promise<GetPlayerResponse> {
+    return await this.getPlayerUseCase.execute(playerId, ownerUserId);
   }
 
-  async getAllPlayers(
+  async getDefaultPlayer(userId: string): Promise<GetPlayerResponse> {
+    return await this.getDefaultPlayerUseCase.execute(userId);
+  }
+
+  async listPlayersByOwner(
+    ownerUserId: string,
     page: number = 1,
     limit: number = 10
   ): Promise<ListPlayersResponse> {
-    return await this.listPlayersUseCase.execute(page, limit);
+    return await this.listPlayersUseCase.execute(ownerUserId, page, limit);
   }
 
   async addToBankroll(
     request: AddBankrollRequest
   ): Promise<AddBankrollResponse> {
     return await this.addBankrollUseCase.execute(request);
-  }
-
-  async getPlayerByEmail(email: string): Promise<GetPlayerResponse> {
-    return await this.getPlayerByEmailUseCase.execute(email);
-  }
-
-  async updatePlayerPreferences(
-    request: UpdatePlayerPreferencesRequest
-  ): Promise<UpdatePlayerPreferencesResponse> {
-    return await this.updatePlayerPreferencesUseCase.execute(request);
   }
 }
